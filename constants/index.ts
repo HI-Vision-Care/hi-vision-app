@@ -1,3 +1,32 @@
+import arrow from "@/assets/icons/arrow.png";
+import arrowBack from "@/assets/icons/arrowBack.png";
+import email from "@/assets/icons/email.png";
+import eyeOff from "@/assets/icons/eyeOff.png";
+import eyeOpen from "@/assets/icons/eyeOpen.png";
+import google from "@/assets/icons/google.png";
+import key from "@/assets/icons/key.png";
+import password from "@/assets/icons/password.png";
+import phone from "@/assets/icons/phone.png";
+import warning from "@/assets/icons/solidWarning.png";
+import passwordSent from "@/assets/images/imagePasswordSent.png";
+
+export const images = {
+  passwordSent,
+};
+
+export const icons = {
+  email,
+  password,
+  eyeOpen,
+  arrow,
+  google,
+  eyeOff,
+  warning,
+  arrowBack,
+  key,
+  phone,
+};
+
 export const onboarding = [
   {
     id: 1,
