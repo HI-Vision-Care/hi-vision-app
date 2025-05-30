@@ -79,7 +79,7 @@ const Home = () => {
             ? router.replace("/(auth)/sign-up")
             : swiperRef.current?.scrollBy(1)
         }
-        className="absolute bottom-6 right-6 w-20 h-20 bg-[#242e49] rounded-xl justify-center items-center"
+        className="absolute bottom-12 right-6 w-20 h-20 bg-[#242e49] rounded-xl justify-center items-center"
       >
         <Image
           source={icons.arrow}
