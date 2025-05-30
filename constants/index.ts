@@ -9,6 +9,7 @@ import password from "@/assets/icons/password.png";
 import phone from "@/assets/icons/phone.png";
 import warning from "@/assets/icons/solidWarning.png";
 import passwordSent from "@/assets/images/imagePasswordSent.png";
+import logo from "@/assets/images/logo.png";
 import onboarding1 from "@/assets/images/onboarding1.png";
 import onboarding2 from "@/assets/images/onboarding2.png";
 import onboarding3 from "@/assets/images/onboarding3.png";
@@ -19,6 +20,7 @@ import welcome from "@/assets/images/welcome.png";
 export const images = {
   passwordSent,
   welcome,
+  logo,
   onboarding1,
   onboarding2,
   onboarding3,
