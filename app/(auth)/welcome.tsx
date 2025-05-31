@@ -30,7 +30,7 @@ const Home = () => {
           onPress={() => router.replace("/(auth)/sign-up")}
           className="px-2 py-1"
         >
-          <Text className="text-[#242e49] font-JakartaBold">Skip</Text>
+          <Text className="text-[#242e49] ">Skip</Text>
         </TouchableOpacity>
       </View>
 

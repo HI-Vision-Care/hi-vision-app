@@ -1,62 +1,58 @@
-import { Text, TouchableOpacity } from "react-native";
+// components/CustomButton.js
+import React from "react";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 
-import { ButtonProps } from "@/types/type";
-
-const getBgVariantStyle = (variant: ButtonProps["bgVariant"]) => {
-  switch (variant) {
-    case "secondary":
-      return "bg-gray-500";
-    case "danger":
-      return "bg-red-500";
-    case "success":
-      return "bg-green-500";
-    case "outline":
-      return "bg-transparent border-neutral-300 border-[0.5px]";
-    default:
-      return "bg-[#0286FF]";
-  }
-};
-
-const getTextVariantStyle = (variant: ButtonProps["textVariant"]) => {
-  switch (variant) {
-    case "primary":
-      return "text-black";
-    case "secondary":
-      return "text-gray-100";
-    case "danger":
-      return "text-red-100";
-    case "success":
-      return "text-green-100";
-    default:
-      return "text-white";
-  }
-};
-
-const CustomButton = ({
-  onPress,
+export default function CustomButton({
   title,
-  bgVariant = "primary",
-  textVariant = "default",
-  IconLeft,
-  IconRight,
-  className,
-  ...props
-}: ButtonProps) => {
+  onPress,
+  variant = "primary", // 'primary' | 'outline' | 'secondary'
+  disabled = false,
+  isLoading = false,
+  className = "",
+  leftIcon = null,
+  rightIcon = null,
+}: CustomButtonProps) {
+  const variants = {
+    primary: "bg-blue-500",
+    outline: "border border-blue-500 bg-transparent",
+    secondary: "bg-gray-200",
+  };
+
+  const baseClass = variants[variant] || variants.primary;
+  const disableClass = disabled ? "opacity-50" : "opacity-100";
+
   return (
     <TouchableOpacity
       onPress={onPress}
-      className={`w-full rounded-full p-3 flex flex-row justify-center items-center shadow-md shadow-neutral-400/70 ${getBgVariantStyle(
-        bgVariant
-      )} ${className}`}
-      {...props}
+      disabled={disabled || isLoading}
+      className={`
+        ${baseClass}
+        ${disableClass}
+        rounded-2xl        /* bo góc 2xl giống nền code gốc */
+        px-6 py-4          /* padding giống code gốc */
+        flex-row items-center justify-center
+        ${className}
+      `}
+      activeOpacity={0.8}
     >
-      {IconLeft && <IconLeft />}
-      <Text className={`text-lg font-bold ${getTextVariantStyle(textVariant)}`}>
-        {title}
-      </Text>
-      {IconRight && <IconRight />}
+      {isLoading ? (
+        <ActivityIndicator
+          color={variant === "outline" ? "#3b82f6" : "white"}
+        />
+      ) : (
+        <>
+          {leftIcon && <View className="mr-2">{leftIcon}</View>}
+          <Text
+            className={`
+              ${variant === "outline" ? "text-blue-500" : "text-white"}
+              text-lg font-semibold
+            `}
+          >
+            {title}
+          </Text>
+          {rightIcon && <View className="ml-2">{rightIcon}</View>}
+        </>
+      )}
     </TouchableOpacity>
   );
-};
-
-export default CustomButton;
+}

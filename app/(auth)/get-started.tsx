@@ -1,3 +1,4 @@
+import CustomButton from "@/components/CustomButton"; // path tùy cấu trúc project
 import { icons, images } from "@/constants";
 import { router } from "expo-router";
 import React from "react";
@@ -37,28 +38,25 @@ const GetStarted = () => {
         <View className="flex-1 items-center justify-center mb-8">
           <Image
             source={images.welcome}
-            className="w-96 h-96"
+            className="w-[500px] h-[500px]"
             resizeMode="contain"
           />
         </View>
 
-        {/* Get Started Button */}
-        <TouchableOpacity
+        {/* Get Started Button (dùng CustomButton) */}
+        <CustomButton
+          title="Get Started"
           onPress={() => router.replace("/(auth)/welcome")}
-          activeOpacity={0.8}
-          className="bg-blue-500 rounded-2xl py-4 px-6 mb-4 mx-6 shadow-lg"
-        >
-          <View className="flex-row items-center justify-center">
-            <Text className="text-white text-lg font-semibold mr-2">
-              Get Started
-            </Text>
+          variant="primary"
+          className="mb-4 mx-6 shadow-lg"
+          rightIcon={
             <Image
               source={icons.arrow}
               className="w-6 h-6"
               resizeMode="contain"
             />
-          </View>
-        </TouchableOpacity>
+          }
+        />
 
         {/* Sign In Link */}
         <View className="flex-row justify-center mb-8">
@@ -80,4 +78,5 @@ const GetStarted = () => {
     </SafeAreaView>
   );
 };
+
 export default GetStarted;
