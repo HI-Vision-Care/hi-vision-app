@@ -80,3 +80,40 @@ export const onboarding = [
     image: images.onboarding5,
   },
 ];
+
+export const resetOptions = [
+  {
+    id: 1,
+    title: "Send via Email",
+    description: "Reset password via email.",
+    icon: icons.email,
+    // bạn có thể thêm route hoặc key để xử lý navigation:
+    // route: "ResetWithEmail"
+  },
+  {
+    id: 2,
+    title: "Send via 2FA",
+    description: "Reset password via 2FA.",
+    icon: icons.password,
+    // route: "ResetWith2FA"
+  },
+  {
+    id: 3,
+    title: "Send via Google Auth",
+    description: "Reset password via G-Auth.",
+    icon: icons.key,
+    // route: "ResetWithGoogle"
+  },
+  {
+    id: 4,
+    title: "Send via SMS",
+    description: "Reset password via SMS.",
+    icon: icons.phone,
+    // route: "ResetWithSMS"
+  },
+];
+
+export const data = {
+  onboarding,
+  resetOptions,
+};
