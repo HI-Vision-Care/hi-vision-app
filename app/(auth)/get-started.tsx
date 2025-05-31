@@ -29,8 +29,8 @@ const GetStarted = () => {
             Welcome to
           </Text>
           <Text className="text-3xl font-bold text-center">
-            <Text className="text-blue-500">asklepios</Text>
-            <Text className="text-gray-900"> UI Kit</Text>
+            <Text className="text-blue-500">HI</Text>
+            <Text className="text-gray-900">-Vision</Text>
           </Text>
         </View>
 
