@@ -32,3 +32,14 @@ declare interface CustomButtonProps {
   leftIcon?: React.ReactNode; // <-- cho phép nhận React element
   rightIcon?: React.ReactNode; // <-- cho phép nhận React element
 }
+
+declare interface InputFieldProps extends TextInputProps {
+  label: string;
+  icon?: any;
+  secureTextEntry?: boolean;
+  labelStyle?: string;
+  containerStyle?: string;
+  inputStyle?: string;
+  iconStyle?: string;
+  className?: string;
+}
