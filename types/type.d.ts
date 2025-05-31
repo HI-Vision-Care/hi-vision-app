@@ -21,3 +21,14 @@ declare interface ButtonProps extends TouchableOpacityProps {
   IconRight?: React.ComponentType<any>;
   className?: string;
 }
+
+declare interface CustomButtonProps {
+  title: string;
+  onPress: (event: GestureResponderEvent) => void;
+  variant?: "primary" | "outline" | "secondary";
+  disabled?: boolean;
+  isLoading?: boolean;
+  className?: string;
+  leftIcon?: React.ReactNode; // <-- cho phép nhận React element
+  rightIcon?: React.ReactNode; // <-- cho phép nhận React element
+}
