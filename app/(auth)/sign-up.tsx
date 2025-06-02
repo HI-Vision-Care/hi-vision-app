@@ -2,7 +2,7 @@
 
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
-import { icons } from "@/constants";
+import { icons, images } from "@/constants";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { Image, StatusBar, Text, TouchableOpacity, View } from "react-native";
@@ -12,13 +12,19 @@ import {
 } from "react-native-safe-area-context";
 
 const SignUp: React.FC = () => {
-  const [email, setEmail] = useState("elementary221@gmail.com");
-  const [password, setPassword] = useState("");
-  // Lấy inset top/bottom để xử lý notch & navigation bar
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState<string>("");
   const insets = useSafeAreaInsets();
 
-  const handleSignIn = () => {
-    console.log("User tries to sign in with:", email, password);
+  const handleSignUp = () => {
+    console.log(
+      "User tries to sign up with:",
+      email,
+      password,
+      passwordConfirmation
+    );
+    // TODO: kiểm tra password vs passwordConfirmation, rồi tiến hành đăng ký
   };
 
   return (
@@ -42,8 +48,12 @@ const SignUp: React.FC = () => {
         }}
       >
         <View className="items-center">
-          <View className="w-8 h-8 bg-white rounded-full items-center justify-center mb-4">
-            <Text className="text-gray-700 text-xl font-bold">+</Text>
+          <View className="w-8 h-8  items-center justify-center mb-4">
+            <Image
+              source={images.logo}
+              className="w-14 h-14"
+              resizeMode="contain"
+            />
           </View>
           <Text className="text-white text-2xl font-semibold">Sign Up</Text>
         </View>
@@ -70,9 +80,18 @@ const SignUp: React.FC = () => {
           onChangeText={setPassword}
         />
 
+        <InputField
+          label="Password Confirmation"
+          icon={icons.password}
+          placeholder="Confirm your password"
+          secureTextEntry={true}
+          value={passwordConfirmation} // dùng state mới
+          onChangeText={setPasswordConfirmation}
+        />
+
         <CustomButton
           title="Sign Up"
-          onPress={handleSignIn}
+          onPress={handleSignUp}
           variant="primary"
           className="mb-6 mx-0 shadow-lg"
           rightIcon={
@@ -110,9 +129,9 @@ const SignUp: React.FC = () => {
         </TouchableOpacity>
 
         {/* Sign Up Link */}
-        <View className="flex-row justify-center mb-8">
+        <View className="flex-row justify-center mb-8 ">
           <Text className="text-gray-600 text-base">
-            Already have an account?
+            Already have an account?{" "}
           </Text>
           <TouchableOpacity onPress={() => router.push("/(auth)/sign-in")}>
             <Text className="text-red-500 font-medium underline text-base">
