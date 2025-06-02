@@ -69,11 +69,6 @@ const GetStarted = () => {
             </Text>
           </TouchableOpacity>
         </View>
-
-        {/* Home Indicator */}
-        <View className="items-center pb-2">
-          <View className="w-32 h-1 bg-gray-800 rounded-full" />
-        </View>
       </View>
     </SafeAreaView>
   );
