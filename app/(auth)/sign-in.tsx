@@ -12,20 +12,17 @@ import {
 } from "react-native-safe-area-context";
 
 const SignIn: React.FC = () => {
-  const [email, setEmail] = useState("elementary221@gmail.com");
-  const [password, setPassword] = useState("");
-  // Lấy inset top/bottom để xử lý notch & navigation bar
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const insets = useSafeAreaInsets();
 
   const handleSignIn = () => {
     console.log("User tries to sign in with:", email, password);
+    // TODO: Thêm logic xác thực ở đây
   };
 
   return (
-    // Chỉ safe-area cho 'bottom' để tránh navigation bar ở Android/iOS,
-    // không áp cho 'top' để background header tràn lên notch
     <SafeAreaView edges={["bottom"]} className="flex-1 bg-white">
-      {/* Đặt StatusBar trong suốt để background view dưới nó (header) hiển thị xuyên lên notch */}
       <StatusBar
         translucent
         backgroundColor="transparent"
@@ -36,9 +33,8 @@ const SignIn: React.FC = () => {
       <View
         className="bg-gray-700 rounded-b-3xl items-center justify-center px-6"
         style={{
-          // Đặt chiều cao header = base height + inset top để background phủ hết notch
-          height: 150 + insets.top, // 48 tương đương h-12 (khoảng 192px/4 = 48pt), thay đổi tùy ý
-          paddingTop: insets.top, // Đẩy nội dung bên trong xuống dưới notch
+          height: 150 + insets.top,
+          paddingTop: insets.top,
         }}
       >
         <View className="items-center">
@@ -51,6 +47,7 @@ const SignIn: React.FC = () => {
 
       {/* === Content phía dưới Header === */}
       <View className="flex-1 px-6 py-8">
+        {/* Input Email */}
         <InputField
           label="Email Address"
           icon={icons.email}
@@ -61,6 +58,7 @@ const SignIn: React.FC = () => {
           onChangeText={setEmail}
         />
 
+        {/* Input Password */}
         <InputField
           label="Password"
           icon={icons.password}
@@ -70,6 +68,18 @@ const SignIn: React.FC = () => {
           onChangeText={setPassword}
         />
 
+        {/* === Forgot Password Link === */}
+        <View className="w-full flex-row justify-end mb-6">
+          <TouchableOpacity
+            onPress={() => router.push("/(auth)/forgot-password")}
+          >
+            <Text className="text-red-500 font-medium underline text-sm">
+              Forgot Password?
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Sign In Button */}
         <CustomButton
           title="Sign In"
           onPress={handleSignIn}
@@ -112,7 +122,7 @@ const SignIn: React.FC = () => {
         {/* Sign Up Link */}
         <View className="flex-row justify-center mb-8">
           <Text className="text-gray-600 text-base">
-            Don’t have an account?{" "}
+            Don&apos;t have an account?{" "}
           </Text>
           <TouchableOpacity onPress={() => router.push("/(auth)/sign-up")}>
             <Text className="text-red-500 font-medium underline text-base">
