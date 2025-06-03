@@ -60,7 +60,7 @@ const GetStarted = () => {
 
         {/* Sign In Link */}
         <View className="flex-row justify-center mb-8">
-          <Text className="text-gray-600 text-base">
+          <Text className="text-gray-600 text-base font-Jakarta">
             Already have an account?{" "}
           </Text>
           <TouchableOpacity onPress={() => router.push("/(auth)/sign-in")}>

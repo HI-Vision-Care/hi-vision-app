@@ -1,5 +1,4 @@
-// src/screens/SignIn.tsx
-
+// src/screens/SignIn.tsx  (thực ra là SignUp nhưng bạn đặt tên SignIn, mình giữ nguyên)
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import { icons, images } from "@/constants";
@@ -15,23 +14,32 @@ const SignUp: React.FC = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [passwordConfirmation, setPasswordConfirmation] = useState<string>("");
+
+  // 1. State để lưu lỗi (nếu có)
+  const [errorMessage, setErrorMessage] = useState<string>("");
+
   const insets = useSafeAreaInsets();
 
+  // 2. handleSignUp bây giờ kiểm tra password match trước khi "submit"
   const handleSignUp = () => {
+    // Nếu hai mật khẩu không khớp, gán errorMessage và return luôn
+    if (password !== passwordConfirmation) {
+      setErrorMessage("ERROR: Password do not match!");
+      return;
+    }
+    // Ngược lại, reset error, rồi tiếp tục logic đăng ký (chưa có backend thì chỉ console.log)
+    setErrorMessage("");
     console.log(
       "User tries to sign up with:",
       email,
       password,
       passwordConfirmation
     );
-    // TODO: kiểm tra password vs passwordConfirmation, rồi tiến hành đăng ký
+    // TODO: nếu có backend, gọi API đăng ký ở đây
   };
 
   return (
-    // Chỉ safe-area cho 'bottom' để tránh navigation bar ở Android/iOS,
-    // không áp cho 'top' để background header tràn lên notch
     <SafeAreaView edges={["bottom"]} className="flex-1 bg-white">
-      {/* Đặt StatusBar trong suốt để background view dưới nó (header) hiển thị xuyên lên notch */}
       <StatusBar
         translucent
         backgroundColor="transparent"
@@ -42,9 +50,8 @@ const SignUp: React.FC = () => {
       <View
         className="bg-gray-700 rounded-b-3xl items-center justify-center px-6"
         style={{
-          // Đặt chiều cao header = base height + inset top để background phủ hết notch
-          height: 150 + insets.top, // 48 tương đương h-12 (khoảng 192px/4 = 48pt), thay đổi tùy ý
-          paddingTop: insets.top, // Đẩy nội dung bên trong xuống dưới notch
+          height: 150 + insets.top,
+          paddingTop: insets.top,
         }}
       >
         <View className="items-center">
@@ -61,6 +68,7 @@ const SignUp: React.FC = () => {
 
       {/* === Content phía dưới Header === */}
       <View className="flex-1 px-6 py-8">
+        {/* Input Email */}
         <InputField
           label="Email Address"
           icon={icons.email}
@@ -68,25 +76,41 @@ const SignUp: React.FC = () => {
           keyboardType="email-address"
           autoCapitalize="none"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(text) => {
+            setEmail(text);
+            // Nếu user thay đổi email, xoá lỗi cũ (nếu có)
+            if (errorMessage) setErrorMessage("");
+          }}
         />
 
+        {/* Input Password */}
         <InputField
           label="Password"
           icon={icons.password}
           placeholder="Enter your password"
           secureTextEntry={true}
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(text) => {
+            setPassword(text);
+            // Xoá lỗi khi user đang nhập lại mật khẩu
+            if (errorMessage) setErrorMessage("");
+          }}
         />
 
+        {/* Input Password Confirmation */}
         <InputField
           label="Password Confirmation"
           icon={icons.password}
           placeholder="Confirm your password"
           secureTextEntry={true}
-          value={passwordConfirmation} // dùng state mới
-          onChangeText={setPasswordConfirmation}
+          value={passwordConfirmation}
+          onChangeText={(text) => {
+            setPasswordConfirmation(text);
+            // Xoá lỗi khi user gõ lại confirm
+            if (errorMessage) setErrorMessage("");
+          }}
+          // 3. Truyền errorMessage xuống để InputField tự vẽ khung đỏ + hiển thị box lỗi
+          errorMessage={errorMessage}
         />
 
         <CustomButton
@@ -128,7 +152,7 @@ const SignUp: React.FC = () => {
           <Text className="text-gray-700 text-2xl font-bold">G</Text>
         </TouchableOpacity>
 
-        {/* Sign Up Link */}
+        {/* Link to Sign In */}
         <View className="flex-row justify-center mb-8 ">
           <Text className="text-gray-600 text-base">
             Already have an account?{" "}

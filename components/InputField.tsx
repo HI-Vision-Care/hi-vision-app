@@ -1,4 +1,3 @@
-// components/InputField.tsx
 import { icons } from "@/constants";
 import { InputFieldProps } from "@/types/type";
 import React, { useState } from "react";
@@ -21,6 +20,8 @@ const InputField: React.FC<InputFieldProps> = ({
   placeholder,
   value,
   onChangeText,
+  errorMessage, // chuỗi lỗi (nếu có)
+  errorIcon, // icon báo lỗi (nếu muốn custom), mặc định dùng icons.warning
   containerStyle = "",
   labelStyle = "",
   inputStyle = "",
@@ -30,10 +31,22 @@ const InputField: React.FC<InputFieldProps> = ({
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  // Giá trị icon lỗi mặc định
+  const _errorIcon = errorIcon ?? icons.warning;
+
+  // Nếu đang có lỗi, override màu viền và nền
+  const borderColor = errorMessage
+    ? "border-red-500"
+    : isFocused
+    ? "border-blue-500"
+    : "border-gray-300";
+
+  // Nếu có lỗi, nền container thành hồng nhạt, còn không thì trắng
+  const backgroundColor = errorMessage ? "bg-red-50" : "bg-white";
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      // w-full mb-4 từ Tailwind
       className="w-full mb-4"
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -47,12 +60,12 @@ const InputField: React.FC<InputFieldProps> = ({
             </Text>
           )}
 
-          {/* --- Container input với height cố định và border-2 --- */}
+          {/* === Container input chính === */}
           <View
             className={`
-              flex-row items-center bg-white rounded-xl
-              border-2
-              ${isFocused ? "border-blue-500" : "border-gray-300"}
+              flex-row items-center rounded-xl
+              border-2 ${borderColor}
+              ${backgroundColor}
               px-4 h-16
               ${containerStyle}
             `}
@@ -61,16 +74,12 @@ const InputField: React.FC<InputFieldProps> = ({
             {icon && (
               <Image
                 source={icon}
-                className={`w-5 h-5 mr-3 ${iconStyle}`}
+                className={`w-6 h-6 mr-3 ${iconStyle}`}
                 resizeMode="contain"
               />
             )}
 
-            {/* 
-              TextInput: 
-              - flex-1 h-full text-gray-800 text-base là class Tailwind
-              - includeFontPadding + style={{ paddingVertical: 0 }} để iOS căn giữa
-            */}
+            {/* TextInput */}
             <TextInput
               className={`flex-1 h-full text-gray-800 text-base ${inputStyle}`}
               placeholder={placeholder}
@@ -86,7 +95,7 @@ const InputField: React.FC<InputFieldProps> = ({
               {...props}
             />
 
-            {/* Eye toggle nếu secureTextEntry=true */}
+            {/* Eye toggle nếu đây là trường mật khẩu */}
             {secureTextEntry && (
               <TouchableOpacity
                 onPress={() => setShowPassword((prev) => !prev)}
@@ -108,6 +117,26 @@ const InputField: React.FC<InputFieldProps> = ({
               </TouchableOpacity>
             )}
           </View>
+
+          {/* === Nếu có lỗi, hiển thị box thông báo lỗi bên dưới === */}
+          {errorMessage && (
+            <View
+              className="
+                flex-row items-center
+                bg-red-50 border-2 border-red-500
+                rounded-xl px-4 py-3 mt-2
+              "
+            >
+              <Image
+                source={_errorIcon}
+                className="w-5 h-5 mr-2"
+                resizeMode="contain"
+              />
+              <Text className="text-red-600 text-base font-medium">
+                {errorMessage}
+              </Text>
+            </View>
+          )}
         </View>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>

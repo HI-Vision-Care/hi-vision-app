@@ -2,7 +2,7 @@
 
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
-import { icons } from "@/constants";
+import { icons, images } from "@/constants";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { Image, StatusBar, Text, TouchableOpacity, View } from "react-native";
@@ -38,8 +38,12 @@ const SignIn: React.FC = () => {
         }}
       >
         <View className="items-center">
-          <View className="w-8 h-8 bg-white rounded-full items-center justify-center mb-4">
-            <Text className="text-gray-700 text-xl font-bold">+</Text>
+          <View className="w-8 h-8  items-center justify-center mb-4">
+            <Image
+              source={images.logo}
+              className="w-14 h-14"
+              resizeMode="contain"
+            />
           </View>
           <Text className="text-white text-2xl font-semibold">Sign In</Text>
         </View>
