@@ -1,5 +1,4 @@
-// src/screens/ForgotPassword.tsx
-
+import PasswordSentModal from "@/components/PasswordSentModal";
 import ResetOptionCard from "@/components/ResetOptionCard";
 import { icons } from "@/constants";
 import { useRouter } from "expo-router";
@@ -12,7 +11,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-// **Quan trọng**: import SafeAreaView từ react-native-safe-area-context
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -22,8 +20,24 @@ const ForgotPassword: React.FC = () => {
   const insets = useSafeAreaInsets();
   const nav = useRouter();
 
-  // State chọn option nào đang active
-  const [selectedOption, setSelectedOption] = useState<string>("2fa");
+  const [selectedOption, setSelectedOption] = useState<string>("");
+  const [showEmailModal, setShowEmailModal] = useState<boolean>(false);
+  const [emailToSend, setEmailToSend] = useState<string>("elem221b@gmail.com");
+
+  const handleResetPress = () => {
+    if (selectedOption === "email") {
+      setShowEmailModal(true);
+      // TODO: Gọi API gửi mail lần đầu
+    } else {
+      // TODO: Xử lý 2FA / Google / SMS
+      console.log("Reset bằng:", selectedOption);
+    }
+  };
+
+  const handleResendCode = () => {
+    // TODO: Gọi API resend code
+    console.log("Re-send code đến:", emailToSend);
+  };
 
   return (
     // Dùng SafeAreaView từ `react-native-safe-area-context`
@@ -120,10 +134,7 @@ const ForgotPassword: React.FC = () => {
         <TouchableOpacity
           activeOpacity={0.8}
           className="w-full bg-blue-600 rounded-xl py-4 flex-row items-center justify-center"
-          onPress={() => {
-            console.log("Reset Password pressed với option:", selectedOption);
-            // TODO: logic call API hoặc chuyển screen tiếp theo
-          }}
+          onPress={handleResetPress}
         >
           <Text className="text-white text-lg font-semibold mr-2">
             Reset Password
@@ -136,6 +147,14 @@ const ForgotPassword: React.FC = () => {
           />
         </TouchableOpacity>
       </View>
+
+      {/* MODAL Password Sent (sử dụng NativeWind) */}
+      <PasswordSentModal
+        visible={showEmailModal}
+        email={emailToSend}
+        onResend={handleResendCode}
+        onClose={() => setShowEmailModal(false)}
+      />
     </SafeAreaView>
   );
 };

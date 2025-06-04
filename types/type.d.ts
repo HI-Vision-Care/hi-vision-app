@@ -37,9 +37,7 @@ declare interface CustomButtonProps {
 
 declare interface InputFieldProps extends TextInputProps {
   label?: string;
-
   icon?: ImageSourcePropType;
-
   secureTextEntry?: boolean;
   errorMessage?: string;
   errorIcon?: any;
@@ -47,4 +45,19 @@ declare interface InputFieldProps extends TextInputProps {
   labelStyle?: string;
   inputStyle?: string;
   iconStyle?: string;
+}
+
+declare interface ResetOptionCardProps {
+  icon: any; // Icon object (ví dụ icons.email)
+  title: string; // "Send via Email"
+  subtitle: string; // "Reset password via email."
+  selected?: boolean;
+  onPress: () => void;
+}
+
+declare interface PasswordSentModalProps {
+  visible: boolean;
+  email: string;
+  onResend: () => void;
+  onClose: () => void;
 }

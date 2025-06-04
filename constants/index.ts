@@ -1,6 +1,7 @@
 import arrow from "@/assets/icons/arrow.png";
 import arrowBack from "@/assets/icons/arrowBack.png";
 import chevronRight from "@/assets/icons/chevronRight.png";
+import close from "@/assets/icons/close.png";
 import email from "@/assets/icons/email.png";
 import eyeOff from "@/assets/icons/eyeOff.png";
 import eyeOpen from "@/assets/icons/eyeOpen.png";
@@ -41,6 +42,7 @@ export const icons = {
   key,
   phone,
   chevronRight,
+  close,
 };
 
 export const onboarding = [
