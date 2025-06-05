@@ -61,3 +61,15 @@ declare interface PasswordSentModalProps {
   onResend: () => void;
   onClose: () => void;
 }
+
+declare interface PhoneInputProps {
+  value: string;
+  onChangeText: (text: string) => void;
+  onCountryPress?: () => void;
+}
+
+declare interface OTPInputProps {
+  length?: number;
+  onComplete?: (otp: string) => void;
+  onChangeText?: (otp: string) => void;
+}

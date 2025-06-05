@@ -1,4 +1,3 @@
-// src/screens/SignIn.tsx  (thực ra là SignUp nhưng bạn đặt tên SignIn, mình giữ nguyên)
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import { icons, images } from "@/constants";

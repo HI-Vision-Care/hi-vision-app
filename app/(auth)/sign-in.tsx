@@ -1,5 +1,3 @@
-// src/screens/SignIn.tsx
-
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import { icons, images } from "@/constants";

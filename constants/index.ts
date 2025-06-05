@@ -1,5 +1,6 @@
 import arrow from "@/assets/icons/arrow.png";
 import arrowBack from "@/assets/icons/arrowBack.png";
+import chevronLeft from "@/assets/icons/chevronleft.png";
 import chevronRight from "@/assets/icons/chevronRight.png";
 import close from "@/assets/icons/close.png";
 import email from "@/assets/icons/email.png";
@@ -17,6 +18,7 @@ import onboarding2 from "@/assets/images/onboarding2.png";
 import onboarding3 from "@/assets/images/onboarding3.png";
 import onboarding4 from "@/assets/images/onboarding4.png";
 import onboarding5 from "@/assets/images/onboarding5.png";
+import otp from "@/assets/images/otp.png";
 import welcome from "@/assets/images/welcome.png";
 
 export const images = {
@@ -28,6 +30,7 @@ export const images = {
   onboarding3,
   onboarding4,
   onboarding5,
+  otp,
 };
 
 export const icons = {
@@ -43,6 +46,7 @@ export const icons = {
   phone,
   chevronRight,
   close,
+  chevronLeft,
 };
 
 export const onboarding = [
