@@ -1,7 +1,7 @@
 import PasswordSentModal from "@/components/PasswordSentModal";
 import ResetOptionCard from "@/components/ResetOptionCard";
 import { icons } from "@/constants";
-import { useRouter } from "expo-router";
+import { router, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   Image,
@@ -120,7 +120,7 @@ const ForgotPassword: React.FC = () => {
           title="Send via SMS"
           subtitle="Reset password via SMS."
           selected={selectedOption === "sms"}
-          onPress={() => setSelectedOption("sms")}
+          onPress={() => router.push("/(account-setup)/otp-setup")}
         />
       </ScrollView>
 

@@ -1,15 +1,34 @@
+import activityWalking from "@/assets/icons/activityWalking.png";
+import add from "@/assets/icons/add.png";
+import apple from "@/assets/icons/apple.png";
 import arrow from "@/assets/icons/arrow.png";
 import arrowBack from "@/assets/icons/arrowBack.png";
+import bed from "@/assets/icons/bed.png";
+import bell from "@/assets/icons/bell.png";
+import calendar from "@/assets/icons/calendar.png";
+import chevronLeft from "@/assets/icons/chevronleft.png";
 import chevronRight from "@/assets/icons/chevronRight.png";
 import close from "@/assets/icons/close.png";
+import dinner from "@/assets/icons/dinner.png";
 import email from "@/assets/icons/email.png";
 import eyeOff from "@/assets/icons/eyeOff.png";
 import eyeOpen from "@/assets/icons/eyeOpen.png";
+import gear from "@/assets/icons/gear.png";
 import google from "@/assets/icons/google.png";
+import healthPlus from "@/assets/icons/healthPlus.png";
+import heart from "@/assets/icons/heart.svg";
+import heartBeat from "@/assets/icons/heartBeat.svg";
+import home2 from "@/assets/icons/home2.png";
 import key from "@/assets/icons/key.png";
+import outline from "@/assets/icons/outline.png";
 import password from "@/assets/icons/password.png";
 import phone from "@/assets/icons/phone.png";
+import question from "@/assets/icons/question.png";
+import search from "@/assets/icons/search.png";
 import warning from "@/assets/icons/solidWarning.png";
+import sportsBallel from "@/assets/icons/sportsBallel.png";
+import star from "@/assets/icons/star.png";
+import stats from "@/assets/icons/stats.png";
 import passwordSent from "@/assets/images/imagePasswordSent.png";
 import logo from "@/assets/images/logo.png";
 import onboarding1 from "@/assets/images/onboarding1.png";
@@ -17,6 +36,7 @@ import onboarding2 from "@/assets/images/onboarding2.png";
 import onboarding3 from "@/assets/images/onboarding3.png";
 import onboarding4 from "@/assets/images/onboarding4.png";
 import onboarding5 from "@/assets/images/onboarding5.png";
+import otp from "@/assets/images/otp.png";
 import welcome from "@/assets/images/welcome.png";
 
 export const images = {
@@ -28,6 +48,7 @@ export const images = {
   onboarding3,
   onboarding4,
   onboarding5,
+  otp,
 };
 
 export const icons = {
@@ -43,6 +64,25 @@ export const icons = {
   phone,
   chevronRight,
   close,
+  chevronLeft,
+  bell,
+  calendar,
+  search,
+  healthPlus,
+  star,
+  heart,
+  heartBeat,
+  apple,
+  activityWalking,
+  sportsBallel,
+  bed,
+  question,
+  home2,
+  add,
+  dinner,
+  stats,
+  gear,
+  outline,
 };
 
 export const onboarding = [

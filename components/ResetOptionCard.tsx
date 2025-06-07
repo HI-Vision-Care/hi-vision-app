@@ -1,4 +1,3 @@
-// src/components/ResetOptionCard.tsx
 import { icons } from "@/constants";
 import { ResetOptionCardProps } from "@/types/type";
 import React from "react";
