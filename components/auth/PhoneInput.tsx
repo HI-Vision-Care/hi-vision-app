@@ -1,5 +1,5 @@
 import { icons } from "@/constants";
-import { PhoneInputProps } from "@/types/type";
+import { PhoneInputProps } from "@/models/auth/auth.types";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import type React from "react";

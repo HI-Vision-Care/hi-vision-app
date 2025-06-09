@@ -1,4 +1,4 @@
-import CustomButton from "@/components/CustomButton";
+import CustomButton from "@/components/common/CustomButton";
 import { icons, images } from "@/constants";
 import { PasswordSentModalProps } from "@/types/type";
 import React from "react";

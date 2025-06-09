@@ -1,6 +1,5 @@
-import PasswordSentModal from "@/components/PasswordSentModal";
-import ResetOptionCard from "@/components/ResetOptionCard";
 import { icons } from "@/constants";
+import { PasswordSentModal, ResetOptionCard } from "@components";
 import { router, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {

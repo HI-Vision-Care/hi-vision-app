@@ -10,6 +10,7 @@ import chevronLeft from "@/assets/icons/chevronleft.png";
 import chevronRight from "@/assets/icons/chevronRight.png";
 import close from "@/assets/icons/close.png";
 import dinner from "@/assets/icons/dinner.png";
+import dropletWater from "@/assets/icons/dropletWater.png";
 import email from "@/assets/icons/email.png";
 import eyeOff from "@/assets/icons/eyeOff.png";
 import eyeOpen from "@/assets/icons/eyeOpen.png";
@@ -37,6 +38,7 @@ import onboarding3 from "@/assets/images/onboarding3.png";
 import onboarding4 from "@/assets/images/onboarding4.png";
 import onboarding5 from "@/assets/images/onboarding5.png";
 import otp from "@/assets/images/otp.png";
+import robot from "@/assets/images/robot.png";
 import welcome from "@/assets/images/welcome.png";
 
 export const images = {
@@ -49,6 +51,7 @@ export const images = {
   onboarding4,
   onboarding5,
   otp,
+  robot,
 };
 
 export const icons = {
@@ -83,6 +86,7 @@ export const icons = {
   stats,
   gear,
   outline,
+  dropletWater,
 };
 
 export const onboarding = [
@@ -154,6 +158,52 @@ export const resetOptions = [
     description: "Reset password via SMS.",
     icon: icons.phone,
     // route: "ResetWithSMS"
+  },
+];
+
+// constants/fitnessTracker.js
+export const fitnessTracker = [
+  {
+    id: 1,
+    title: "Calories Burned",
+    icon: { name: "flame", color: "#EF4444", bg: "bg-red-100" },
+    currentValue: 500,
+    targetValue: 2000,
+    unit: "kcal",
+    type: "linear",
+  },
+  {
+    id: 2,
+    title: "Steps Taken",
+    icon: { name: "walk", color: "#3B82F6", bg: "bg-blue-100" },
+    description: "You've taken 1000 steps",
+    type: "status",
+  },
+  {
+    id: 3,
+    title: "Nutrition",
+    icon: { name: "nutrition", color: "#10B981", bg: "bg-green-100" },
+    tags: ["Vitamin A", "Ibuprofen", "2x"],
+    type: "tags",
+  },
+  {
+    id: 4,
+    title: "Sleep",
+    icon: { name: "moon", color: "#8B5CF6", bg: "bg-purple-100" },
+    currentValue: 11,
+    targetValue: 36,
+    unit: "Monthly Circadian",
+    progress: 0.25,
+    type: "circular",
+  },
+  {
+    id: 5,
+    title: "Hydration",
+    icon: { name: "water", color: "#3B82F6", bg: "bg-blue-100" },
+    currentValue: 700,
+    targetValue: 2000,
+    unit: "ml",
+    type: "linear",
   },
 ];
 

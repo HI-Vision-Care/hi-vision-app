@@ -1,5 +1,5 @@
-import CustomButton from "@/components/CustomButton"; // path tùy cấu trúc project
 import { icons, images } from "@/constants";
+import { CustomButton } from "@components";
 import { router } from "expo-router";
 import React from "react";
 import { Image, StatusBar, Text, TouchableOpacity, View } from "react-native";

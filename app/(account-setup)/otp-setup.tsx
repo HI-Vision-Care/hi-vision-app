@@ -1,6 +1,5 @@
-import CustomButton from "@/components/CustomButton";
-import PhoneInput from "@/components/PhoneInput";
 import { icons, images } from "@/constants";
+import { CustomButton, PhoneInput } from "@components";
 import { router, useRouter } from "expo-router";
 import { useState } from "react";
 import {

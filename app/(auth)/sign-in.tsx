@@ -1,6 +1,5 @@
-import CustomButton from "@/components/CustomButton";
-import InputField from "@/components/InputField";
 import { icons, images } from "@/constants";
+import { CustomButton, InputField } from "@components";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { Image, StatusBar, Text, TouchableOpacity, View } from "react-native";

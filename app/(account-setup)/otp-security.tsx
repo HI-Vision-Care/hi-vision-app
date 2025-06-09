@@ -1,5 +1,5 @@
-import OTPInput from "@/components/OtpCode";
 import { icons } from "@/constants";
+import { OtpCode } from "@components";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -75,7 +75,7 @@ const OtpSecurity: React.FC = () => {
 
         {/* OTPInput (4 ô) */}
         <View className="mb-6">
-          <OTPInput
+          <OtpCode
             length={4}
             onComplete={handleComplete}
             onChangeText={setOtpValue}
