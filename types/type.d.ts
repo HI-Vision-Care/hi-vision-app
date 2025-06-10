@@ -67,3 +67,18 @@ declare interface InputFieldProps extends TextInputProps {
   inputStyle?: string;
   iconStyle?: string;
 }
+
+declare interface HealthBackground {
+  goal?: string;
+  gender?: string;
+  weight?: number;
+  weightUnit?: "lbs" | "kg";
+  age?: number;
+  bloodType?: string;
+}
+
+
+declare interface HBContextType  {
+  data: HealthBackground;
+  setData: React.Dispatch<React.SetStateAction<HealthBackground>>;
+};

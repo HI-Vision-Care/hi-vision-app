@@ -16,7 +16,11 @@ import onboarding3 from "@/assets/images/onboarding3.png";
 import onboarding4 from "@/assets/images/onboarding4.png";
 import onboarding5 from "@/assets/images/onboarding5.png";
 import welcome from "@/assets/images/welcome.png";
-
+import weight from "@/assets/icons/weight.png";
+import phone2 from "@/assets/icons/phone2.png";
+import meds from "@/assets/icons/meds.png";
+import healthy from "@/assets/icons/healthy.png";
+import ai from "@/assets/icons/ai.png";
 export const images = {
   passwordSent,
   welcome,
@@ -39,6 +43,11 @@ export const icons = {
   arrowBack,
   key,
   phone,
+  ai,
+  weight,
+  meds,
+  phone2,
+  healthy,
 };
 
 export const onboarding = [
@@ -113,7 +122,36 @@ export const resetOptions = [
   },
 ];
 
+export const goalOptions = [
+  {
+    id: 1,
+    title: "I wanna get healthy",
+    icon: icons.healthy,
+  },
+  {
+    id: 2,
+    title: "I wanna lose weight",
+    icon: icons.weight,
+  },
+  {
+    id: 3,
+    title: "I wanna try AI Chatbot",
+    icon: icons.ai,
+  },
+  {
+    id: 4,
+    title: "I wanna manage meds",
+    icon: icons.meds,
+  },
+  {
+    id: 5,
+    title: "Just trying out the app",
+    icon: icons.phone2,
+  },
+];
+
 export const data = {
   onboarding,
   resetOptions,
+  goalOptions,
 };
