@@ -1,5 +1,7 @@
 import { icons, images } from "@/constants";
+import { useSignUp } from "@/services/auth/hooks";
 import { CustomButton, InputField } from "@components";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { Image, StatusBar, Text, TouchableOpacity, View } from "react-native";
@@ -9,6 +11,7 @@ import {
 } from "react-native-safe-area-context";
 
 const SignUp: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [passwordConfirmation, setPasswordConfirmation] = useState<string>("");
@@ -16,24 +19,27 @@ const SignUp: React.FC = () => {
   // 1. State để lưu lỗi (nếu có)
   const [errorMessage, setErrorMessage] = useState<string>("");
 
-  const insets = useSafeAreaInsets();
+  // React Query mutation
+  const { mutateAsync: signUp, isLoading } = useSignUp();
 
-  // 2. handleSignUp bây giờ kiểm tra password match trước khi "submit"
-  const handleSignUp = () => {
-    // Nếu hai mật khẩu không khớp, gán errorMessage và return luôn
+  const handleSignUp = async () => {
+    // Validate passwords match
     if (password !== passwordConfirmation) {
-      setErrorMessage("ERROR: Password do not match!");
+      setErrorMessage("Passwords do not match");
       return;
     }
-    // Ngược lại, reset error, rồi tiếp tục logic đăng ký (chưa có backend thì chỉ console.log)
     setErrorMessage("");
-    console.log(
-      "User tries to sign up with:",
-      email,
-      password,
-      passwordConfirmation
-    );
-    // TODO: nếu có backend, gọi API đăng ký ở đây
+
+    try {
+      // Call hook: use email input as 'username' for BE
+      const { token } = await signUp({ username: email, password });
+
+      // Save token and navigate to Home
+      await AsyncStorage.setItem("token", token);
+      router.replace("/(root)/(tabs)/home");
+    } catch (err: any) {
+      setErrorMessage(err.message || "Sign up failed. Please try again.");
+    }
   };
 
   return (
@@ -76,9 +82,11 @@ const SignUp: React.FC = () => {
           value={email}
           onChangeText={(text) => {
             setEmail(text);
-            // Nếu user thay đổi email, xoá lỗi cũ (nếu có)
-            if (errorMessage) setErrorMessage("");
+            setErrorMessage("");
           }}
+          errorMessage={
+            errorMessage.includes("email") ? errorMessage : undefined
+          }
         />
 
         {/* Input Password */}
@@ -90,26 +98,30 @@ const SignUp: React.FC = () => {
           value={password}
           onChangeText={(text) => {
             setPassword(text);
-            // Xoá lỗi khi user đang nhập lại mật khẩu
-            if (errorMessage) setErrorMessage("");
+            setErrorMessage("");
           }}
         />
 
         {/* Input Password Confirmation */}
         <InputField
-          label="Password Confirmation"
+          label="Confirm Password"
           icon={icons.password}
           placeholder="Confirm your password"
-          secureTextEntry={true}
+          secureTextEntry
           value={passwordConfirmation}
           onChangeText={(text) => {
             setPasswordConfirmation(text);
-            // Xoá lỗi khi user gõ lại confirm
-            if (errorMessage) setErrorMessage("");
+            setErrorMessage("");
           }}
-          // 3. Truyền errorMessage xuống để InputField tự vẽ khung đỏ + hiển thị box lỗi
-          errorMessage={errorMessage}
+          errorMessage={
+            errorMessage.includes("match") ? errorMessage : undefined
+          }
         />
+
+        {/* Error Message */}
+        {errorMessage && !errorMessage.includes("match") && (
+          <Text className="text-red-500 mb-2">{errorMessage}</Text>
+        )}
 
         <CustomButton
           title="Sign Up"
