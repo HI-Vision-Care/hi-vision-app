@@ -37,7 +37,7 @@ const OnboardingLayout: React.FC<OnboardingLayoutProps> = ({
   children,
 }) => {
   return (
-    <SafeAreaView className={`flex-1 bg-gray-50 ${className}`.trim()}>
+    <SafeAreaView className={`flex-1 bg-[#f2f5f9] ${className}`.trim()}>
       {/* Header */}
       <View className="flex-row items-center justify-between px-5 py-4">
         {/* Back Button */}

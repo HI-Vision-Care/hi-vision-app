@@ -1,26 +1,15 @@
 import { OnboardingLayout } from "@/components";
+import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
 import { MaterialIcons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
-import { router } from "expo-router";
 import type React from "react";
 import { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
 const PatientWeight: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [weight, setWeight] = useState<number>(70);
-
-  const handleContinue = () => {
-    // TODO: replace "NextScreen" with your next route name
-    router.replace("/(onboarding)/patient-age");
-  };
-
-  const handleBack = () => {
-    router.canGoBack();
-  };
-
-  const handleSkip = () => {
-    console.log("Skipped gender selection");
-  };
+  const { handleContinue, handleBack, handleSkip, progress } =
+    useOnboardingNavigation();
 
   const adjustWeight = (increment: number) => {
     const newWeight = Math.max(30, Math.min(200, weight + increment));
@@ -30,7 +19,7 @@ const PatientWeight: React.FC<{ navigation: any }> = ({ navigation }) => {
   return (
     <OnboardingLayout
       question="What's Your Current Weight?"
-      progress={0.3}
+      progress={progress}
       onContinue={handleContinue}
       onBack={handleBack}
       onSkip={handleSkip}

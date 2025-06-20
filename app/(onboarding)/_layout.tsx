@@ -9,6 +9,12 @@ export default function OnboardingLayout() {
       <Stack.Screen name="patient-goal" options={{ headerShown: false }} />
       <Stack.Screen name="patient-weight" options={{ headerShown: false }} />
       <Stack.Screen name="patient-blood" options={{ headerShown: false }} />
+      <Stack.Screen name="patient-eating" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="patient-medication"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen name="patient-symptoms" options={{ headerShown: false }} />
     </Stack>
   );
 }

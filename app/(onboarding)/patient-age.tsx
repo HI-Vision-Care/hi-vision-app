@@ -1,6 +1,6 @@
 "use client";
 import { OnboardingLayout } from "@/components";
-import { router } from "expo-router";
+import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -26,6 +26,8 @@ const PatientAge: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [age, setAge] = useState<number>(19);
   const listRef = useRef<FlatList<number>>(null);
   const isScrolling = useRef(false);
+  const { handleContinue, handleBack, handleSkip, progress } =
+    useOnboardingNavigation();
 
   // Scroll to initial age on mount
   useEffect(() => {
@@ -39,18 +41,6 @@ const PatientAge: React.FC<{ navigation: any }> = ({ navigation }) => {
       }, 100);
     }
   }, []);
-
-  const handleContinue = () => {
-    router.replace("/(onboarding)/patient-age");
-  };
-
-  const handleBack = () => {
-    router.canGoBack();
-  };
-
-  const handleSkip = () => {
-    console.log("Skipped gender selection");
-  };
 
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (!isScrolling.current) return;
@@ -147,7 +137,7 @@ const PatientAge: React.FC<{ navigation: any }> = ({ navigation }) => {
   return (
     <OnboardingLayout
       question="What is your age?"
-      progress={0.2}
+      progress={progress}
       onContinue={handleContinue}
       onBack={handleBack}
       onSkip={handleSkip}

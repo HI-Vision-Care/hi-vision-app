@@ -1,6 +1,6 @@
 import { GenderCard, OnboardingLayout } from "@/components";
 import { icons, images } from "@/constants";
-import { router } from "expo-router";
+import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
 import { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
@@ -37,21 +37,11 @@ const CARD_WIDTH = 288;
 
 const GenderSelection: React.FC = () => {
   const [selectedGender, setSelectedGender] = useState<string>("male");
+  const { handleContinue, handleBack, handleSkip, progress } =
+    useOnboardingNavigation();
 
   const handleGenderSelect = (genderId: string) => {
     setSelectedGender(genderId);
-  };
-
-  const handleContinue = () => {
-    router.push("/(onboarding)/patient-weight");
-  };
-
-  const handleSkip = () => {
-    console.log("Skipped gender selection");
-  };
-
-  const handleBack = () => {
-    console.log("Going back");
   };
 
   // Update selectedGender based on scroll position
@@ -63,7 +53,7 @@ const GenderSelection: React.FC = () => {
   return (
     <OnboardingLayout
       question="What is your Gender?"
-      progress={0.2}
+      progress={progress}
       onBack={handleBack}
       onSkip={handleSkip}
       onContinue={handleContinue}

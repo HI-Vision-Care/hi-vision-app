@@ -1,12 +1,14 @@
 import { OnboardingLayout } from "@/components";
 import { goals } from "@/constants";
-import { router } from "expo-router";
+import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
 import type React from "react";
 import { useState } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 
 const PatientGoal: React.FC = () => {
   const [selected, setSelected] = useState<string[]>(["lose_weight"]);
+  const { handleContinue, handleBack, handleSkip, progress } =
+    useOnboardingNavigation();
 
   const toggleGoal = (id: string) => {
     setSelected((prev) =>
@@ -14,22 +16,10 @@ const PatientGoal: React.FC = () => {
     );
   };
 
-  const handleContinue = () => {
-    router.replace("/(onboarding)/patient-gender");
-  };
-
-  const handleSkip = () => {
-    router.replace("/(root)/(tabs)/home");
-  };
-
-  const handleBack = () => {
-    router.back();
-  };
-
   return (
     <OnboardingLayout
       question="What is your health goal for the app?"
-      progress={0.2}
+      progress={progress}
       onSkip={handleSkip}
       onContinue={handleContinue}
       onBack={handleBack}
