@@ -5,7 +5,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "./global.css";
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
+// Ngăn màn splash tự ẩn trước khi font load xong
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -25,9 +25,7 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
-  if (!loaded) {
-    return null;
-  }
+  if (!loaded) return null;
 
   return (
     <GluestackUIProvider mode="light">
@@ -36,6 +34,7 @@ export default function RootLayout() {
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(root)" options={{ headerShown: false }} />
         <Stack.Screen name="(account-setup)" options={{ headerShown: false }} />
+        <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
     </GluestackUIProvider>
