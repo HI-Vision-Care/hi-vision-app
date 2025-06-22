@@ -26,14 +26,13 @@ const SignIn: React.FC = () => {
 
   const handleSignIn = async () => {
     try {
-      // nếu xài hook:
-      const { token, username } = await login({ username: email, password });
-      // hoặc nếu xài function trực tiếp:
-      // const { token, username } = await signIn({ username: email, password });
-
-      // ★ Lưu token
+      const result = await login({ username: email, password });
+      console.log("➡️ login result:", result);
+      const token = result?.token;
+      if (!token) throw new Error("Server không trả về token");
+      // giờ mới destructure an toàn
+      const { username } = result;
       await AsyncStorage.setItem("token", token);
-      // Chuyển thẳng vào Home
       router.replace("/(root)/(tabs)/home");
     } catch (err: any) {
       console.error("Login error:", err.message);
