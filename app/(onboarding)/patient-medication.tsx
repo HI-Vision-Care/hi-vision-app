@@ -1,4 +1,5 @@
 import { OnboardingLayout } from "@/components";
+import { ALPHABET, MEDICATIONS } from "@/constants";
 import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
@@ -9,25 +10,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-// Dữ liệu mẫu: danh sách thuốc
-const MEDICATIONS = [
-  "Abilify",
-  "Abilify Maintena",
-  "Abiraterone",
-  "Acetaminophen",
-  "Actemra",
-  "Apxelliarmus",
-  "Aspirin",
-  "Ibuprofen",
-  "Amoxicillin",
-  "Atorvastatin",
-  "Azithromycin",
-  // ... bạn có thể thêm nhiều mục hơn
-];
-const ALPHABET = Array.from({ length: 26 }, (_, i) =>
-  String.fromCharCode(65 + i)
-);
 
 const PatientMedication: React.FC = () => {
   const { handleContinue, handleBack, handleSkip, progress } =

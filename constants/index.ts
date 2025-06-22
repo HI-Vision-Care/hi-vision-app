@@ -1,3 +1,10 @@
+import {
+  FontAwesome5,
+  FontAwesome6,
+  Ionicons,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
+
 import activityWalking from "@/assets/icons/activityWalking.png";
 import add from "@/assets/icons/add.png";
 import apple from "@/assets/icons/apple.png";
@@ -266,8 +273,63 @@ export const goals = [
   },
 ];
 
+export const eatingOptions = [
+  {
+    key: "balanced",
+    label: "Balanced Diet",
+    iconLibrary: FontAwesome5,
+    iconName: "apple-alt",
+    iconSize: 24,
+    iconColor: "#242e49",
+  },
+  {
+    key: "vegetarian",
+    label: "Mostly Vegetarian",
+    iconLibrary: MaterialCommunityIcons,
+    iconName: "leaf",
+    iconSize: 24,
+    iconColor: "#242e49",
+  },
+  {
+    key: "lowcarb",
+    label: "Low Carb",
+    iconLibrary: Ionicons,
+    iconName: "restaurant",
+    iconSize: 24,
+    iconColor: "#242e49",
+  },
+  {
+    key: "glutenfree",
+    label: "Gluten Free",
+    iconLibrary: FontAwesome6,
+    iconName: "bone",
+    iconSize: 24,
+    iconColor: "#242e49",
+  },
+];
+
+export const MEDICATIONS = [
+  "Abilify",
+  "Abilify Maintena",
+  "Abiraterone",
+  "Acetaminophen",
+  "Actemra",
+  "Apxelliarmus",
+  "Aspirin",
+  "Ibuprofen",
+  "Amoxicillin",
+  "Atorvastatin",
+  "Azithromycin",
+  // …thêm nếu cần
+];
+
+export const ALPHABET = Array.from({ length: 26 }, (_, i) =>
+  String.fromCharCode(65 + i)
+);
+
 export const data = {
   onboarding,
   resetOptions,
   goals,
+  eatingOptions,
 };

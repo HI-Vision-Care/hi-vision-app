@@ -1,4 +1,3 @@
-"use client";
 import { OnboardingLayout } from "@/components";
 import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
 import type React from "react";

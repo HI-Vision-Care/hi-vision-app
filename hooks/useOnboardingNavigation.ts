@@ -30,7 +30,17 @@ export const useOnboardingNavigation = () => {
     }
   }, [currentIndex, router]);
 
-  const handleBack = React.useCallback(() => router.back(), [router]);
+  const handleBack = React.useCallback(() => {
+    const prev = currentIndex - 1;
+    if (prev >= 0) {
+      router.replace(ONBOARDING_ROUTES[prev] as any);
+    } else {
+      // Nếu không có màn hình trước, bạn có thể bỏ qua hoặc chuyển hướng đến home
+      // router.replace("/(root)/(tabs)/home");
+      console.warn("No previous onboarding screen to go back to.");
+    }
+  }, [currentIndex, router]);
+
   const handleSkip = React.useCallback(
     () => router.push("/(root)/(tabs)/home"),
     [router]
