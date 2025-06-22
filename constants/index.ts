@@ -1,3 +1,10 @@
+import {
+  FontAwesome5,
+  FontAwesome6,
+  Ionicons,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
+
 import activityWalking from "@/assets/icons/activityWalking.png";
 import add from "@/assets/icons/add.png";
 import apple from "@/assets/icons/apple.png";
@@ -6,6 +13,7 @@ import arrowBack from "@/assets/icons/arrowBack.png";
 import bed from "@/assets/icons/bed.png";
 import bell from "@/assets/icons/bell.png";
 import calendar from "@/assets/icons/calendar.png";
+import checkbox from "@/assets/icons/checkbox.png";
 import chevronLeft from "@/assets/icons/chevronleft.png";
 import chevronRight from "@/assets/icons/chevronRight.png";
 import close from "@/assets/icons/close.png";
@@ -14,6 +22,7 @@ import dropletWater from "@/assets/icons/dropletWater.png";
 import email from "@/assets/icons/email.png";
 import eyeOff from "@/assets/icons/eyeOff.png";
 import eyeOpen from "@/assets/icons/eyeOpen.png";
+import female from "@/assets/icons/female.png";
 import gear from "@/assets/icons/gear.png";
 import google from "@/assets/icons/google.png";
 import healthPlus from "@/assets/icons/healthPlus.png";
@@ -21,17 +30,26 @@ import heart from "@/assets/icons/heart.svg";
 import heartBeat from "@/assets/icons/heartBeat.svg";
 import home2 from "@/assets/icons/home2.png";
 import key from "@/assets/icons/key.png";
+import male from "@/assets/icons/male.png";
+import medicine from "@/assets/icons/medicine.png";
 import outline from "@/assets/icons/outline.png";
 import password from "@/assets/icons/password.png";
 import phone from "@/assets/icons/phone.png";
+import phone2 from "@/assets/icons/phone2.png";
+import plus from "@/assets/icons/plus.png";
 import question from "@/assets/icons/question.png";
+import robotIcon from "@/assets/icons/robot.png";
 import search from "@/assets/icons/search.png";
 import warning from "@/assets/icons/solidWarning.png";
 import sportsBallel from "@/assets/icons/sportsBallel.png";
 import star from "@/assets/icons/star.png";
 import stats from "@/assets/icons/stats.png";
+import transgender from "@/assets/icons/transgender.png";
+import turing from "@/assets/icons/turing.png";
+import femaleImage from "@/assets/images/femaleImage.png";
 import passwordSent from "@/assets/images/imagePasswordSent.png";
 import logo from "@/assets/images/logo.png";
+import maleImage from "@/assets/images/maleImage.png";
 import onboarding1 from "@/assets/images/onboarding1.png";
 import onboarding2 from "@/assets/images/onboarding2.png";
 import onboarding3 from "@/assets/images/onboarding3.png";
@@ -39,6 +57,8 @@ import onboarding4 from "@/assets/images/onboarding4.png";
 import onboarding5 from "@/assets/images/onboarding5.png";
 import otp from "@/assets/images/otp.png";
 import robot from "@/assets/images/robot.png";
+import symptoms from "@/assets/images/symptoms.png";
+import transgenderImage from "@/assets/images/transgenderImage.png";
 import welcome from "@/assets/images/welcome.png";
 
 export const images = {
@@ -52,6 +72,10 @@ export const images = {
   onboarding5,
   otp,
   robot,
+  maleImage,
+  femaleImage,
+  transgenderImage,
+  symptoms,
 };
 
 export const icons = {
@@ -87,6 +111,15 @@ export const icons = {
   gear,
   outline,
   dropletWater,
+  robotIcon,
+  plus,
+  turing,
+  medicine,
+  phone2,
+  checkbox,
+  male,
+  female,
+  transgender,
 };
 
 export const onboarding = [
@@ -207,7 +240,96 @@ export const fitnessTracker = [
   },
 ];
 
+export const goals = [
+  {
+    id: "healthy",
+    label: "I wanna get healthy",
+    icon: icons.plus,
+    color: "#6B7280",
+  },
+  {
+    id: "lose_weight",
+    label: "I wanna lose weight",
+    icon: icons.turing,
+    color: "#3B82F6",
+  },
+  {
+    id: "chatbot",
+    label: "I wanna try AI Chatbot",
+    icon: icons.robotIcon,
+    color: "#6B7280",
+  },
+  {
+    id: "manage_meds",
+    label: "I wanna manage meds",
+    icon: icons.medicine,
+    color: "#6B7280",
+  },
+  {
+    id: "try_app",
+    label: "Just trying out the app",
+    icon: icons.phone2,
+    color: "#6B7280",
+  },
+];
+
+export const eatingOptions = [
+  {
+    key: "balanced",
+    label: "Balanced Diet",
+    iconLibrary: FontAwesome5,
+    iconName: "apple-alt",
+    iconSize: 24,
+    iconColor: "#242e49",
+  },
+  {
+    key: "vegetarian",
+    label: "Mostly Vegetarian",
+    iconLibrary: MaterialCommunityIcons,
+    iconName: "leaf",
+    iconSize: 24,
+    iconColor: "#242e49",
+  },
+  {
+    key: "lowcarb",
+    label: "Low Carb",
+    iconLibrary: Ionicons,
+    iconName: "restaurant",
+    iconSize: 24,
+    iconColor: "#242e49",
+  },
+  {
+    key: "glutenfree",
+    label: "Gluten Free",
+    iconLibrary: FontAwesome6,
+    iconName: "bone",
+    iconSize: 24,
+    iconColor: "#242e49",
+  },
+];
+
+export const MEDICATIONS = [
+  "Abilify",
+  "Abilify Maintena",
+  "Abiraterone",
+  "Acetaminophen",
+  "Actemra",
+  "Apxelliarmus",
+  "Aspirin",
+  "Ibuprofen",
+  "Amoxicillin",
+  "Atorvastatin",
+  "Azithromycin",
+  // …thêm nếu cần
+];
+
+export const ALPHABET = Array.from({ length: 26 }, (_, i) =>
+  String.fromCharCode(65 + i)
+);
+
 export const data = {
   onboarding,
   resetOptions,
+  goals,
+  eatingOptions,
 };

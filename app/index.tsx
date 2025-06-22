@@ -26,7 +26,6 @@ const Home = () => {
   return (
     <Redirect href={hasToken ? "/(root)/(tabs)/home" : "/(auth)/get-started"} />
   );
-
   // <Redirect href="/(root)/(tabs)/home" />;
 };
 
