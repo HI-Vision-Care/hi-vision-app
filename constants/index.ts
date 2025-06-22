@@ -1,5 +1,6 @@
 import activityWalking from "@/assets/icons/activityWalking.png";
 import add from "@/assets/icons/add.png";
+import virus103 from "@/assets/icons/103 virus.png";
 import apple from "@/assets/icons/apple.png";
 import arrow from "@/assets/icons/arrow.png";
 import arrowBack from "@/assets/icons/arrowBack.png";
@@ -40,7 +41,11 @@ import onboarding5 from "@/assets/images/onboarding5.png";
 import otp from "@/assets/images/otp.png";
 import robot from "@/assets/images/robot.png";
 import welcome from "@/assets/images/welcome.png";
-
+import hivtest from "@/assets/images/hivtest.png";
+import chlamydia from "@/assets/images/chlamydia.jpg";
+import gonorrhea  from "@/assets/images/gonorrhea .png";
+import syphilis from "@/assets/images/syphilis.png";
+import combo from "@/assets/images/combo.png";
 export const images = {
   passwordSent,
   welcome,
@@ -52,6 +57,11 @@ export const images = {
   onboarding5,
   otp,
   robot,
+  hivtest,
+  chlamydia,
+  gonorrhea,
+  syphilis,
+  combo,
 };
 
 export const icons = {
@@ -87,6 +97,8 @@ export const icons = {
   gear,
   outline,
   dropletWater,
+  virus103,
+  
 };
 
 export const onboarding = [
