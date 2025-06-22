@@ -23,12 +23,11 @@ const Home = () => {
       </View>
     );
   }
+
   return (
     // <Redirect href={hasToken ? "/(root)/(tabs)/home" : "/(auth)/get-started"} />
       <Redirect href="/(root)/(tabs)/home" />
   );
-
-
 };
 
 export default Home;

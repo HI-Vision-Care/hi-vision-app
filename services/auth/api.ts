@@ -10,14 +10,14 @@ export interface SignInResponse {
   username: string;
 }
 export const signIn = async (params: SignInParams): Promise<SignInResponse> => {
-  const { data } = await api.post<{ code: number; data: SignInResponse }>(
-    "/account/login",
-    {
-      username: params.username,
-      password: params.password,
-    }
-  );
-  return data.data;
+  const response = await api.post("/account/login", {
+    username: params.username,
+    password: params.password,
+  });
+  console.log("➡️ login response:", response.data);
+  // nếu server trả { token, username } trực tiếp, thì response.data.data sẽ undefined
+  // nên ta return phù hợp:
+  return response.data.data ?? response.data;
 };
 
 // —— MỚI ——

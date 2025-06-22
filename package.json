@@ -17,6 +17,7 @@
     "@gluestack-ui/nativewind-utils": "^1.0.26",
     "@gluestack-ui/overlay": "^0.1.22",
     "@gluestack-ui/toast": "^1.0.9",
+    "@react-native-community/slider": "^4.5.7",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-navigation/bottom-tabs": "^7.3.10",
     "@react-navigation/elements": "^2.3.8",
