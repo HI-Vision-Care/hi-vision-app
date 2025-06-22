@@ -1,12 +1,30 @@
-import { Text, View } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Redirect } from "expo-router";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, View } from "react-native";
 
-export default function Page() {
-  return (
-    <View className="flex-1 items-center justify-center">
-      <Text className="text-4xl text-red-500 font-extrabold">
-        Screen này làm một việc là khi chưa có signedIn thì chuyển sang đăng
-        nhập còn có rồi thì qua trang home
-      </Text>
-    </View>
-  );
-}
+const Home = () => {
+  const [loading, setLoading] = useState(true);
+  const [hasToken, setHasToken] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const token = await AsyncStorage.getItem("token");
+      setHasToken(!!token);
+      setLoading(false);
+    })();
+  }, []);
+
+  if (loading) {
+    // Bạn có thể thay ActivityIndicator bằng splash screen custom
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+  return <Redirect href={"/(onboarding)/patient-goal"} />;
+  // <Redirect href="/(root)/(tabs)/home" />;
+};
+
+export default Home;

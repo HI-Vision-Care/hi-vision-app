@@ -2,13 +2,12 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    "baseUrl": ".", // gốc repo
     "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "tailwind.config": [
-        "./tailwind.config.js"
-      ]
+      "@/*": ["./*"], // giữ nguyên để import bất kỳ đâu
+      "@components": ["components"],
+      "@components/*": ["components/*"],
+      "tailwind.config": ["./tailwind.config.js"]
     }
   },
   "include": [

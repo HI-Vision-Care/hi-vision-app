@@ -1,3 +1,7 @@
+import { ImageSourcePropType, TextInputProps } from "react-native";
+
+import { IoniconsGlyphs } from "@expo/vector-icons/build/Ionicons";
+
 declare interface MarkerData {
   latitude: number;
   longitude: number;
@@ -11,4 +15,97 @@ declare interface MarkerData {
   last_name: string;
   time?: number;
   price?: string;
+}
+
+declare interface ButtonProps extends TouchableOpacityProps {
+  title: string;
+  bgVariant?: "primary" | "secondary" | "danger" | "outline" | "success";
+  textVariant?: "primary" | "default" | "secondary" | "danger" | "success";
+  IconLeft?: React.ComponentType<any>;
+  IconRight?: React.ComponentType<any>;
+  className?: string;
+}
+
+declare interface CustomButtonProps {
+  title: string;
+  onPress: (event: GestureResponderEvent) => void;
+  variant?: "primary" | "outline" | "secondary";
+  disabled?: boolean;
+  isLoading?: boolean;
+  className?: string;
+  leftIcon?: React.ReactNode; // <-- cho phép nhận React element
+  rightIcon?: React.ReactNode; // <-- cho phép nhận React element
+}
+
+declare interface InputFieldProps extends TextInputProps {
+  label?: string;
+  icon?: ImageSourcePropType;
+  secureTextEntry?: boolean;
+  errorMessage?: string;
+  errorIcon?: any;
+  containerStyle?: string;
+  labelStyle?: string;
+  inputStyle?: string;
+  iconStyle?: string;
+}
+
+declare interface ResetOptionCardProps {
+  icon: any; // Icon object (ví dụ icons.email)
+  title: string; // "Send via Email"
+  subtitle: string; // "Reset password via email."
+  selected?: boolean;
+  onPress: () => void;
+}
+
+declare interface PasswordSentModalProps {
+  visible: boolean;
+  email: string;
+  onResend: () => void;
+  onClose: () => void;
+}
+
+declare interface PhoneInputProps {
+  value: string;
+  onChangeText: (text: string) => void;
+  onCountryPress?: () => void;
+}
+
+declare interface OTPInputProps {
+  length?: number;
+  onComplete?: (otp: string) => void;
+  onChangeText?: (otp: string) => void;
+}
+
+export interface ActivityIcon {
+  name: string;
+  color: string;
+  bg: string;
+}
+
+export type ActivityType = "linear" | "status" | "tags" | "circular";
+
+export interface ActivityData {
+  id: number;
+  title: string;
+  icon: ActivityIcon;
+  type: ActivityType;
+  currentValue?: number;
+  targetValue?: number;
+  unit?: string;
+  description?: string;
+  tags?: string[];
+  progress?: number;
+}
+
+declare interface ActivityItemProps {
+  item: ActivityData;
+}
+
+export interface MetricCardProps {
+  color: string;
+  title: string;
+  icon: IoniconsGlyphs;
+  value: string;
+  unit: string;
+  children: React.ReactNode;
 }
