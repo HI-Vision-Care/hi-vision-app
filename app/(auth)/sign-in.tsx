@@ -1,8 +1,17 @@
 import { icons, images } from "@/constants";
+import { useSignIn } from "@/services/auth/hooks";
 import { CustomButton, InputField } from "@components";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { Image, StatusBar, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  Image,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -13,9 +22,26 @@ const SignIn: React.FC = () => {
   const [password, setPassword] = useState<string>("");
   const insets = useSafeAreaInsets();
 
-  const handleSignIn = () => {
-    console.log("User tries to sign in with:", email, password);
-    // TODO: Thêm logic xác thực ở đây
+  const { mutateAsync: login, isLoading } = useSignIn();
+
+  const handleSignIn = async () => {
+    try {
+      // nếu xài hook:
+      const { token, username } = await login({ username: email, password });
+      // hoặc nếu xài function trực tiếp:
+      // const { token, username } = await signIn({ username: email, password });
+
+      // ★ Lưu token
+      await AsyncStorage.setItem("token", token);
+      // Chuyển thẳng vào Home
+      router.replace("/(root)/(tabs)/home");
+    } catch (err: any) {
+      console.error("Login error:", err.message);
+      Alert.alert(
+        "Đăng nhập thất bại",
+        err.message || "Vui lòng kiểm tra lại thông tin."
+      );
+    }
   };
 
   return (
