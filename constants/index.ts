@@ -5,9 +5,9 @@ import {
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
 
+import virus103 from "@/assets/icons/103 virus.png";
 import activityWalking from "@/assets/icons/activityWalking.png";
 import add from "@/assets/icons/add.png";
-import virus103 from "@/assets/icons/103 virus.png";
 import apple from "@/assets/icons/apple.png";
 import arrow from "@/assets/icons/arrow.png";
 import arrowBack from "@/assets/icons/arrowBack.png";
@@ -47,7 +47,11 @@ import star from "@/assets/icons/star.png";
 import stats from "@/assets/icons/stats.png";
 import transgender from "@/assets/icons/transgender.png";
 import turing from "@/assets/icons/turing.png";
+import chlamydia from "@/assets/images/chlamydia.jpg";
+import combo from "@/assets/images/combo.png";
 import femaleImage from "@/assets/images/femaleImage.png";
+import gonorrhea from "@/assets/images/gonorrhea .png";
+import hivtest from "@/assets/images/hivtest.png";
 import passwordSent from "@/assets/images/imagePasswordSent.png";
 import logo from "@/assets/images/logo.png";
 import maleImage from "@/assets/images/maleImage.png";
@@ -59,13 +63,9 @@ import onboarding5 from "@/assets/images/onboarding5.png";
 import otp from "@/assets/images/otp.png";
 import robot from "@/assets/images/robot.png";
 import symptoms from "@/assets/images/symptoms.png";
+import syphilis from "@/assets/images/syphilis.png";
 import transgenderImage from "@/assets/images/transgenderImage.png";
 import welcome from "@/assets/images/welcome.png";
-import hivtest from "@/assets/images/hivtest.png";
-import chlamydia from "@/assets/images/chlamydia.jpg";
-import gonorrhea  from "@/assets/images/gonorrhea .png";
-import syphilis from "@/assets/images/syphilis.png";
-import combo from "@/assets/images/combo.png";
 export const images = {
   passwordSent,
   welcome,
@@ -338,9 +338,63 @@ export const ALPHABET = Array.from({ length: 26 }, (_, i) =>
   String.fromCharCode(65 + i)
 );
 
+export const menuItems = [
+  {
+    key: "hiv-test",
+    title: "HIV Test",
+    icon: icons.virus103,
+    bgColor: "#F8FAFC",
+    iconBgColor: "#3B82F6",
+    duration: "15 minutes",
+    price: "300,000₫",
+    illustration: images.hivtest,
+  },
+  {
+    key: "chlamydia-test",
+    title: "Chlamydia Test",
+    icon: icons.virus103,
+    bgColor: "#F8FAFC",
+    iconBgColor: "#F59E0B",
+    duration: "15 minutes",
+    price: "350,000₫",
+    illustration: images.chlamydia,
+  },
+  {
+    key: "syphilis-test",
+    title: "Syphilis Test",
+    icon: icons.virus103,
+    bgColor: "#F8FAFC",
+    iconBgColor: "#10B981",
+    duration: "15 minutes",
+    price: "320,000₫",
+    illustration: images.syphilis,
+  },
+  {
+    key: "gonorrhea-test",
+    title: "Gonorrhea Test",
+    icon: icons.virus103,
+    bgColor: "#F8FAFC",
+    iconBgColor: "#EC4899",
+    duration: "15 minutes",
+    price: "330,000₫",
+    illustration: images.gonorrhea,
+  },
+  {
+    key: "std-consult",
+    title: "STD Test Combo",
+    icon: icons.virus103,
+    bgColor: "#F8FAFC",
+    iconBgColor: "#8B5CF6",
+    duration: "30 minutes",
+    price: "200,000₫",
+    illustration: images.combo,
+  },
+];
+
 export const data = {
   onboarding,
   resetOptions,
   goals,
   eatingOptions,
+  menuItems,
 };
