@@ -9,12 +9,9 @@ import {
 
 export const signIn = async (params: SignInParams): Promise<SignInResponse> => {
   const response = await api.post("/account/login", {
-    username: params.username,
+    email: params.email,
     password: params.password,
   });
-  console.log("➡️ login response:", response.data);
-  // nếu server trả { token, username } trực tiếp, thì response.data.data sẽ undefined
-  // nên ta return phù hợp:
   return response.data.data ?? response.data;
 };
 
@@ -31,7 +28,7 @@ export const signUp = async (params: SignUpParams): Promise<SignUpResponse> => {
     code: number;
     data: SignUpResponse;
   }>("/account/register", {
-    username: params.username,
+    username: params.username, // thêm username
     password: params.password,
     email: params.email,
     phone: params.phone,

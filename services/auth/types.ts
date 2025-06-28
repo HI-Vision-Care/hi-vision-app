@@ -1,14 +1,15 @@
 export interface SignInParams {
-  username: string;
+  email: string;
   password: string;
 }
 export interface SignInResponse {
   token: string;
-  username: string;
+  email: string;
 }
 
 export interface SignUpResponse {
   id: string;
+  token: string;
   username: string;
   password: string; // đây là password đã được hash
   email: string;

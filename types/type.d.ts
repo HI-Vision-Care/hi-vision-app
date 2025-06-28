@@ -121,4 +121,10 @@ export interface MenuItems {
   iconBgColor: string;
 }
 
-// ...other imports
+export interface BookingData {
+  service: string;
+  doctor: string;
+  date: Date;
+  isAnonymous: boolean;
+  notes: string;
+}

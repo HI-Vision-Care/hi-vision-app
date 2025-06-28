@@ -47,6 +47,8 @@ import star from "@/assets/icons/star.png";
 import stats from "@/assets/icons/stats.png";
 import transgender from "@/assets/icons/transgender.png";
 import turing from "@/assets/icons/turing.png";
+import user from "@/assets/icons/user.png";
+import avatarPlaceholder from "@/assets/images/avatarPlaceholder.jpg";
 import chlamydia from "@/assets/images/chlamydia.jpg";
 import combo from "@/assets/images/combo.png";
 import femaleImage from "@/assets/images/femaleImage.png";
@@ -66,6 +68,7 @@ import symptoms from "@/assets/images/symptoms.png";
 import syphilis from "@/assets/images/syphilis.png";
 import transgenderImage from "@/assets/images/transgenderImage.png";
 import welcome from "@/assets/images/welcome.png";
+
 export const images = {
   passwordSent,
   welcome,
@@ -86,6 +89,7 @@ export const images = {
   femaleImage,
   transgenderImage,
   symptoms,
+  avatarPlaceholder,
 };
 
 export const icons = {
@@ -131,6 +135,7 @@ export const icons = {
   male,
   female,
   transgender,
+  user,
 };
 
 export const onboarding = [

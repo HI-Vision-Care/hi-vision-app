@@ -1,5 +1,6 @@
 import { HeaderBack } from "@/components";
 import { useGetDoctors } from "@/services/doctor/hooks";
+import { BookingData } from "@/types/type";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
@@ -15,14 +16,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-interface BookingData {
-  service: string;
-  doctor: string;
-  date: Date;
-  isAnonymous: boolean;
-  notes: string;
-}
 
 const ServiceBookingScreen: React.FC = () => {
   const { serviceId, serviceName } = useLocalSearchParams<{
