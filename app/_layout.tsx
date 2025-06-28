@@ -6,6 +6,9 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "./global.css";
 
+
+// Ngăn màn splash tự ẩn trước khi font load xong
+
 const queryClient = new QueryClient();
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -28,9 +31,7 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
-  if (!loaded) {
-    return null;
-  }
+  if (!loaded) return null;
 
   return (
     <GluestackUIProvider mode="light">
