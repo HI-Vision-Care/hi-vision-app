@@ -6,7 +6,6 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "./global.css";
 
-
 // Ngăn màn splash tự ẩn trước khi font load xong
 
 const queryClient = new QueryClient();
@@ -36,17 +35,7 @@ export default function RootLayout() {
   return (
     <GluestackUIProvider mode="light">
       <QueryClientProvider client={queryClient}>
-        <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          <Stack.Screen name="(root)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="(account-setup)"
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
-        </Stack>
+        <Stack screenOptions={{ headerShown: false }} />
       </QueryClientProvider>
     </GluestackUIProvider>
   );

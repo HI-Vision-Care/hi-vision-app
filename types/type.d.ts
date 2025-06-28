@@ -110,4 +110,15 @@ export interface MetricCardProps {
   children: React.ReactNode;
 }
 
+export interface MenuItems {
+  key: string;
+  title: string;
+  icon: any;
+  bgColor: string;
+  duration: string;
+  price: string;
+  illustration: any;
+  iconBgColor: string;
+}
+
 // ...other imports

@@ -1,6 +1,7 @@
-import { icons } from "@/constants";
-import { useMedicalServices } from "@/services/booking-services/hooks";
-import { Clock, DollarSign, User, Wifi, WifiOff } from "lucide-react-native";
+import { icons, images } from "@/constants";
+import { useMedicalServices } from "@/services/medical-services/hooks";
+import { useRouter } from "expo-router";
+import { DollarSign, User, Wifi, WifiOff } from "lucide-react-native";
 import {
   ActivityIndicator,
   Dimensions,
@@ -17,6 +18,7 @@ const isTablet = width >= 768;
 
 const Menu = () => {
   const { data: services, isLoading, isError } = useMedicalServices();
+  const router = useRouter();
 
   if (isLoading) {
     return (
@@ -76,7 +78,6 @@ const Menu = () => {
             >
               <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={() => console.log("Selected", item.serviceID)}
                 disabled={!item.isActive}
                 accessible={true}
                 accessibilityRole="button"
@@ -89,13 +90,24 @@ const Menu = () => {
                 className={`bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 ${
                   !item.isActive ? "opacity-60" : ""
                 }`}
+                onPress={() =>
+                  router.push({
+                    // 1) route file: /services/[id].tsx
+                    pathname: "/services/[id]",
+                    // 2) nhét id và data vào params
+                    params: {
+                      id: item.serviceID,
+                      data: JSON.stringify(item),
+                    },
+                  })
+                }
               >
                 {/* Header with illustration */}
                 <View className="relative">
                   {item.illustrationUri && (
                     <View className="absolute right-4 top-4 z-10">
                       <Image
-                        source={{ uri: item.illustrationUri }}
+                        source={images.gonorrhea}
                         className="w-20 h-20 rounded-xl"
                         resizeMode="cover"
                         accessible={true}
@@ -146,14 +158,6 @@ const Menu = () => {
                 {/* Service details */}
                 <View className="px-5 pb-5">
                   <View className="flex-row flex-wrap gap-2">
-                    {/* Duration */}
-                    <View className="flex-row items-center bg-slate-100 px-3 py-2 rounded-full">
-                      <Clock size={14} color="#64748B" />
-                      <Text className="text-slate-700 text-xs font-medium ml-1.5">
-                        {item.duration || "Duration TBD"}
-                      </Text>
-                    </View>
-
                     {/* Price */}
                     <View className="flex-row items-center bg-emerald-50 px-3 py-2 rounded-full border border-emerald-100">
                       <DollarSign size={14} color="#059669" />

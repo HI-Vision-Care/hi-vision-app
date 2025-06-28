@@ -104,8 +104,8 @@ const SignUp: React.FC = () => {
 
         {/* Input Password Confirmation */}
         <InputField
-          label="Confirm Password"
-          icon={icons.password}
+          label="Phone Number"
+          icon={icons.phone}
           placeholder="Confirm your password"
           secureTextEntry
           value={passwordConfirmation}

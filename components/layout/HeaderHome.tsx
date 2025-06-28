@@ -59,7 +59,8 @@ const HeaderHome = () => {
             source={{
               uri: "https://i.pinimg.com/736x/d6/4a/91/d64a91a7255ffb918d590592f711da94.jpg",
             }}
-            className="w-12 h-12 rounded-xl"
+            style={{ width: 48, height: 48, borderRadius: 12 }}
+            resizeMode="cover"
           />
           <View className="ml-3 flex-1">
             <Text className="text-white text-lg font-bold">
