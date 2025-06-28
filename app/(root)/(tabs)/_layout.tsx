@@ -158,7 +158,7 @@ function LayoutInner() {
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="(personal-info)"
         options={{
           headerShown: false,
           tabBarIcon: ({ focused }) => (
@@ -168,7 +168,7 @@ function LayoutInner() {
       />
     </Tabs>
   );
-}  
+}
 
 export default function Layout() {
   return (
