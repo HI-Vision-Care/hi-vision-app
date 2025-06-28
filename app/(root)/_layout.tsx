@@ -1,10 +1,11 @@
 import { Stack } from "expo-router";
-import React from "react";
 
 const AppLayout = () => {
   return (
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="services" options={{ headerShown: false }} />
+      <Stack.Screen name="book-service" options={{ headerShown: false }} />
     </Stack>
   );
 };

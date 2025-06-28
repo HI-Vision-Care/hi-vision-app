@@ -1,159 +1,245 @@
-import type React from "react"
-import { ScrollView, TouchableOpacity, View, Text, Image } from "react-native"
-import { SafeAreaView } from "react-native-safe-area-context"
-import { Clock, DollarSign } from "lucide-react-native"
-import { icons, images } from "@/constants"
+import { icons, images } from "@/constants";
+import { useMedicalServices } from "@/services/medical-services/hooks";
+import { useRouter } from "expo-router";
+import { DollarSign, User, Wifi, WifiOff } from "lucide-react-native";
+import {
+  ActivityIndicator,
+  Dimensions,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-interface MenuItem {
-  key: string
-  title: string
-  icon: any
-  bgColor: string
-  duration: string
-  price: string
-  illustration: any
-  iconBgColor: string
-}
+const { width } = Dimensions.get("window");
+const isTablet = width >= 768;
 
-// STD service menu with updated colors
-const menuItems: MenuItem[] = [
-  {
-    key: "hiv-test",
-    title: "HIV Test",
-    icon: icons.virus103,
-    bgColor: "#F8FAFC",
-    iconBgColor: "#3B82F6",
-    duration: "15 minutes",
-    price: "300,000₫",
-    illustration: images.hivtest,
-  },
-  {
-    key: "chlamydia-test",
-    title: "Chlamydia Test",
-    icon: icons.virus103,
-    bgColor: "#F8FAFC",
-    iconBgColor: "#F59E0B",
-    duration: "15 minutes",
-    price: "350,000₫",
-    illustration: images.chlamydia,
-  },
-  {
-    key: "syphilis-test",
-    title: "Syphilis Test",
-    icon: icons.virus103,
-    bgColor: "#F8FAFC",
-    iconBgColor: "#10B981",
-    duration: "15 minutes",
-    price: "320,000₫",
-    illustration: images.syphilis,
-  },
-  {
-    key: "gonorrhea-test",
-    title: "Gonorrhea Test",
-    icon: icons.virus103,
-    bgColor: "#F8FAFC",
-    iconBgColor: "#EC4899",
-    duration: "15 minutes",
-    price: "330,000₫",
-    illustration: images.gonorrhea,
-  },
-  {
-    key: "std-consult",
-    title: "STD Test Combo",
-    icon: icons.virus103,
-    bgColor: "#F8FAFC",
-    iconBgColor: "#8B5CF6",
-    duration: "30 minutes",
-    price: "200,000₫",
-    illustration: images.combo,
-  },
-]
+const Menu = () => {
+  const { data: services, isLoading, isError } = useMedicalServices();
+  const router = useRouter();
 
-const Menu: React.FC = () => {
+  if (isLoading) {
+    return (
+      <SafeAreaView className="flex-1 bg-slate-50">
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#3B82F6" />
+          <Text className="text-slate-600 mt-4 text-base font-medium">
+            Loading services...
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (isError) {
+    return (
+      <SafeAreaView className="flex-1 bg-slate-50">
+        <View className="flex-1 justify-center items-center px-6">
+          <View className="bg-red-50 p-6 rounded-2xl border border-red-100">
+            <Text className="text-red-800 text-center text-base font-semibold mb-2">
+              Unable to Load Services
+            </Text>
+            <Text className="text-red-600 text-center text-sm">
+              Please check your connection and try again.
+            </Text>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView edges={["top", "left", "right", "bottom"]} className="flex-1 bg-[#F1F5F9]">
-      <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
-        {menuItems.map((item, index) => (
-          <TouchableOpacity
-            key={item.key}
-            activeOpacity={0.7}
-            onPress={() => console.log("Selected", item.key)}
-            className="bg-white rounded-3xl p-5 mb-4 shadow-sm"
-            style={{
-              shadowColor: "#000",
-              shadowOffset: {
-                width: 0,
-                height: 2,
-              },
-              shadowOpacity: 0.05,
-              shadowRadius: 8,
-              elevation: 3,
-              position: "relative",
-              minHeight: 120, // Add minimum height
-            }}
-          >
-            {/* Illustration section - Background layer */}
-            {item.illustration && (
-              <Image
-                source={item.illustration}
-                style={{
-                  position: "absolute",
-                  right: 0,
-                  top: 8,
-                  width: 100, // Increased from 80 to 100
-                  height: 100, // Increased from 80 to 100
-                  zIndex: 0,
-                  borderRadius: 16,
-                }}
-                resizeMode="contain"
-              />
-            )}
+    <SafeAreaView
+      edges={["top", "left", "right", "bottom"]}
+      className="flex-1 bg-[#f2f5f9]"
+    >
+      {/* Header */}
+      <View className="px-6 py-4 bg-white border-b border-slate-100">
+        <Text className="text-slate-900 text-2xl font-bold">
+          Medical Services
+        </Text>
+        <Text className="text-slate-600 text-sm mt-1">
+          Choose from our available healthcare services
+        </Text>
+      </View>
 
-            <View className="flex-row items-center justify-center" style={{ zIndex: 1, minHeight: 80 }}>
-              {/* Icon section */}
-              <View className="mr-4">
-                <View
-                  className="w-12 h-12 rounded-2xl items-center justify-center"
-                  style={{ backgroundColor: item.iconBgColor }}
-                >
-                  {item.icon && (
-                    <Image source={item.icon} className="w-6 h-6" resizeMode="contain" style={{ tintColor: "white" }} />
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ padding: isTablet ? 24 : 16 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View className={isTablet ? "flex-row flex-wrap -mx-2" : ""}>
+          {services?.map((item) => (
+            <View
+              key={item.serviceID}
+              className={isTablet ? "w-1/2 px-2 mb-4" : "mb-4"}
+            >
+              <TouchableOpacity
+                activeOpacity={0.8}
+                disabled={!item.isActive}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel={`${item.name} service, ${item.price}, ${item.duration}`}
+                accessibilityHint={
+                  item.isActive
+                    ? "Tap to select this service"
+                    : "This service is currently unavailable"
+                }
+                className={`bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 ${
+                  !item.isActive ? "opacity-60" : ""
+                }`}
+                onPress={() =>
+                  router.push({
+                    // 1) route file: /services/[id].tsx
+                    pathname: "/services/[id]",
+                    // 2) nhét id và data vào params
+                    params: {
+                      id: item.serviceID,
+                      data: JSON.stringify(item),
+                    },
+                  })
+                }
+              >
+                {/* Header with illustration */}
+                <View className="relative">
+                  {item.illustrationUri && (
+                    <View className="absolute right-4 top-4 z-10">
+                      <Image
+                        source={images.gonorrhea}
+                        className="w-20 h-20 rounded-xl"
+                        resizeMode="cover"
+                        accessible={true}
+                        accessibilityLabel={`${item.name} illustration`}
+                      />
+                    </View>
                   )}
-                </View>
-              </View>
 
-              {/* Content section */}
-              <View className="flex-1">
-                <Text className="text-gray-900 text-lg font-bold mb-2">{item.title}</Text>
+                  <View className="p-5 pb-4">
+                    {/* Service icon and title */}
+                    <View className="flex-row items-start mb-3">
+                      <View
+                        className="w-12 h-12 rounded-xl items-center justify-center mr-3 shadow-sm"
+                        style={{
+                          backgroundColor: item.iconBgColor || "#3B82F6",
+                        }}
+                      >
+                        <Image
+                          source={icons.virus103}
+                          className="w-6 h-6"
+                          resizeMode="contain"
+                          style={{ tintColor: "white" }}
+                        />
+                      </View>
 
-                {/* Metadata column */}
-                <View>
-                  <View
-                    className="flex-row items-center bg-gray-100 px-2 py-1 rounded-full mb-2"
-                    style={{ alignSelf: "flex-start" }}
-                  >
-                    <Clock size={12} color="#6B7280" />
-                    <Text className="text-gray-600 text-xs ml-1 font-medium">{item.duration}</Text>
+                      <View className="flex-1 pr-24">
+                        <Text className="text-slate-900 text-lg font-bold leading-tight">
+                          {item.name}
+                        </Text>
+                        {!item.isActive && (
+                          <Text className="text-red-500 text-xs font-medium mt-1">
+                            Currently Unavailable
+                          </Text>
+                        )}
+                      </View>
+                    </View>
+
+                    {/* Description */}
+                    <Text
+                      numberOfLines={2}
+                      className="text-slate-600 text-sm leading-relaxed mb-4"
+                    >
+                      {item.description}
+                    </Text>
                   </View>
+                </View>
 
-                  <View
-                    className="flex-row items-center bg-green-100 px-2 py-1 rounded-full"
-                    style={{ alignSelf: "flex-start" }}
-                  >
-                    <DollarSign size={12} color="#059669" />
-                    <Text className="text-green-700 text-xs ml-1 font-bold">{item.price}</Text>
+                {/* Service details */}
+                <View className="px-5 pb-5">
+                  <View className="flex-row flex-wrap gap-2">
+                    {/* Price */}
+                    <View className="flex-row items-center bg-emerald-50 px-3 py-2 rounded-full border border-emerald-100">
+                      <DollarSign size={14} color="#059669" />
+                      <Text className="text-emerald-700 text-xs font-bold ml-1">
+                        {item.price}
+                      </Text>
+                    </View>
+
+                    {/* Doctor requirement */}
+                    <View
+                      className={`flex-row items-center px-3 py-2 rounded-full ${
+                        item.isRequireDoctor
+                          ? "bg-blue-50 border border-blue-100"
+                          : "bg-gray-50 border border-gray-100"
+                      }`}
+                    >
+                      <User
+                        size={14}
+                        color={item.isRequireDoctor ? "#2563EB" : "#6B7280"}
+                      />
+                      <Text
+                        className={`text-xs font-medium ml-1.5 ${
+                          item.isRequireDoctor
+                            ? "text-blue-700"
+                            : "text-gray-600"
+                        }`}
+                      >
+                        {item.isRequireDoctor ? "Doctor Required" : "No Doctor"}
+                      </Text>
+                    </View>
+
+                    {/* Online/Offline */}
+                    <View
+                      className={`flex-row items-center px-3 py-2 rounded-full ${
+                        item.isOnline
+                          ? "bg-purple-50 border border-purple-100"
+                          : "bg-orange-50 border border-orange-100"
+                      }`}
+                    >
+                      {item.isOnline ? (
+                        <Wifi size={14} color="#7C3AED" />
+                      ) : (
+                        <WifiOff size={14} color="#EA580C" />
+                      )}
+                      <Text
+                        className={`text-xs font-medium ml-1.5 ${
+                          item.isOnline ? "text-purple-700" : "text-orange-700"
+                        }`}
+                      >
+                        {item.isOnline ? "Online" : "In-Person"}
+                      </Text>
+                    </View>
                   </View>
                 </View>
-              </View>
+
+                {/* Availability indicator */}
+                {item.isActive && (
+                  <View className="absolute top-3 left-3">
+                    <View className="w-5 h-5 bg-green-400 rounded-full border-2 border-white shadow-sm" />
+                  </View>
+                )}
+              </TouchableOpacity>
             </View>
-          </TouchableOpacity>
-        ))}
+          ))}
+        </View>
+
+        {/* Empty state */}
+        {services?.length === 0 && (
+          <View className="flex-1 justify-center items-center py-12">
+            <View className="bg-slate-100 p-6 rounded-2xl">
+              <Text className="text-slate-600 text-center text-base font-medium">
+                No services available at the moment
+              </Text>
+            </View>
+          </View>
+        )}
 
         {/* Bottom spacing */}
-        <View className="h-6" />
+        <View className="h-8" />
       </ScrollView>
     </SafeAreaView>
-  )
-}
+  );
+};
 
-export default Menu
+export default Menu;

@@ -109,3 +109,22 @@ export interface MetricCardProps {
   unit: string;
   children: React.ReactNode;
 }
+
+export interface MenuItems {
+  key: string;
+  title: string;
+  icon: any;
+  bgColor: string;
+  duration: string;
+  price: string;
+  illustration: any;
+  iconBgColor: string;
+}
+
+export interface BookingData {
+  service: string;
+  doctor: string;
+  date: Date;
+  isAnonymous: boolean;
+  notes: string;
+}
