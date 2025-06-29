@@ -1,363 +1,439 @@
-import { HeaderBack } from "@/components";
-import { useGetDoctors } from "@/services/doctor/hooks";
-import { BookingData } from "@/types/type";
 import { Ionicons } from "@expo/vector-icons";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { Picker } from "@react-native-picker/picker";
-import { useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import {
-  Alert,
-  Platform,
   ScrollView,
+  StatusBar,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const ServiceBookingScreen: React.FC = () => {
-  const { serviceId, serviceName } = useLocalSearchParams<{
-    serviceId: string;
-    serviceName?: string;
-  }>();
+// Mock data for services and availability
+const services = [
+  { id: 1, name: "General Consultation", duration: 30, price: 80 },
+  { id: 2, name: "Specialist Consultation", duration: 45, price: 120 },
+  { id: 3, name: "Health Checkup", duration: 60, price: 150 },
+  { id: 4, name: "Follow-up Visit", duration: 20, price: 50 },
+];
 
-  useEffect(() => {
-    console.log("Booking params =>", serviceId, serviceName);
-  }, [serviceId, serviceName]);
+const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const timeSlots = [
+  "09:00",
+  "09:30",
+  "10:00",
+  "10:30",
+  "11:00",
+  "11:30",
+  "14:00",
+  "14:30",
+  "15:00",
+  "15:30",
+  "16:00",
+  "16:30",
+  "17:00",
+];
 
-  const [bookingData, setBookingData] = useState<BookingData>({
-    service: serviceId ?? "",
-    doctor: "",
-    date: new Date(),
-    isAnonymous: false,
-    notes: "",
-  });
-  // Sync bookingData.service when param arrives/changes
-  useEffect(() => {
-    if (serviceId) {
-      setBookingData((prev) => ({ ...prev, service: serviceId }));
+// Mock availability data (true = available, false = booked)
+const mockAvailability = {
+  Mon: {
+    "09:00": true,
+    "09:30": false,
+    "10:00": true,
+    "10:30": true,
+    "11:00": false,
+    "11:30": true,
+    "14:00": true,
+    "14:30": true,
+    "15:00": false,
+    "15:30": true,
+    "16:00": true,
+    "16:30": true,
+    "17:00": false,
+  },
+  Tue: {
+    "09:00": true,
+    "09:30": true,
+    "10:00": false,
+    "10:30": true,
+    "11:00": true,
+    "11:30": false,
+    "14:00": true,
+    "14:30": false,
+    "15:00": true,
+    "15:30": true,
+    "16:00": false,
+    "16:30": true,
+    "17:00": true,
+  },
+  Wed: {
+    "09:00": false,
+    "09:30": true,
+    "10:00": true,
+    "10:30": false,
+    "11:00": true,
+    "11:30": true,
+    "14:00": false,
+    "14:30": true,
+    "15:00": true,
+    "15:30": false,
+    "16:00": true,
+    "16:30": true,
+    "17:00": true,
+  },
+  Thu: {
+    "09:00": true,
+    "09:30": true,
+    "10:00": true,
+    "10:30": true,
+    "11:00": false,
+    "11:30": true,
+    "14:00": true,
+    "14:30": true,
+    "15:00": true,
+    "15:30": true,
+    "16:00": false,
+    "16:30": true,
+    "17:00": true,
+  },
+  Fri: {
+    "09:00": true,
+    "09:30": false,
+    "10:00": true,
+    "10:30": true,
+    "11:00": true,
+    "11:30": false,
+    "14:00": true,
+    "14:30": true,
+    "15:00": true,
+    "15:30": false,
+    "16:00": true,
+    "16:30": true,
+    "17:00": true,
+  },
+  Sat: {
+    "09:00": true,
+    "09:30": true,
+    "10:00": false,
+    "10:30": true,
+    "11:00": true,
+    "11:30": true,
+    "14:00": false,
+    "14:30": false,
+    "15:00": true,
+    "15:30": true,
+    "16:00": true,
+    "16:30": false,
+    "17:00": false,
+  },
+  Sun: {
+    "09:00": false,
+    "09:30": false,
+    "10:00": false,
+    "10:30": false,
+    "11:00": false,
+    "11:30": false,
+    "14:00": false,
+    "14:30": false,
+    "15:00": false,
+    "15:30": false,
+    "16:00": false,
+    "16:30": false,
+    "17:00": false,
+  },
+};
+
+export default function BookingScreen() {
+  const [selectedService, setSelectedService] = useState(null);
+  const [selectedDay, setSelectedDay] = useState("Mon");
+  const [selectedTime, setSelectedTime] = useState(null);
+  const [currentWeekStart, setCurrentWeekStart] = useState(new Date());
+
+  const getDatesForWeek = (startDate) => {
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
+      dates.push(date);
     }
-  }, [serviceId]);
-
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const {
-    data: doctorsData,
-    isLoading: doctorsLoading,
-    error: doctorsError,
-  } = useGetDoctors();
-
-  const doctorOptions = [
-    { label: "Select a doctor...", value: "" },
-    ...(doctorsData?.map((d) => ({
-      label: `${d.name} – ${d.specialty}`,
-      value: d.doctorID,
-    })) || []),
-    { label: "Any Available Doctor", value: "any_doctor" },
-  ];
-
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(Platform.OS === "ios");
-    if (selectedDate) {
-      setBookingData({ ...bookingData, date: selectedDate });
-    }
+    return dates;
   };
 
-  const validateForm = (): boolean => {
-    // If serviceName provided, skip service selection
-    const selectedService =
-      bookingData.service ||
-      serviceId ||
-      (serviceName ? serviceId || "unknown" : "");
-    if (!selectedService) {
-      Alert.alert("Error", "Please select a service");
-      return false;
-    }
-    if (!bookingData.doctor) {
-      Alert.alert("Error", "Please select a doctor");
-      return false;
-    }
-    if (bookingData.date < new Date()) {
-      Alert.alert("Error", "Please select a future date");
-      return false;
-    }
-    return true;
-  };
+  const weekDates = getDatesForWeek(currentWeekStart);
 
-  const handleSubmit = async () => {
-    if (!validateForm()) return;
-
-    setIsLoading(true);
-    // TODO: replace with real API call
-    setTimeout(() => {
-      setIsLoading(false);
-      Alert.alert(
-        "Booking Confirmed",
-        `Your appointment for ${
-          serviceName || bookingData.service
-        } on ${bookingData.date.toDateString()} has been booked.`,
-        [{ text: "OK" }]
+  const handleBooking = () => {
+    if (selectedService && selectedDay && selectedTime) {
+      // Handle booking logic here
+      alert(
+        `Booking confirmed!\nService: ${selectedService.name}\nDay: ${selectedDay}\nTime: ${selectedTime}`
       );
-    }, 2000);
+    } else {
+      alert("Please select a service, day, and time slot.");
+    }
   };
 
-  const formatDate = (date: Date): string => {
-    return date.toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+  const navigateWeek = (direction) => {
+    const newDate = new Date(currentWeekStart);
+    newDate.setDate(currentWeekStart.getDate() + direction * 7);
+    setCurrentWeekStart(newDate);
+    setSelectedDay(weekDays[0]);
+    setSelectedTime(null);
   };
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
-      <HeaderBack title={"Booking Screen"} />
-      <ScrollView className="flex-1 bg-[#f2f5f9]">
-        <View className="px-6 py-8">
-          {/* Header */}
-          <View className="mb-8">
-            <Text className="text-3xl font-bold text-gray-900 mb-2">
-              Book Your Appointment
-            </Text>
-            <Text className="text-base text-gray-600 leading-6">
-              Schedule your confidential HIV services appointment. All
-              information is kept strictly private.
-            </Text>
-          </View>
+      <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
 
-          {/* Service Selection */}
-          <View className="mb-6">
-            <Text className="text-lg font-semibold text-gray-900 mb-3">
-              Service Required *
-            </Text>
-            {serviceName ? (
-              <View className="bg-white rounded-xl border border-gray-200 p-4">
-                <Text className="text-base text-gray-900">{serviceName}</Text>
-              </View>
-            ) : (
-              <View className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <Picker
-                  selectedValue={bookingData.service}
-                  onValueChange={(value) =>
-                    setBookingData((prev) => ({
-                      ...prev,
-                      service: String(value),
-                    }))
-                  }
-                  mode="dropdown"
-                  style={{ height: 50, width: "100%" }}
-                >
-                  <Picker.Item
-                    label="Select a service..."
-                    value=""
-                    color="#9CA3AF"
-                  />
-                  <Picker.Item
-                    label="HIV Testing & Counseling"
-                    value="hiv_testing"
-                  />
-                  <Picker.Item
-                    label="PrEP Consultation"
-                    value="prep_consultation"
-                  />
-                  <Picker.Item
-                    label="HIV Treatment Follow-up"
-                    value="hiv_treatment"
-                  />
-                  <Picker.Item
-                    label="Sexual Health Screening"
-                    value="sexual_health"
-                  />
-                  <Picker.Item
-                    label="Support & Counseling"
-                    value="counseling"
-                  />
-                </Picker>
-              </View>
-            )}
-          </View>
-
-          {/* Doctor Selection */}
-          <View className="mb-6">
-            <Text className="text-lg font-semibold text-gray-900 mb-3">
-              Preferred Doctor *
-            </Text>
-            <View className="bg-white rounded-xl border border-gray-200 overflow-visible">
-              <Picker
-                selectedValue={bookingData.doctor}
-                onValueChange={(value) =>
-                  setBookingData({ ...bookingData, doctor: value })
-                }
-                enabled={!doctorsLoading}
-                mode="dropdown" // ép dùng dropdown trên cả iOS/Android
-                style={{
-                  height: 50,
-                  width: "100%", // bắt buộc phải có width
-                }}
-              >
-                {doctorOptions.map((doc) => (
-                  <Picker.Item
-                    key={doc.value}
-                    label={doc.label}
-                    value={doc.value}
-                    color={doc.value === "" ? "#9CA3AF" : "#111827"}
-                  />
-                ))}
-              </Picker>
-            </View>
-            {doctorsLoading && (
-              <Text className="mt-2 text-sm text-gray-500">
-                Loading doctors…
-              </Text>
-            )}
-            {doctorsError && (
-              <Text className="mt-2 text-sm text-red-500">
-                Error loading doctors
-              </Text>
-            )}
-          </View>
-
-          {/* Date Selection */}
-          <View className="mb-6">
-            <Text className="text-lg font-semibold text-gray-900 mb-3">
-              Preferred Date *
-            </Text>
-            <TouchableOpacity
-              onPress={() => setShowDatePicker(true)}
-              className="bg-white rounded-xl border border-gray-200 p-4 flex-row items-center justify-between"
-            >
-              <Text className="text-base text-gray-900">
-                {formatDate(bookingData.date)}
-              </Text>
-              <Ionicons name="calendar-outline" size={24} color="#0f67fe" />
-            </TouchableOpacity>
-
-            {showDatePicker && (
-              <DateTimePicker
-                value={bookingData.date}
-                mode="date"
-                display="default"
-                onChange={handleDateChange}
-                minimumDate={new Date()}
-              />
-            )}
-          </View>
-
-          {/* Anonymous Option */}
-          <View className="mb-6">
-            <TouchableOpacity
-              onPress={() =>
-                setBookingData({
-                  ...bookingData,
-                  isAnonymous: !bookingData.isAnonymous,
-                })
-              }
-              className="bg-white rounded-xl border border-gray-200 p-4 flex-row items-center justify-between"
-            >
-              <View className="flex-1">
-                <Text className="text-lg font-semibold text-gray-900 mb-1">
-                  Anonymous Appointment
-                </Text>
-                <Text className="text-sm text-gray-600">
-                  Keep your identity private during the appointment
-                </Text>
-              </View>
-              <View
-                className={`w-12 h-6 rounded-full ${
-                  bookingData.isAnonymous ? "bg-[#0f67fe]" : "bg-gray-300"
-                } flex-row items-center ${
-                  bookingData.isAnonymous ? "justify-end" : "justify-start"
-                } px-1`}
-              >
-                <View className="w-4 h-4 bg-white rounded-full" />
-              </View>
-            </TouchableOpacity>
-          </View>
-
-          {/* Notes Section */}
-          <View className="mb-8">
-            <Text className="text-lg font-semibold text-gray-900 mb-3">
-              Additional Notes
-            </Text>
-            <TextInput
-              value={bookingData.notes}
-              onChangeText={(text) =>
-                setBookingData({ ...bookingData, notes: text })
-              }
-              placeholder="Any specific concerns, symptoms, or requests you'd like to discuss..."
-              multiline
-              numberOfLines={4}
-              className="bg-white rounded-xl border border-gray-200 p-4 text-base text-gray-900 min-h-[100px]"
-              textAlignVertical="top"
-            />
-          </View>
-
-          {/* Privacy Notice */}
-          <View className="bg-[#8a3ffc]/10 rounded-xl p-4 mb-6 border border-[#8a3ffc]/20">
-            <View className="flex-row items-start">
-              <Ionicons name="shield-checkmark" size={20} color="#8a3ffc" />
-              <View className="ml-3 flex-1">
-                <Text className="text-sm font-medium text-[#8a3ffc] mb-1">
-                  Your Privacy is Protected
-                </Text>
-                <Text className="text-xs text-gray-600 leading-4">
-                  All appointments and medical information are kept strictly
-                  confidential in accordance with HIPAA regulations.
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Submit Button */}
-          <TouchableOpacity
-            onPress={handleSubmit}
-            disabled={isLoading}
-            className={`rounded-xl p-4 flex-row items-center justify-center ${
-              isLoading ? "bg-gray-400" : "bg-[#0f67fe]"
-            }`}
-          >
-            {isLoading ? (
-              <Text className="text-white text-lg font-semibold">
-                Booking Appointment...
-              </Text>
-            ) : (
-              <>
-                <Text className="text-white text-lg font-semibold mr-2">
-                  Book Appointment
-                </Text>
-                <Ionicons name="arrow-forward" size={20} color="white" />
-              </>
-            )}
+      {/* Header */}
+      <View className="bg-white px-6 py-4 border-b border-gray-200">
+        <View className="flex-row items-center justify-between">
+          <TouchableOpacity>
+            <Ionicons name="arrow-back" size={24} color="#374151" />
           </TouchableOpacity>
+          <Text className="text-xl font-bold text-gray-900">
+            Book Appointment
+          </Text>
+          <TouchableOpacity>
+            <Ionicons name="calendar-outline" size={24} color="#374151" />
+          </TouchableOpacity>
+        </View>
+      </View>
 
-          {/* Help Section */}
-          <View className="mt-8 pt-6 border-t border-gray-200">
-            <Text className="text-center text-sm text-gray-600 mb-4">
-              Need help or have questions?
-            </Text>
-            <View className="flex-row justify-center space-x-6">
-              <TouchableOpacity className="flex-row items-center">
-                <Ionicons name="call" size={16} color="#0f67fe" />
-                <Text className="text-[#0f67fe] text-sm font-medium ml-2">
-                  Call Us
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        {/* Doctor Info */}
+        <View className="bg-white mx-4 mt-4 p-4 rounded-xl shadow-sm">
+          <View className="flex-row items-center">
+            <View className="w-16 h-16 bg-blue-100 rounded-full items-center justify-center">
+              <Ionicons name="person" size={32} color="#3b82f6" />
+            </View>
+            <View className="ml-4 flex-1">
+              <Text className="text-lg font-bold text-gray-900">
+                Dr. Sarah Johnson
+              </Text>
+              <Text className="text-gray-600">Cardiologist</Text>
+              <View className="flex-row items-center mt-1">
+                <Ionicons name="star" size={16} color="#fbbf24" />
+                <Text className="text-sm text-gray-600 ml-1">
+                  4.9 (127 reviews)
                 </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Service Selection */}
+        <View className="mx-4 mt-6">
+          <Text className="text-lg font-bold text-gray-900 mb-3">
+            Select Service
+          </Text>
+          <View className="space-y-3">
+            {services.map((service) => (
+              <TouchableOpacity
+                key={service.id}
+                onPress={() => setSelectedService(service)}
+                className={`p-4 rounded-xl border-2 ${
+                  selectedService?.id === service.id
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 bg-white"
+                }`}
+              >
+                <View className="flex-row justify-between items-center">
+                  <View className="flex-1">
+                    <Text
+                      className={`font-semibold ${
+                        selectedService?.id === service.id
+                          ? "text-blue-700"
+                          : "text-gray-900"
+                      }`}
+                    >
+                      {service.name}
+                    </Text>
+                    <Text className="text-gray-600 text-sm mt-1">
+                      {service.duration} minutes
+                    </Text>
+                  </View>
+                  <Text
+                    className={`font-bold ${
+                      selectedService?.id === service.id
+                        ? "text-blue-700"
+                        : "text-gray-900"
+                    }`}
+                  >
+                    ${service.price}
+                  </Text>
+                </View>
               </TouchableOpacity>
-              <TouchableOpacity className="flex-row items-center">
-                <Ionicons name="chatbubble" size={16} color="#0f67fe" />
-                <Text className="text-[#0f67fe] text-sm font-medium ml-2">
-                  Live Chat
-                </Text>
+            ))}
+          </View>
+        </View>
+
+        {/* Week Navigation */}
+        <View className="mx-4 mt-6">
+          <View className="flex-row items-center justify-between mb-4">
+            <Text className="text-lg font-bold text-gray-900">
+              Select Date & Time
+            </Text>
+            <View className="flex-row items-center space-x-4">
+              <TouchableOpacity
+                onPress={() => navigateWeek(-1)}
+                className="p-2 rounded-full bg-gray-100"
+              >
+                <Ionicons name="chevron-back" size={20} color="#374151" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigateWeek(1)}
+                className="p-2 rounded-full bg-gray-100"
+              >
+                <Ionicons name="chevron-forward" size={20} color="#374151" />
               </TouchableOpacity>
             </View>
           </View>
+
+          {/* Week Days */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="mb-4"
+          >
+            <View className="flex-row space-x-3">
+              {weekDays.map((day, index) => {
+                const date = weekDates[index];
+                const isToday =
+                  date.toDateString() === new Date().toDateString();
+                const isSelected = selectedDay === day;
+
+                return (
+                  <TouchableOpacity
+                    key={day}
+                    onPress={() => {
+                      setSelectedDay(day);
+                      setSelectedTime(null);
+                    }}
+                    className={`items-center p-3 rounded-xl min-w-[70px] ${
+                      isSelected
+                        ? "bg-blue-500"
+                        : isToday
+                        ? "bg-blue-100 border-2 border-blue-300"
+                        : "bg-white border border-gray-200"
+                    }`}
+                  >
+                    <Text
+                      className={`text-sm font-medium ${
+                        isSelected
+                          ? "text-white"
+                          : isToday
+                          ? "text-blue-700"
+                          : "text-gray-600"
+                      }`}
+                    >
+                      {day}
+                    </Text>
+                    <Text
+                      className={`text-lg font-bold mt-1 ${
+                        isSelected
+                          ? "text-white"
+                          : isToday
+                          ? "text-blue-700"
+                          : "text-gray-900"
+                      }`}
+                    >
+                      {date.getDate()}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </ScrollView>
+
+          {/* Time Slots */}
+          <View className="bg-white rounded-xl p-4 shadow-sm">
+            <Text className="font-semibold text-gray-900 mb-3">
+              Available Times
+            </Text>
+            <View className="flex-row flex-wrap gap-3">
+              {timeSlots.map((time) => {
+                const isAvailable = mockAvailability[selectedDay]?.[time];
+                const isSelected = selectedTime === time;
+
+                return (
+                  <TouchableOpacity
+                    key={time}
+                    onPress={() => isAvailable && setSelectedTime(time)}
+                    disabled={!isAvailable}
+                    className={`px-4 py-3 rounded-lg border ${
+                      isSelected
+                        ? "bg-blue-500 border-blue-500"
+                        : isAvailable
+                        ? "bg-white border-gray-300"
+                        : "bg-gray-100 border-gray-200"
+                    }`}
+                  >
+                    <Text
+                      className={`font-medium ${
+                        isSelected
+                          ? "text-white"
+                          : isAvailable
+                          ? "text-gray-900"
+                          : "text-gray-400"
+                      }`}
+                    >
+                      {time}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        </View>
+
+        {/* Booking Summary */}
+        {selectedService && selectedDay && selectedTime && (
+          <View className="mx-4 mt-6 bg-blue-50 rounded-xl p-4 border border-blue-200">
+            <Text className="font-bold text-blue-900 mb-2">
+              Booking Summary
+            </Text>
+            <View className="space-y-1">
+              <Text className="text-blue-800">
+                Service: {selectedService.name}
+              </Text>
+              <Text className="text-blue-800">
+                Date: {selectedDay},{" "}
+                {weekDates[weekDays.indexOf(selectedDay)]?.toLocaleDateString()}
+              </Text>
+              <Text className="text-blue-800">Time: {selectedTime}</Text>
+              <Text className="text-blue-800">
+                Duration: {selectedService.duration} minutes
+              </Text>
+              <Text className="font-bold text-blue-900 mt-2">
+                Total: ${selectedService.price}
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* Book Button */}
+        <View className="mx-4 mt-6 mb-8">
+          <TouchableOpacity
+            onPress={handleBooking}
+            className={`py-4 rounded-xl ${
+              selectedService && selectedDay && selectedTime
+                ? "bg-blue-500"
+                : "bg-gray-300"
+            }`}
+            disabled={!selectedService || !selectedDay || !selectedTime}
+          >
+            <Text
+              className={`text-center font-bold text-lg ${
+                selectedService && selectedDay && selectedTime
+                  ? "text-white"
+                  : "text-gray-500"
+              }`}
+            >
+              Book Appointment
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
-};
-
-export default ServiceBookingScreen;
+}
