@@ -1,8 +1,11 @@
 // services/booking-services/hooks.ts
-
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { bookAppointment } from "./api";
-import { AppointmentRequest, AppointmentResponse } from "./types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { bookAppointment, getWorkShiftsWeek } from "./api";
+import {
+  AppointmentRequest,
+  AppointmentResponse,
+  WorkShiftWeek,
+} from "./types";
 
 export const useBookAppointment = () => {
   const queryClient = useQueryClient();
@@ -17,3 +20,14 @@ export const useBookAppointment = () => {
     }
   );
 };
+
+// services/workShift/hooks.ts
+export const useGetWorkShiftsWeek = (date: string, doctorId?: string) =>
+  useQuery<WorkShiftWeek[], Error>(
+    ["workShiftsWeek", date, doctorId],
+    () => getWorkShiftsWeek(date, doctorId),
+    {
+      staleTime: 5 * 60 * 1000,
+      enabled: !!doctorId, // chỉ chạy khi đã có doctorId
+    }
+  );

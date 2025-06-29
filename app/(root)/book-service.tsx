@@ -7,21 +7,27 @@ import {
   WeekNavigation,
 } from "@/components";
 import TimeSlots from "@/components/booking/TimeSlot";
-import { mockAvailability, timeSlots, weekDays } from "@/constants";
+import { weekDays } from "@/constants";
+import { useGetWorkShiftsWeek } from "@/services/booking-services/hooks";
 import { useGetDoctors } from "@/services/doctor/hooks";
 import { Doctor } from "@/services/doctor/types";
 import { Service } from "@/types/type";
 import { useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
-import { Alert, ScrollView, StatusBar } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StatusBar,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export type AvailabilityMap = Record<string, Record<string, boolean>>;
+export type AvailabilityMap = Record<string, Record<string, string>>;
 
 export default function BookingScreen() {
   const { data } = useLocalSearchParams<{ data: string }>();
-
-  // Find the service passed from ServiceDetail or fallback
   const initialService: Service | null = data
     ? JSON.parse(decodeURIComponent(data))
     : null;
@@ -29,53 +35,111 @@ export default function BookingScreen() {
   const [selectedService, setSelectedService] = useState<Service | null>(
     initialService
   );
-  const [selectedDay, setSelectedDay] = useState<string>("Mon");
+  const [selectedDay, setSelectedDay] = useState<string>(() => {
+    const today = new Date();
+    const todayName = weekDays[today.getDay()];
+    return todayName;
+  });
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const { data: doctors, isLoading, error } = useGetDoctors();
+
+  // Bác sĩ
+  const {
+    data: doctors,
+    isLoading: doctorsLoading,
+    error: doctorsError,
+  } = useGetDoctors();
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
-  const [currentWeekStart, setCurrentWeekStart] = useState(new Date());
 
-  // Reset selected time/day when service changes
-  useEffect(() => {
-    setSelectedDay("Mon");
-    setSelectedTime(null);
-  }, [selectedService]);
+  // Tuần hiện tại (thứ Hai)
+  const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => {
+    const today = new Date();
+    const dow = today.getDay();
+    const offset = dow === 0 ? -6 : 1 - dow;
+    const monday = new Date(today);
+    monday.setHours(0, 0, 0, 0);
+    monday.setDate(today.getDate() + offset);
+    return monday;
+  });
 
-  const getDatesForWeek = (start: Date) => {
-    const dates: Date[] = [];
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(start);
-      date.setDate(start.getDate() + i);
-      dates.push(date);
-    }
-    return dates;
-  };
-
+  // Danh sách các ngày trong tuần
+  const getDatesForWeek = (start: Date) =>
+    Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      return d;
+    });
   const weekDates = getDatesForWeek(currentWeekStart);
 
+  // Ngày được chọn
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+
+  // reset selectedDate khi tuần đổi
+  useEffect(() => {
+    setSelectedDate(currentWeekStart);
+  }, [currentWeekStart]);
+  // Lấy ISO string của ngày để gọi API
+  const selectedDateParam = selectedDate.toISOString().split("T")[0];
+
+  const {
+    data: shifts = [],
+    isLoading: shiftsLoading,
+    error: shiftsError,
+  } = useGetWorkShiftsWeek(selectedDateParam, selectedDoctor?.doctorID);
+
+  // Các slot cho ngày đang chọn
+  const timeSlotsList = useMemo(
+    () =>
+      shifts
+        .filter((s) => weekDays[new Date(s.date).getDay()] === selectedDay)
+        .map((s) => s.slot),
+    [shifts, selectedDay]
+  );
+
+  // Bản đồ availability status
+  const availability = useMemo(() => {
+    const map: AvailabilityMap = {};
+    weekDates.forEach((date) => {
+      const dayName = weekDays[date.getDay()];
+      map[dayName] = {};
+    });
+    shifts.forEach((s) => {
+      const dayName = weekDays[new Date(s.date).getDay()];
+      map[dayName] = map[dayName] || {};
+      map[dayName][s.slot] = s.status;
+    });
+    return map;
+  }, [shifts, weekDates]);
+
+  // Điều hướng tuần
+  const navigateWeek = (dir: number) => {
+    const next = new Date(currentWeekStart);
+    next.setDate(currentWeekStart.getDate() + dir * 7);
+    setCurrentWeekStart(next);
+    const newDayName = weekDays[next.getDay()];
+    setSelectedDay(newDayName);
+    setSelectedTime(null);
+  };
+
+  const handleSelectDay = (day: string, idx: number) => {
+    setSelectedDay(day);
+    setSelectedTime(null);
+    setSelectedDate(weekDates[idx]);
+  };
+
+  // Đặt lịch
   const handleBooking = () => {
     if (selectedService && selectedDay && selectedTime && selectedDoctor) {
       Alert.alert(
         "Booking confirmed!",
-        `Service: ${selectedService.name}
-Doctor ID: ${selectedDoctor.doctorID}
-Doctor: ${selectedDoctor.name}
-Day: ${selectedDay}
-Time: ${selectedTime}`
+        `Service: ${selectedService.name}\nDoctor: ${selectedDoctor.name}\nDay: ${selectedDay}\nTime: ${selectedTime}`
       );
-      // TODO: ở đây bạn gọi API bookService({... , doctorID: selectedDoctor.doctorID, ...})
+      // TODO: gọi API bookService với doctorID, date, slot...
     } else {
       Alert.alert("Vui lòng chọn đầy đủ service, bác sĩ, ngày và khung giờ.");
     }
   };
-
-  const navigateWeek = (direction: number) => {
-    const newStart = new Date(currentWeekStart);
-    newStart.setDate(currentWeekStart.getDate() + direction * 7);
-    setCurrentWeekStart(newStart);
-    setSelectedDay(weekDays[0]);
-    setSelectedTime(null);
-  };
+  console.log(availability);
+  console.log(selectedDateParam);
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -84,8 +148,8 @@ Time: ${selectedTime}`
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <ChooseDoctor
           doctors={doctors}
-          isLoading={isLoading}
-          error={error as Error | null}
+          isLoading={doctorsLoading}
+          error={doctorsError as Error | null}
           selectedDoctor={selectedDoctor}
           onSelectDoctor={setSelectedDoctor}
         />
@@ -93,25 +157,36 @@ Time: ${selectedTime}`
         <ServiceSelection
           services={selectedService ? [selectedService] : []}
           selectedServiceId={selectedService?.serviceID ?? null}
-          onSelect={(service) => setSelectedService(service)}
+          onSelect={setSelectedService}
         />
+
         <WeekNavigation
           weekDates={weekDates}
           selectedDay={selectedDay}
-          onSelectDay={(d) => {
-            setSelectedDay(d);
-            setSelectedTime(null);
-          }}
+          onSelectDay={handleSelectDay}
           onPrevWeek={() => navigateWeek(-1)}
           onNextWeek={() => navigateWeek(1)}
         />
+
+        {shiftsLoading ? (
+          <View className="items-center py-4">
+            <ActivityIndicator />
+            <Text>Loading availability...</Text>
+          </View>
+        ) : shiftsError ? (
+          <Text className="text-red-500 text-center py-4">
+            Lỗi tải lịch: {shiftsError.message}
+          </Text>
+        ) : null}
+
         <TimeSlots
-          timeSlots={timeSlots}
-          availability={mockAvailability}
+          timeSlots={timeSlotsList}
+          availability={availability}
           selectedDay={selectedDay}
           selectedTime={selectedTime}
           onSelectTime={setSelectedTime}
         />
+
         {selectedService && selectedDay && selectedTime ? (
           <>
             <BookingSummary
@@ -123,7 +198,7 @@ Time: ${selectedTime}`
             <BookButton onBook={handleBooking} disabled={false} />
           </>
         ) : (
-          <BookButton onBook={handleBooking} disabled={true} />
+          <BookButton onBook={handleBooking} disabled />
         )}
       </ScrollView>
     </SafeAreaView>

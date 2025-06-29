@@ -16,6 +16,37 @@ export interface AppointmentRequest {
   note: string;
 }
 
+export interface Account {
+  id: string;
+  username: string;
+  email: string;
+  phone: string;
+  avatar: string;
+  role: string;
+  isDeleted: boolean;
+}
+
+export interface Doctor {
+  doctorID: string;
+  account: Account;
+  name: string;
+  gender: string;
+  specialty: string;
+  degrees: string;
+  img?: string | null;
+}
+
+export interface WorkShiftWeek {
+  id: number;
+  doctor: Doctor;
+  slot: string;
+  date: string; // ISO string
+  startTime: string; // ISO string
+  endTime: string; // ISO string
+  status: string;
+  note: string | null;
+}
+
 // Nếu server trả về object nào đó, bạn có thể define thêm.
 // Còn không, tạm dùng `void` hoặc `unknown`
 export type AppointmentResponse = void;

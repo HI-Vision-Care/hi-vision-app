@@ -1,5 +1,4 @@
 import { AvailabilityMap } from "@/app/(root)/book-service";
-import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
 interface TimeSlotsProps {
@@ -22,7 +21,8 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
       <Text className="font-semibold text-gray-900 mb-3">Available Times</Text>
       <View className="flex-row flex-wrap gap-3">
         {timeSlots.map((time) => {
-          const isAvailable = availability[selectedDay]?.[time];
+          const status = availability[selectedDay]?.[time] ?? "";
+          const isAvailable = status === "trong";
           const isSelected = time === selectedTime;
           return (
             <TouchableOpacity
@@ -37,17 +37,27 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
                   : "bg-gray-100 border-gray-200"
               }`}
             >
-              <Text
-                className={`font-medium ${
-                  isSelected
-                    ? "text-white"
-                    : isAvailable
-                    ? "text-gray-900"
-                    : "text-gray-400"
-                }`}
-              >
-                {time}
-              </Text>
+              <View className="items-center">
+                <Text
+                  className={`font-medium ${
+                    isSelected
+                      ? "text-white"
+                      : isAvailable
+                      ? "text-gray-900"
+                      : "text-gray-400"
+                  }`}
+                >
+                  {time}
+                </Text>
+                {/* nếu không trống thì show “Đã đặt” */}
+                <Text className="text-xs text-red-500 mt-1">
+                  {status === "dadat"
+                    ? "Đã đặt"
+                    : status === "dahuy"
+                    ? "Đã hủy"
+                    : ""}
+                </Text>
+              </View>
             </TouchableOpacity>
           );
         })}
