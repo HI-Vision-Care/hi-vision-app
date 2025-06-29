@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { signIn, signUp } from "./api";
 import {
   SignInParams,
@@ -8,8 +8,6 @@ import {
 } from "./types";
 
 export const useSignIn = () => {
-  const queryClient = useQueryClient();
-
   return useMutation<SignInResponse, Error, SignInParams>({
     // mutation function chính
     mutationFn: signIn,
@@ -24,14 +22,12 @@ export const useSignIn = () => {
     // tuỳ chọn khi lỗi
     onError: (error) => {
       // có thể show toast hoặc log
-      console.error("SignIn failed:", error);
+      console.error("SignIn failed:", error.message);
     },
   });
 };
 
 export const useSignUp = () => {
-  const queryClient = useQueryClient();
-
   return useMutation<SignUpResponse, Error, SignUpParams>({
     mutationFn: signUp,
     onSuccess: async (data) => {
@@ -40,8 +36,6 @@ export const useSignUp = () => {
       // await AsyncStorage.setItem("token", data.token);
       // queryClient.invalidateQueries(["userProfile"]);
     },
-    onError: (error) => {
-      console.error("SignUp failed:", error);
-    },
+    onError: (error) => {},
   });
 };

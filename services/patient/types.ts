@@ -23,3 +23,9 @@ export interface PatientProfile {
   medFac: string;
   // nếu còn field khác, bạn mở rộng thêm ở đây
 }
+
+export interface DeleteAccountResponse {
+  code: number;
+  message: string;
+  data: string;
+}
