@@ -400,7 +400,7 @@ export const featureCards = [
   { id: "gold", title: "Gold", icon: "👑" },
   {
     id: "activity-history",
-    title: "Lịch sử hoạt động",
+    title: "Activity history",
     icon: "📅",
     hasBadge: true,
     badgeCount: 1,

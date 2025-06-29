@@ -32,8 +32,8 @@ const SignIn: React.FC = () => {
       router.replace("/(root)/(tabs)/home");
     } catch (err: any) {
       Alert.alert(
-        "Đăng nhập thất bại",
-        err.message || "Vui lòng kiểm tra lại thông tin."
+        "Sign In Failed",
+        err.message || "Please check the information again."
       );
     }
   };
