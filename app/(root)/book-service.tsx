@@ -77,8 +77,15 @@ export default function BookingScreen() {
   useEffect(() => {
     setSelectedDate(currentWeekStart);
   }, [currentWeekStart]);
+
   // Lấy ISO string của ngày để gọi API
-  const selectedDateParam = selectedDate.toISOString().split("T")[0];
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  const selectedDateParam =
+    selectedDate.getFullYear() +
+    "-" +
+    pad(selectedDate.getMonth() + 1) +
+    "-" +
+    pad(selectedDate.getDate());
 
   const {
     data: shifts = [],
@@ -87,25 +94,28 @@ export default function BookingScreen() {
   } = useGetWorkShiftsWeek(selectedDateParam, selectedDoctor?.doctorID);
 
   // Các slot cho ngày đang chọn
+  const selectedISO = selectedDate.toISOString().slice(0, 10);
+
   const timeSlotsList = useMemo(
     () =>
       shifts
-        .filter((s) => weekDays[new Date(s.date).getDay()] === selectedDay)
+        .filter(
+          (s) => new Date(s.date).toISOString().slice(0, 10) === selectedISO
+        )
         .map((s) => s.slot),
-    [shifts, selectedDay]
+    [shifts, selectedISO]
   );
-
   // Bản đồ availability status
   const availability = useMemo(() => {
-    const map: AvailabilityMap = {};
+    const map: Record<string, Record<string, string>> = {};
     weekDates.forEach((date) => {
-      const dayName = weekDays[date.getDay()];
-      map[dayName] = {};
+      const iso = date.toISOString().slice(0, 10); // yyyy-mm-dd
+      map[iso] = {};
     });
     shifts.forEach((s) => {
-      const dayName = weekDays[new Date(s.date).getDay()];
-      map[dayName] = map[dayName] || {};
-      map[dayName][s.slot] = s.status;
+      const iso = new Date(s.date).toISOString().slice(0, 10);
+      map[iso] = map[iso] || {};
+      map[iso][s.slot] = s.status;
     });
     return map;
   }, [shifts, weekDates]);
@@ -138,7 +148,6 @@ export default function BookingScreen() {
       Alert.alert("Vui lòng chọn đầy đủ service, bác sĩ, ngày và khung giờ.");
     }
   };
-  console.log(availability);
   console.log(selectedDateParam);
 
   return (
@@ -182,7 +191,7 @@ export default function BookingScreen() {
         <TimeSlots
           timeSlots={timeSlotsList}
           availability={availability}
-          selectedDay={selectedDay}
+          selectedDay={selectedDate.toISOString().slice(0, 10)} // dùng ISO
           selectedTime={selectedTime}
           onSelectTime={setSelectedTime}
         />
