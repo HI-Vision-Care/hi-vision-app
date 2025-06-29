@@ -81,7 +81,7 @@ const Menu = () => {
                 disabled={!item.isActive}
                 accessible={true}
                 accessibilityRole="button"
-                accessibilityLabel={`${item.name} service, ${item.price}, ${item.duration}`}
+                accessibilityLabel={`${item.name} service, ${item.price}`}
                 accessibilityHint={
                   item.isActive
                     ? "Tap to select this service"
@@ -98,6 +98,7 @@ const Menu = () => {
                     params: {
                       id: item.serviceID,
                       data: JSON.stringify(item),
+                      image: item.img,
                     },
                   })
                 }
