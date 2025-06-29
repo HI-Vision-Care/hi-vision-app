@@ -128,3 +128,26 @@ export interface BookingData {
   isAnonymous: boolean;
   notes: string;
 }
+
+interface MenuItem {
+  id: string;
+  title: string;
+  icon: string;
+  hasArrow?: boolean;
+  isToggle?: boolean;
+  toggleValue?: boolean;
+  isDanger?: boolean;
+}
+
+interface MenuSection {
+  title: string;
+  items: MenuItem[];
+}
+
+interface FeatureCard {
+  id: string;
+  title: string;
+  icon: string;
+  hasBadge?: boolean;
+  badgeCount?: number;
+}

@@ -396,6 +396,71 @@ export const menuItems = [
   },
 ];
 
+export const featureCards = [
+  { id: "gold", title: "Gold", icon: "👑" },
+  {
+    id: "activity-history",
+    title: "Lịch sử hoạt động",
+    icon: "📅",
+    hasBadge: true,
+    badgeCount: 1,
+  },
+];
+
+export const menuSections = [
+  {
+    title: "General Settings",
+    items: [
+      { id: "personal", title: "Personal Info", icon: "👤", hasArrow: true },
+      {
+        id: "notification",
+        title: "Notification",
+        icon: "🔔",
+        hasArrow: true,
+      },
+      { id: "preferences", title: "Preferences", icon: "⚙️", hasArrow: true },
+      { id: "security", title: "Security", icon: "🔒", hasArrow: true },
+    ],
+  },
+  {
+    title: "Accessibility",
+    items: [
+      { id: "language", title: "Language", icon: "🌐", hasArrow: true },
+      {
+        id: "darkmode",
+        title: "Dark Mode",
+        icon: "👁️",
+        isToggle: true,
+        toggleValue: false,
+      },
+    ],
+  },
+  {
+    title: "Help & Support",
+    items: [
+      { id: "about", title: "About", icon: "ℹ️", hasArrow: true },
+      { id: "help", title: "Help Center", icon: "💬", hasArrow: true },
+      { id: "contact", title: "Contact Us", icon: "📞", hasArrow: true },
+    ],
+  },
+  {
+    title: "Sign Out",
+    items: [{ id: "signout", title: "Sign Out", icon: "🚪", hasArrow: true }],
+  },
+  {
+    title: "Danger Zone",
+    items: [
+      {
+        id: "delete",
+        title: "Delete Account",
+        icon: "🗑️",
+        hasArrow: true,
+        isDanger: true,
+      },
+    ],
+  },
+];
+
 export const data = {
   onboarding,
   resetOptions,

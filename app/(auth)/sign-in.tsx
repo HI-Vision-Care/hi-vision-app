@@ -31,7 +31,6 @@ const SignIn: React.FC = () => {
       await AsyncStorage.setItem("token", token);
       router.replace("/(root)/(tabs)/home");
     } catch (err: any) {
-      console.error("Login error:", err.message);
       Alert.alert(
         "Đăng nhập thất bại",
         err.message || "Vui lòng kiểm tra lại thông tin."
@@ -107,6 +106,7 @@ const SignIn: React.FC = () => {
           onPress={handleSignIn}
           variant="primary"
           className="mb-6 mx-0 shadow-lg"
+          isLoading={isLoading}
           rightIcon={
             <Image
               source={icons.arrow}

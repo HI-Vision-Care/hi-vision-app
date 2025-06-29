@@ -50,16 +50,6 @@ const HeaderHome = () => {
     : images.avatarPlaceholder; // hoặc 1 placeholder trong constants
   const username = profile?.account.username ?? "Guest";
 
-  // Xử lý logout: xóa token và chuyển về màn Sign In
-  const handleLogout = async () => {
-    try {
-      await AsyncStorage.removeItem("token");
-      router.replace("/(auth)/sign-in");
-    } catch (e) {
-      console.error("Logout failed:", e);
-    }
-  };
-
   return (
     <SafeAreaView
       edges={["top"]}
@@ -93,17 +83,25 @@ const HeaderHome = () => {
               <Text className="text-white text-xs font-bold">1</Text>
             </View>
           </View>
-          <TouchableOpacity
-            onPress={handleLogout}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Ionicons name="log-out-outline" size={24} color="white" />
-          </TouchableOpacity>
         </View>
       </View>
 
       {/* User profile */}
-      <TouchableOpacity className="flex-row items-center justify-between mb-4">
+      <TouchableOpacity
+        className="flex-row items-center justify-between mb-4"
+        onPress={() => {
+          // build các param cần truyền
+          router.replace({
+            pathname: "/(root)/(tabs)/(personal-info)/setting",
+            params: {
+              accountId, // từ state
+              username, // từ profile?.account.username
+              avatar: typeof avatarUri === "string" ? avatarUri : "", // nếu ko phải string thì pass empty
+              email: profile?.account.email ?? "",
+            },
+          });
+        }}
+      >
         <View className="flex-row items-center flex-1">
           {/* Avatar */}
           {profileLoading ? (

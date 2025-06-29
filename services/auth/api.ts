@@ -8,11 +8,20 @@ import {
 } from "./types";
 
 export const signIn = async (params: SignInParams): Promise<SignInResponse> => {
-  const response = await api.post("/account/login", {
-    email: params.email,
-    password: params.password,
-  });
-  return response.data.data ?? response.data;
+  try {
+    const response = await api.post<{
+      code: number;
+      message: string;
+      data: SignInResponse;
+    }>("/account/login", {
+      email: params.email,
+      password: params.password,
+    });
+    return response.data.data ?? response.data;
+  } catch (err: any) {
+    const backendMsg = err.response?.data?.message;
+    throw new Error(backendMsg ?? err.message);
+  }
 };
 
 // —— MỚI ——
@@ -24,15 +33,22 @@ export const signIn = async (params: SignInParams): Promise<SignInResponse> => {
  * Gọi API đăng ký tài khoản rồi trả về object bên trong `data`
  */
 export const signUp = async (params: SignUpParams): Promise<SignUpResponse> => {
-  const { data } = await api.post<{
-    code: number;
-    data: SignUpResponse;
-  }>("/account/register", {
-    username: params.username, // thêm username
-    password: params.password,
-    email: params.email,
-    phone: params.phone,
-  });
-
-  return data.data;
+  try {
+    const { data } = await api.post<{
+      code: number;
+      message: string;
+      data: SignUpResponse;
+    }>("/account/register", {
+      username: params.username,
+      password: params.password,
+      email: params.email,
+      phone: params.phone,
+    });
+    return data.data;
+  } catch (err: any) {
+    // err.response?.data là ErrorResponse từ backend
+    const backendMsg = err.response?.data?.message;
+    // nếu có message thì throw lên, còn không thì throw error gốc
+    throw new Error(backendMsg ?? err.message);
+  }
 };

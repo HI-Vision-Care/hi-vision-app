@@ -22,3 +22,9 @@ export interface SignUpParams {
   email: string;
   phone: string;
 }
+
+export interface ErrorResponse {
+  code: number;
+  message: string;
+  data?: any;
+}

@@ -66,8 +66,8 @@ const SignUp: React.FC = () => {
           },
         ]
       );
-    } catch (err: any) {
-      setErrorMessage(err.message || "Sign up failed. Please try again.");
+    } catch (error: any) {
+      Alert.alert("Error", error.message);
     }
   };
 
