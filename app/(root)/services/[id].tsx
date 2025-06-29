@@ -10,7 +10,7 @@ import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ServiceDetail() {
-  const { id, data, image } = useLocalSearchParams<{
+  const { data, image } = useLocalSearchParams<{
     id: string;
     data?: string;
     image?: string;
@@ -27,10 +27,12 @@ export default function ServiceDetail() {
     );
   }
 
+  const payload = encodeURIComponent(JSON.stringify(service));
+
   const handleBookAppointment = () => {
     router.push({
       pathname: "/book-service",
-      params: { serviceId: service.id, serviceName: service.name },
+      params: { data: payload },
     });
   };
 
