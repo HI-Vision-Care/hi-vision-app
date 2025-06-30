@@ -397,11 +397,11 @@ export const menuItems = [
 ];
 
 export const featureCards = [
-  { id: "gold", title: "Gold", icon: "👑" },
+  { id: "gold", title: "Gold", icon: "trophy-outline" }, // 👑
   {
     id: "activity-history",
     title: "Activity history",
-    icon: "📅",
+    icon: "calendar-outline", // 📅
     hasBadge: true,
     badgeCount: 1,
   },
@@ -411,41 +411,93 @@ export const menuSections = [
   {
     title: "General Settings",
     items: [
-      { id: "personal", title: "Personal Info", icon: "👤", hasArrow: true },
+      {
+        id: "personal",
+        title: "Personal Info",
+        icon: "person-outline",
+        hasArrow: true,
+        iconColor: "#6366F1", // tím
+      },
       {
         id: "notification",
         title: "Notification",
-        icon: "🔔",
+        icon: "notifications-outline",
         hasArrow: true,
+        iconColor: "#F59E42", // cam
       },
-      { id: "preferences", title: "Preferences", icon: "⚙️", hasArrow: true },
-      { id: "security", title: "Security", icon: "🔒", hasArrow: true },
+      {
+        id: "preferences",
+        title: "Preferences",
+        icon: "settings-outline",
+        hasArrow: true,
+        iconColor: "#10B981", // xanh lá
+      },
+      {
+        id: "security",
+        title: "Security",
+        icon: "lock-closed-outline",
+        hasArrow: true,
+        iconColor: "#3B82F6", // xanh dương
+      },
     ],
   },
   {
     title: "Accessibility",
     items: [
-      { id: "language", title: "Language", icon: "🌐", hasArrow: true },
+      {
+        id: "language",
+        title: "Language",
+        icon: "language-outline",
+        hasArrow: true,
+        iconColor: "#6D28D9", // tím đậm
+      },
       {
         id: "darkmode",
         title: "Dark Mode",
-        icon: "👁️",
+        icon: "moon-outline",
         isToggle: true,
         toggleValue: false,
+        iconColor: "#0F172A", // đen
       },
     ],
   },
   {
     title: "Help & Support",
     items: [
-      { id: "about", title: "About", icon: "ℹ️", hasArrow: true },
-      { id: "help", title: "Help Center", icon: "💬", hasArrow: true },
-      { id: "contact", title: "Contact Us", icon: "📞", hasArrow: true },
+      {
+        id: "about",
+        title: "About",
+        icon: "information-circle-outline",
+        hasArrow: true,
+        iconColor: "#14B8A6", // teal
+      },
+      {
+        id: "help",
+        title: "Help Center",
+        icon: "chatbubble-ellipses-outline",
+        hasArrow: true,
+        iconColor: "#F59E42", // cam
+      },
+      {
+        id: "contact",
+        title: "Contact Us",
+        icon: "call-outline",
+        hasArrow: true,
+        iconColor: "#3B82F6", // xanh dương
+      },
     ],
   },
   {
     title: "Sign Out",
-    items: [{ id: "signout", title: "Sign Out", icon: "🚪", hasArrow: true }],
+    items: [
+      {
+        id: "signout",
+        title: "Sign Out",
+        icon: "exit-outline",
+        hasArrow: true,
+        iconColor: "#F59E42", // cam vàng
+      },
+    ],
   },
   {
     title: "Danger Zone",
@@ -453,9 +505,10 @@ export const menuSections = [
       {
         id: "delete",
         title: "Delete Account",
-        icon: "🗑️",
+        icon: "trash-outline",
         hasArrow: true,
         isDanger: true,
+        iconColor: "#EF4444", // đỏ
       },
     ],
   },

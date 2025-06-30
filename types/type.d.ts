@@ -137,6 +137,7 @@ export interface MenuItem {
   isToggle?: boolean;
   toggleValue?: boolean;
   isDanger?: boolean;
+  iconColor?: string;
 }
 
 export interface MenuSection {

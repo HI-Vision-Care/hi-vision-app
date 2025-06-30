@@ -3,7 +3,10 @@ import { Dimensions, Image, ImageSourcePropType, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import { icons } from "@/constants";
-import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 const TAB_HEIGHT = 30;
@@ -76,9 +79,8 @@ const TabIcon = ({
     </View>
   );
 
-
 function LayoutInner() {
-  const insets = useSafeAreaInsets();  // đọc safe-area inset
+  const insets = useSafeAreaInsets(); // đọc safe-area inset
   const startX = (width - NOTCH_WIDTH) / 2;
   const endX = startX + NOTCH_WIDTH;
 
@@ -108,8 +110,9 @@ function LayoutInner() {
               d={`
                 M0,0
                 L${startX - 10},0
-                C${startX + 5},0 ${startX + 10},${NOTCH_DEPTH} ${startX + NOTCH_WIDTH / 2
-                },${NOTCH_DEPTH}
+                C${startX + 5},0 ${startX + 10},${NOTCH_DEPTH} ${
+                startX + NOTCH_WIDTH / 2
+              },${NOTCH_DEPTH}
                 C${endX - 10},${NOTCH_DEPTH} ${endX - 5},0 ${endX + 10},0
                 L${width},0
                 L${width},${TAB_HEIGHT + NOTCH_DEPTH + insets.bottom}
@@ -157,8 +160,9 @@ function LayoutInner() {
           ),
         }}
       />
+
       <Tabs.Screen
-        name="(personal-info)"
+        name="setting"
         options={{
           headerShown: false,
           tabBarIcon: ({ focused }) => (

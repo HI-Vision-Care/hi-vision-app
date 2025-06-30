@@ -1,9 +1,11 @@
+import { HeaderBack } from "@/components";
 import { featureCards, images, menuSections } from "@/constants";
 import { useDeleteAccount } from "@/services/patient/hooks";
 import { FeatureCard, MenuItem, MenuSection } from "@/types/type";
+import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
+import React from "react";
 import {
   Image,
   ScrollView,
@@ -25,7 +27,7 @@ const Setting: React.FC = () => {
   const email = params.email ?? "";
   const imageSource = avatar ? { uri: avatar } : images.avatarPlaceholder;
 
-  const [darkMode, setDarkMode] = useState(false);
+  // Removed unused darkMode state
 
   const handleLogout = async () => {
     try {
@@ -38,8 +40,6 @@ const Setting: React.FC = () => {
 
   const { mutate: deleteAccount } = useDeleteAccount();
 
-  const handleGoBack = () => router.back();
-
   const handleMenuPress = (itemId: string) => {
     console.log("Menu pressed:", itemId);
     if (itemId === "personal") router.push("/personalinfo");
@@ -47,13 +47,24 @@ const Setting: React.FC = () => {
   };
 
   const handleCardPress = (cardId: string) => {
-    console.log("Card pressed:", cardId);
     if (cardId === "gold") router.push("/gold");
-    else if (cardId === "activity-history") router.push("/history");
+    else if (cardId === "activity-history")
+      router.push("/(personal-info)/history");
   };
 
   const handleToggle = (itemId: string, value: boolean) => {
-    if (itemId === "darkmode") setDarkMode(value);
+    // No-op: darkmode toggle is not implemented
+  };
+
+  const getFeatureIconColor = (card: FeatureCard) => {
+    switch (card.id) {
+      case "gold":
+        return "#FFD700"; // vàng gold
+      case "activity-history":
+        return "#3B82F6"; // xanh dương
+      default:
+        return "#374151"; // xám mặc định
+    }
   };
 
   const renderFeatureCard = (card: FeatureCard) => (
@@ -69,7 +80,12 @@ const Setting: React.FC = () => {
           </Text>
         </View>
       )}
-      <Text className="text-[32px] mb-3">{card.icon}</Text>
+      <Ionicons
+        name={card.icon as React.ComponentProps<typeof Ionicons>["name"]}
+        size={25}
+        color={getFeatureIconColor(card)}
+        style={{ marginBottom: 12 }}
+      />
       <Text className="text-base font-semibold text-[#374151] text-center">
         {card.title}
       </Text>
@@ -103,7 +119,11 @@ const Setting: React.FC = () => {
             item.isDanger ? "bg-red-50" : "bg-gray-50"
           }`}
         >
-          <Text className="text-lg">{item.icon}</Text>
+          <Ionicons
+            name={item.icon as React.ComponentProps<typeof Ionicons>["name"]}
+            size={22}
+            color={item.iconColor || (item.isDanger ? "#EF4444" : "#374151")}
+          />
         </View>
         <Text
           className={`text-base font-medium ${
@@ -122,7 +142,7 @@ const Setting: React.FC = () => {
           thumbColor={item.toggleValue ? "#ffffff" : "#ffffff"}
         />
       ) : item.hasArrow ? (
-        <Text className="text-base text-[#9ca3af]">›</Text>
+        <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
       ) : null}
     </TouchableOpacity>
   );
@@ -135,7 +155,7 @@ const Setting: React.FC = () => {
           {section.title}
         </Text>
         <TouchableOpacity>
-          <Text className="text-base text-[#9ca3af]">⋯</Text>
+          <Ionicons name="ellipsis-horizontal" size={22} color="#9ca3af" />
         </TouchableOpacity>
       </View>
       {/* Section Items */}
@@ -158,15 +178,7 @@ const Setting: React.FC = () => {
       <SafeAreaView className="flex-1 bg-[#f2f5f9]">
         <ScrollView showsVerticalScrollIndicator={false}>
           {/* Header */}
-          <View className="flex-row items-center px-5 py-4 bg-[#f2f5f9]">
-            <TouchableOpacity
-              onPress={handleGoBack}
-              className="w-10 h-10 rounded-lg bg-white justify-center items-center mr-4 shadow-sm"
-            >
-              <Text className="text-lg text-[#374151]">‹</Text>
-            </TouchableOpacity>
-            <Text className="text-xl font-bold text-[#111827]">My Account</Text>
-          </View>
+          <HeaderBack title="Settings" />
 
           {/* Profile Card */}
           <View className="px-4 mb-5">
@@ -186,7 +198,9 @@ const Setting: React.FC = () => {
                 </View>
               </View>
               <TouchableOpacity className="w-[36px] h-[36px] bg-white/20 rounded-[10px] justify-center items-center">
-                <Text className="text-base text-white">✏️</Text>
+                <Text className="text-base text-white">
+                  <Ionicons name="pencil-outline" size={20} color="#fff" />
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

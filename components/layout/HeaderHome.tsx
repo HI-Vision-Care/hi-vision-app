@@ -92,7 +92,7 @@ const HeaderHome = () => {
         onPress={() => {
           // build các param cần truyền
           router.replace({
-            pathname: "/(root)/(tabs)/(personal-info)/setting",
+            pathname: "/(root)/(tabs)/setting",
             params: {
               accountId, // từ state
               username, // từ profile?.account.username
