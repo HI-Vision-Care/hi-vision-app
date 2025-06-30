@@ -163,3 +163,52 @@ export type Service = {
   isOnline: boolean;
   img: string;
 };
+
+export interface Account {
+  id: string;
+  username: string;
+  email: string;
+  phone: string;
+  avatar: string;
+  role: string;
+  isDeleted: boolean;
+}
+
+export interface Patient {
+  patientID: string;
+  account: Account;
+  name: string;
+  dob: string;
+  gender: string;
+  medNo: string;
+  medDate: string;
+  medFac: string;
+}
+
+export interface Doctor {
+  doctorID: string;
+  account: Account;
+  name: string;
+  gender: string;
+  specialty: string;
+  degrees: string;
+  img: string | null;
+}
+
+export interface MedicalRecord {
+  appointmentID: string;
+  patient: Patient;
+  doctor: Doctor;
+  date?: string;
+  status?: string;
+  diagnosis?: string;
+  treatment?: string;
+  notes?: string;
+}
+
+export interface LabResult {
+  recordId: string;
+  testType: string;
+  resultValue: string;
+  testDate: string;
+}

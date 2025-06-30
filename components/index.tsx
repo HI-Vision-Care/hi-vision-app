@@ -1,4 +1,5 @@
 // src/components/index.ts
+export * from "./appointment";
 export * from "./auth";
 export * from "./booking";
 export * from "./chatbot";

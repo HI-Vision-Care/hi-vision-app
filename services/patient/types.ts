@@ -29,3 +29,10 @@ export interface DeleteAccountResponse {
   message: string;
   data: string;
 }
+
+export interface LabResult {
+  recordId: string;
+  testType: string;
+  resultValue: string;
+  testDate: string; // ISO date string
+}
