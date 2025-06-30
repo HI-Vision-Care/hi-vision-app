@@ -1,5 +1,6 @@
 // src/components/index.ts
 export * from "./auth";
+export * from "./booking";
 export * from "./chatbot";
 export * from "./common";
 export * from "./health";

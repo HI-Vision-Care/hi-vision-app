@@ -129,7 +129,7 @@ export interface BookingData {
   notes: string;
 }
 
-interface MenuItem {
+export interface MenuItem {
   id: string;
   title: string;
   icon: string;
@@ -139,15 +139,26 @@ interface MenuItem {
   isDanger?: boolean;
 }
 
-interface MenuSection {
+export interface MenuSection {
   title: string;
   items: MenuItem[];
 }
 
-interface FeatureCard {
+export interface FeatureCard {
   id: string;
   title: string;
   icon: string;
   hasBadge?: boolean;
   badgeCount?: number;
 }
+
+export type Service = {
+  serviceID: number;
+  name: string;
+  description: string;
+  price: number;
+  isActive: boolean;
+  isRequireDoctor: boolean;
+  isOnline: boolean;
+  img: string;
+};

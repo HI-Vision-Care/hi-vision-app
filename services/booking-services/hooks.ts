@@ -1,19 +1,21 @@
 // services/booking-services/hooks.ts
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { bookAppointment, getWorkShiftsWeek } from "./api";
+import { AppointmentForm, WorkShiftWeek } from "./types";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { bookAppointment } from "./api";
-import { AppointmentRequest, AppointmentResponse } from "./types";
+export function useBookAppointment(patientId: string) {
+  return useMutation((appointmentForm: AppointmentForm) =>
+    bookAppointment(patientId, appointmentForm)
+  );
+}
 
-export const useBookAppointment = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation<AppointmentResponse, Error, AppointmentRequest>(
-    (data) => bookAppointment(data),
+// services/workShift/hooks.ts
+export const useGetWorkShiftsWeek = (date: string, doctorId?: string) =>
+  useQuery<WorkShiftWeek[], Error>(
+    ["workShiftsWeek", date, doctorId],
+    () => getWorkShiftsWeek(date, doctorId),
     {
-      onSuccess: () => {
-        // tuỳ bạn: có thể invalidate list appointments hoặc hiển thị toast…
-        queryClient.invalidateQueries(["appointments"]);
-      },
+      staleTime: 5 * 60 * 1000,
+      enabled: !!doctorId, // chỉ chạy khi đã có doctorId
     }
   );
-};
