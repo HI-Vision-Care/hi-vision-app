@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://192.168.100.21:8080/HiVision",
+  baseURL: "http://10.87.37.176:8080/HiVision",
   headers: { "Content-Type": "application/json" },
   timeout: 10000,
 });

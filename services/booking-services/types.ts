@@ -7,11 +7,25 @@ export interface BookingService {
 }
 
 // Thêm phần type cho payload và response của booking appointment
+
+export interface Appointment extends AppointmentForm {
+  patientID: string;
+  appointmentForm: AppointmentForm;
+}
+
 export interface AppointmentRequest {
   patientID: string;
   serviceID: string;
   doctorID: string;
   appointmentDate: string; // ISO string, ví dụ: "2025-06-28T12:44:00.866Z"
+  isAnonymous: boolean;
+  note: string;
+}
+
+export interface AppointmentForm {
+  serviceID: number;
+  doctorID: string;
+  appointmentDate: string;
   isAnonymous: boolean;
   note: string;
 }

@@ -8,7 +8,11 @@ import {
 } from "@/components";
 import TimeSlots from "@/components/booking/TimeSlot";
 import { weekDays } from "@/constants";
-import { useGetWorkShiftsWeek } from "@/services/booking-services/hooks";
+import { usePatientId } from "@/hooks/usePatientId";
+import {
+  useBookAppointment,
+  useGetWorkShiftsWeek,
+} from "@/services/booking-services/hooks";
 import { useGetDoctors } from "@/services/doctor/hooks";
 import { Doctor } from "@/services/doctor/types";
 import { Service } from "@/types/type";
@@ -19,6 +23,7 @@ import {
   Alert,
   ScrollView,
   StatusBar,
+  Switch,
   Text,
   View,
 } from "react-native";
@@ -27,7 +32,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export type AvailabilityMap = Record<string, Record<string, string>>;
 
 export default function BookingScreen() {
+  const patientId = usePatientId();
   const { data } = useLocalSearchParams<{ data: string }>();
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const initialService: Service | null = data
     ? JSON.parse(decodeURIComponent(data))
     : null;
@@ -49,6 +56,10 @@ export default function BookingScreen() {
     error: doctorsError,
   } = useGetDoctors();
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
+
+  const bookAppointmentMutation = useBookAppointment(patientId ?? ""); // fallback to empty string if undefined
+
+  // const bookAppointmentMutation = useBookAppointment(patientId);
 
   // Tuần hiện tại (thứ Hai)
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => {
@@ -139,15 +150,43 @@ export default function BookingScreen() {
   // Đặt lịch
   const handleBooking = () => {
     if (selectedService && selectedDay && selectedTime && selectedDoctor) {
-      Alert.alert(
-        "Booking confirmed!",
-        `Service: ${selectedService.name}\nDoctor: ${selectedDoctor.name}\nDay: ${selectedDay}\nTime: ${selectedTime}`
+      const [startTime] = selectedTime.split(" - "); // "09:00"
+      const [hours, minutes] = startTime.split(":");
+      const localDate = new Date(selectedDate); // Clone để không ảnh hưởng state
+      localDate.setHours(Number(hours), Number(minutes), 0, 0);
+
+      // Cộng thêm phần offset chênh lệch múi giờ (UTC+7 thành 0)
+      const offsetMs = localDate.getTimezoneOffset() * 60 * 1000;
+      const utcDate = new Date(localDate.getTime() - offsetMs);
+      const appointmentDate = utcDate.toISOString(); // Chuẩn Z
+
+      // Hoặc chỉ cần:
+
+      bookAppointmentMutation.mutate(
+        {
+          serviceID: selectedService.serviceID,
+          doctorID: selectedDoctor.doctorID,
+          appointmentDate: appointmentDate,
+          isAnonymous: isAnonymous, // <-- lấy từ state
+          note: "",
+        },
+        {
+          onSuccess: () => {
+            Alert.alert("Đặt lịch thành công!");
+          },
+          onError: (error: any) => {
+            Alert.alert(
+              "Đặt lịch thất bại",
+              error.message || "Đã có lỗi xảy ra."
+            );
+          },
+        }
       );
-      // TODO: gọi API bookService với doctorID, date, slot...
     } else {
       Alert.alert("Vui lòng chọn đầy đủ service, bác sĩ, ngày và khung giờ.");
     }
   };
+
   console.log(selectedDateParam);
 
   return (
@@ -168,6 +207,11 @@ export default function BookingScreen() {
           selectedServiceId={selectedService?.serviceID ?? null}
           onSelect={setSelectedService}
         />
+
+        <View className="flex-row items-center mt-4 mb-2 ml-4">
+          <Text className="text-base mr-2">Schedule anonymously</Text>
+          <Switch value={isAnonymous} onValueChange={setIsAnonymous} />
+        </View>
 
         <WeekNavigation
           weekDates={weekDates}

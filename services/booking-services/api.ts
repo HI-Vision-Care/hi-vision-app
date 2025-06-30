@@ -1,25 +1,19 @@
 // services/booking-services/api.ts
 
 import axios from "@/config/axios";
-import {
-  AppointmentRequest,
-  AppointmentResponse,
-  WorkShiftWeek,
-} from "./types";
-
-// existing API
-// export const getBookingServices = …
+import { Appointment, AppointmentForm, WorkShiftWeek } from "./types";
 
 // Thêm hàm bookAppointment:
-export const bookAppointment = async (
-  payload: AppointmentRequest
-): Promise<AppointmentResponse> => {
-  const res = await axios.post<AppointmentResponse>(
-    "/appointment/book-appointment",
-    payload
+export async function bookAppointment(
+  patientId: string,
+  appointmentForm: AppointmentForm
+): Promise<Appointment> {
+  const response = await axios.post(
+    `/appointment/book-appointment/${patientId}`,
+    appointmentForm
   );
-  return res.data;
-};
+  return response.data;
+}
 
 /**
  * Lấy lịch làm việc theo tuần của bác sĩ
