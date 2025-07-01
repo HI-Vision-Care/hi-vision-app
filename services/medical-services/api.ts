@@ -10,3 +10,8 @@ export const getAllMedicalServices = async (): Promise<MedicalService[]> => {
   });
   return data;
 };
+
+export const getDoctorsBySpecialty = async (specialty: string) => {
+  const res = await api.get(`/doctor/specialty/${specialty}`);
+  return res.data;
+};

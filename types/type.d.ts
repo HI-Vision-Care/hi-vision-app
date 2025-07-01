@@ -161,6 +161,7 @@ export type Service = {
   isActive: boolean;
   isRequireDoctor: boolean;
   isOnline: boolean;
+  specialty: string;
   img: string;
 };
 

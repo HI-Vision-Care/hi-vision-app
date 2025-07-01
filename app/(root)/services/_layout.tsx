@@ -11,7 +11,6 @@ export default function ServicesLayout() {
           headerShown: false, // <-- tắt header
         }}
       />
-      {/* Các screen khác nếu có */}
     </Stack>
   );
 }

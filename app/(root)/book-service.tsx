@@ -13,8 +13,8 @@ import {
   useBookAppointment,
   useGetWorkShiftsWeek,
 } from "@/services/booking-services/hooks";
-import { useGetDoctors } from "@/services/doctor/hooks";
 import { Doctor } from "@/services/doctor/types";
+import { useDoctorsBySpecialty } from "@/services/medical-services/hooks";
 import { Service } from "@/types/type";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -59,7 +59,8 @@ export default function BookingScreen() {
     data: doctors,
     isLoading: doctorsLoading,
     error: doctorsError,
-  } = useGetDoctors();
+  } = useDoctorsBySpecialty(selectedService?.specialty || "");
+
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
 
   const bookAppointmentMutation = useBookAppointment(patientId ?? ""); // fallback to empty string if undefined
