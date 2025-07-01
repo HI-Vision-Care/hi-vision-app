@@ -42,7 +42,7 @@ const healthServices: HealthService[] = [
     iconColor: "#3B82F6",
     backgroundColor: "#EFF6FF",
     onPress: () => {
-      router.push("/medicine-calender");
+      router.push("/(medicine-reminder)/medicine-calendar");
     },
   },
   {
