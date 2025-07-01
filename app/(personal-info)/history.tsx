@@ -1,5 +1,5 @@
 import { HeaderBack, MedicalRecordCard, TabButton } from "@/components";
-import { usePatientId } from "@/hooks/usePatientId";
+import { usePatientProfile } from "@/hooks/usePatientId";
 import { useGetAppointmentByPatientId } from "@/services/appointment/hooks";
 import { useGetLabResults } from "@/services/patient/hooks";
 import { LabResult, MedicalRecord } from "@/types/type";
@@ -17,7 +17,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 // Main Component
 const MedicalHistory: React.FC = () => {
   const [activeTab, setActiveTab] = useState("history");
-  const patientId = usePatientId();
+  const { data: profile } = usePatientProfile();
+  const patientId = profile?.patientID;
 
   const {
     data: labResults,
@@ -34,8 +35,8 @@ const MedicalHistory: React.FC = () => {
   } = useGetAppointmentByPatientId(patientId as string);
 
   const tabs = [
-    { id: "history", title: "Medical History" },
     { id: "appointments", title: "Appointments" },
+    { id: "history", title: "Medical History" },
     { id: "labResults", title: "Lab Results" },
   ];
 
@@ -74,15 +75,17 @@ const MedicalHistory: React.FC = () => {
 
     return (
       <View>
-        <View className="px-4 py-3">
-          <Text className="text-lg font-semibold text-gray-900 mb-2">
-            Medical Records
-          </Text>
-        </View>
+        <View className="px-4 py-3"></View>
         {/* List medical record cards */}
         {(Array.isArray(appointments) ? appointments : []).map(
           (record: MedicalRecord) => (
-            <MedicalRecordCard key={record.appointmentID} record={record} />
+            <MedicalRecordCard
+              key={record.appointmentID}
+              record={{
+                ...record,
+                status: (record.status?.toLowerCase?.() as any) ?? "pending",
+              }}
+            />
           )
         )}
       </View>
@@ -130,7 +133,13 @@ const MedicalHistory: React.FC = () => {
     return (
       <View>
         {upcoming.map((record: MedicalRecord) => (
-          <MedicalRecordCard key={record.appointmentID} record={record} />
+          <MedicalRecordCard
+            key={record.appointmentID}
+            record={{
+              ...record,
+              status: (record.status?.toLowerCase?.() as any) ?? "pending",
+            }}
+          />
         ))}
       </View>
     );
@@ -195,8 +204,8 @@ const MedicalHistory: React.FC = () => {
   };
 
   const renderContent = () => {
-    if (activeTab === "history") return renderMedicalHistory();
     if (activeTab === "appointments") return renderAppointments();
+    if (activeTab === "history") return renderMedicalHistory();
     if (activeTab === "labResults") return renderLabResults();
     return null;
   };

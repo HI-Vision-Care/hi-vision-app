@@ -1,10 +1,11 @@
 import { HeaderBack } from "@/components";
 import { featureCards, images, menuSections } from "@/constants";
+import { usePatientProfile } from "@/hooks/usePatientId";
 import { useDeleteAccount } from "@/services/patient/hooks";
 import { FeatureCard, MenuItem, MenuSection } from "@/types/type";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router, useLocalSearchParams } from "expo-router";
+import { router } from "expo-router";
 import React from "react";
 import {
   Image,
@@ -17,15 +18,26 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+type Account = {
+  accountId?: string;
+  avatar?: string;
+  username?: string;
+  name?: string;
+  email?: string;
+  [key: string]: any;
+};
+
 const Setting: React.FC = () => {
-  const params = useLocalSearchParams();
-  const accountId = params.accountId as string;
-  const username = params.username ?? "Guest";
-  const avatar = Array.isArray(params.avatar)
-    ? params.avatar[0] ?? ""
-    : params.avatar ?? "";
-  const email = params.email ?? "";
-  const imageSource = avatar ? { uri: avatar } : images.avatarPlaceholder;
+  const { data: profile } = usePatientProfile();
+
+  const account: Account = profile?.account ?? {};
+  const accountId = profile?.account?.id;
+  const imageSource = account.avatar
+    ? { uri: account.avatar }
+    : images.avatarPlaceholder;
+  const username = account.username ?? "Guest";
+  const email = account.email ?? "";
+  const name = profile?.name ?? "User";
 
   // Removed unused darkMode state
 
@@ -100,12 +112,16 @@ const Setting: React.FC = () => {
           handleLogout();
         } else if (item.id === "delete") {
           // gọi deleteAccount, và sau khi xóa thành công nhớ xóa token + back to sign-in
-          deleteAccount(accountId, {
-            onSuccess: async () => {
-              await AsyncStorage.removeItem("token");
-              router.replace("/(auth)/sign-in");
-            },
-          });
+          if (accountId) {
+            deleteAccount(accountId, {
+              onSuccess: async () => {
+                await AsyncStorage.removeItem("token");
+                router.replace("/(auth)/sign-in");
+              },
+            });
+          } else {
+            console.error("No accountId found for deleteAccount");
+          }
         } else {
           handleMenuPress(item.id);
         }
@@ -192,7 +208,7 @@ const Setting: React.FC = () => {
                 </View>
                 <View className="flex-1">
                   <Text className="text-lg font-bold text-white mb-1">
-                    {username}
+                    {name}
                   </Text>
                   <Text className="text-sm text-white opacity-80">{email}</Text>
                 </View>

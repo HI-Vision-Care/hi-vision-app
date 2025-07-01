@@ -8,7 +8,7 @@ import {
 } from "@/components";
 import TimeSlots from "@/components/booking/TimeSlot";
 import { weekDays } from "@/constants";
-import { usePatientId } from "@/hooks/usePatientId";
+import { usePatientProfile } from "@/hooks/usePatientId";
 import {
   useBookAppointment,
   useGetWorkShiftsWeek,
@@ -16,7 +16,7 @@ import {
 import { useGetDoctors } from "@/services/doctor/hooks";
 import { Doctor } from "@/services/doctor/types";
 import { Service } from "@/types/type";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -25,6 +25,7 @@ import {
   StatusBar,
   Switch,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -32,7 +33,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export type AvailabilityMap = Record<string, Record<string, string>>;
 
 export default function BookingScreen() {
-  const patientId = usePatientId();
+  const { data: profile } = usePatientProfile();
+  const patientId = profile?.patientID;
+
   const { data } = useLocalSearchParams<{ data: string }>();
   const [isAnonymous, setIsAnonymous] = useState(false);
   const initialService: Service | null = data
@@ -48,6 +51,8 @@ export default function BookingScreen() {
     return todayName;
   });
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+
+  const [note, setNote] = useState("");
 
   // Bác sĩ
   const {
@@ -167,17 +172,18 @@ export default function BookingScreen() {
           serviceID: selectedService.serviceID,
           doctorID: selectedDoctor.doctorID,
           appointmentDate: appointmentDate,
-          isAnonymous: isAnonymous, // <-- lấy từ state
-          note: "",
+          isAnonymous: isAnonymous,
+          note: note,
         },
         {
           onSuccess: () => {
-            Alert.alert("Đặt lịch thành công!");
+            Alert.alert("Scheduled successfully!");
+            router.push("/(personal-info)/history");
           },
           onError: (error: any) => {
             Alert.alert(
-              "Đặt lịch thất bại",
-              error.message || "Đã có lỗi xảy ra."
+              "Schedule failed",
+              error.message || "Error occurred while scheduling."
             );
           },
         }
@@ -186,8 +192,6 @@ export default function BookingScreen() {
       Alert.alert("Vui lòng chọn đầy đủ service, bác sĩ, ngày và khung giờ.");
     }
   };
-
-  console.log(selectedDateParam);
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -239,6 +243,19 @@ export default function BookingScreen() {
           selectedTime={selectedTime}
           onSelectTime={setSelectedTime}
         />
+
+        <View className="mx-4 mt-4 mb-2">
+          <Text className="text-base mb-2">Notes (optional):</Text>
+          <TextInput
+            value={note}
+            onChangeText={setNote}
+            placeholder="Enter notes for the appointment (if any)"
+            multiline
+            numberOfLines={3}
+            className="p-3 border rounded-xl bg-white text-base"
+            style={{ minHeight: 60 }}
+          />
+        </View>
 
         {selectedService && selectedDay && selectedTime ? (
           <>

@@ -197,6 +197,8 @@ export interface Doctor {
 
 export interface MedicalRecord {
   appointmentID: string;
+  id?: string;
+  isAnnoymous?: boolean;
   patient: Patient;
   doctor: Doctor;
   date?: string;
@@ -204,6 +206,10 @@ export interface MedicalRecord {
   diagnosis?: string;
   treatment?: string;
   notes?: string;
+  medicalService: {
+    name: string;
+  };
+  appointmentDate?: date;
 }
 
 export interface LabResult {
