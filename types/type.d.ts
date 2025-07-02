@@ -163,6 +163,8 @@ export type Service = {
   isOnline: boolean;
   specialty: string;
   img: string;
+  illustrationUri?: string;
+  iconBgColor?: string;
 };
 
 export interface Account {

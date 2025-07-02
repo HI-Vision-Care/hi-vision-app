@@ -648,6 +648,11 @@ export const mockAvailability = {
   },
 };
 
+export const REFRESH_COLORS = {
+  tintColor: "#3B82F6",
+  colors: ["#3B82F6"],
+};
+
 export const data = {
   onboarding,
   resetOptions,
