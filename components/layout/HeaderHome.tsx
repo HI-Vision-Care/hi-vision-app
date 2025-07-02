@@ -48,7 +48,7 @@ const HeaderHome = () => {
   const avatarUri = profile?.account.avatar
     ? profile.account.avatar
     : images.avatarPlaceholder; // hoặc 1 placeholder trong constants
-  const username = profile?.account.username ?? "Guest";
+  const name = profile?.name ?? "Guest";
 
   return (
     <SafeAreaView
@@ -92,13 +92,7 @@ const HeaderHome = () => {
         onPress={() => {
           // build các param cần truyền
           router.replace({
-            pathname: "/(root)/(tabs)/(personal-info)/setting",
-            params: {
-              accountId, // từ state
-              username, // từ profile?.account.username
-              avatar: typeof avatarUri === "string" ? avatarUri : "", // nếu ko phải string thì pass empty
-              email: profile?.account.email ?? "",
-            },
+            pathname: "/(root)/(tabs)/setting",
           });
         }}
       >
@@ -122,7 +116,7 @@ const HeaderHome = () => {
                 ? "Loading..."
                 : profileError
                 ? "Error"
-                : `Hi, ${username}! 👋`}
+                : `Hi, ${name}! 👋`}
             </Text>
             <View className="flex-row items-center mt-1">
               <View className="flex-row items-center">

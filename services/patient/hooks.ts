@@ -1,7 +1,7 @@
 // services/patient/hooks.ts
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { deleteAccount, getPatientProfile } from "./api";
-import { DeleteAccountResponse, PatientProfile } from "./types";
+import { deleteAccount, getLabResults, getPatientProfile } from "./api";
+import { DeleteAccountResponse, LabResult, PatientProfile } from "./types";
 
 /**
  * Hook fetch profile của patient dựa trên accountId
@@ -21,3 +21,11 @@ export const useDeleteAccount = () => {
     (accountId: string) => deleteAccount(accountId)
   );
 };
+
+export function useGetLabResults(patientId: string, enabled = true) {
+  return useQuery<LabResult[]>({
+    queryKey: ["labResults", patientId],
+    queryFn: () => getLabResults(patientId),
+    enabled: !!patientId && enabled, // chỉ query khi đã có id
+  });
+}

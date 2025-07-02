@@ -28,7 +28,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       <View className="space-y-1">
         <Text className="text-blue-800">Service: {service.name}</Text>
         <Text className="text-blue-800">
-          Date: {selectedDay}, {date.toLocaleDateString()}
+          Date: {selectedDay}, {date.toLocaleDateString("vi-VN")}
         </Text>
         <Text className="text-blue-800">Time: {selectedTime}</Text>
 

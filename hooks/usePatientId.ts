@@ -1,10 +1,10 @@
-// usePatientId.ts
+// usePatientProfile.ts
 import { useGetPatientProfile } from "@/services/patient/hooks";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from "react";
 
-export function usePatientId() {
+export function usePatientProfile() {
   const [accountId, setAccountId] = useState<string>();
   useEffect(() => {
     AsyncStorage.getItem("token").then((token) => {
@@ -18,7 +18,6 @@ export function usePatientId() {
       }
     });
   }, []);
-
-  const { data: profile } = useGetPatientProfile(accountId ?? "");
-  return profile?.patientID;
+  // Để nguyên lấy profile từ backend
+  return useGetPatientProfile(accountId ?? "");
 }

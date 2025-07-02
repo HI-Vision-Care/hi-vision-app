@@ -137,6 +137,7 @@ export interface MenuItem {
   isToggle?: boolean;
   toggleValue?: boolean;
   isDanger?: boolean;
+  iconColor?: string;
 }
 
 export interface MenuSection {
@@ -160,5 +161,63 @@ export type Service = {
   isActive: boolean;
   isRequireDoctor: boolean;
   isOnline: boolean;
+  specialty: string;
   img: string;
+  illustrationUri?: string;
+  iconBgColor?: string;
 };
+
+export interface Account {
+  id: string;
+  username: string;
+  email: string;
+  phone: string;
+  avatar: string;
+  role: string;
+  isDeleted: boolean;
+}
+
+export interface Patient {
+  patientID: string;
+  account: Account;
+  name: string;
+  dob: string;
+  gender: string;
+  medNo: string;
+  medDate: string;
+  medFac: string;
+}
+
+export interface Doctor {
+  doctorID: string;
+  account: Account;
+  name: string;
+  gender: string;
+  specialty: string;
+  degrees: string;
+  img: string | null;
+}
+
+export interface MedicalRecord {
+  appointmentID: string;
+  id?: string;
+  isAnnoymous?: boolean;
+  patient: Patient;
+  doctor: Doctor;
+  date?: string;
+  status?: string;
+  diagnosis?: string;
+  treatment?: string;
+  notes?: string;
+  medicalService: {
+    name: string;
+  };
+  appointmentDate?: date;
+}
+
+export interface LabResult {
+  recordId: string;
+  testType: string;
+  resultValue: string;
+  testDate: string;
+}

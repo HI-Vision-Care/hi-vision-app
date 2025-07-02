@@ -6,6 +6,7 @@ import {
 } from "@/components";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -17,6 +18,8 @@ export default function ServiceDetail() {
   }>();
 
   const service = data ? JSON.parse(decodeURIComponent(data)) : null;
+
+  const [noDoctor, setNoDoctor] = useState(false);
 
   if (!service) {
     return (
@@ -177,7 +180,10 @@ export default function ServiceDetail() {
           <PreparationInstructions />
 
           {/* Available Doctors */}
-          <AvailableDoctors />
+          <AvailableDoctors
+            specialty={service.specialty}
+            onDoctorsLoaded={setNoDoctor}
+          />
         </View>
       </ScrollView>
 
@@ -185,6 +191,8 @@ export default function ServiceDetail() {
       <View className="px-6 pb-6 bg-white border-t border-gray-100">
         <TouchableOpacity
           onPress={handleBookAppointment}
+          disabled={noDoctor}
+          style={noDoctor ? { opacity: 0.5 } : {}}
           className="bg-blue-600 p-4 rounded-2xl flex-row items-center justify-center"
         >
           <Ionicons name="calendar-outline" size={24} color="white" />

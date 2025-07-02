@@ -22,7 +22,7 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
       <View className="flex-row flex-wrap gap-3">
         {timeSlots.map((time) => {
           const status = availability[selectedDay]?.[time] ?? "";
-          const isAvailable = status === "trong";
+          const isAvailable = status === "Available";
           const isSelected = time === selectedTime;
           return (
             <TouchableOpacity
@@ -51,10 +51,10 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
                 </Text>
                 {/* nếu không trống thì show “Đã đặt” */}
                 <Text className="text-xs text-red-500 mt-1">
-                  {status === "dadat"
-                    ? "Đã đặt"
-                    : status === "dahuy"
-                    ? "Đã hủy"
+                  {status === "Booked"
+                    ? "Booked"
+                    : status === "Cancelled"
+                    ? "Cancelled"
                     : ""}
                 </Text>
               </View>

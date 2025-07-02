@@ -12,6 +12,7 @@ type Service = {
   isRequireDoctor: boolean;
   isOnline: boolean;
   img: string;
+  specialty: string;
 };
 
 interface ServiceSelectionProps {
