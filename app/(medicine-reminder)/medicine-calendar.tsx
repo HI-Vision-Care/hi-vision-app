@@ -1,92 +1,99 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import { View, Text, TouchableOpacity, StatusBar, ScrollView, Alert } from "react-native"
-import { SafeAreaView } from "react-native-safe-area-context"
-import * as Notifications from "expo-notifications"
-import AsyncStorage from "@react-native-async-storage/async-storage"
-import { navigate } from "expo-router/build/global-state/routing"
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Notifications from "expo-notifications";
+import { navigate } from "expo-router/build/global-state/routing";
+import { useEffect, useState } from "react";
+import {
+  Alert,
+  ScrollView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Types for better organization
 type NotificationEvent = {
-  id: string
-  time: Date
-  type: "countdown" | "reminder" | "warning"
-  title: string
-  body: string
-  doseTime?: string
-}
+  id: string;
+  time: Date;
+  type: "countdown" | "reminder" | "warning";
+  title: string;
+  body: string;
+  doseTime?: string;
+};
 
 type ConfirmedEvent = {
-  id: string
-  time: Date
-  type: "confirmed"
-  title: string
-  body: string
-}
+  id: string;
+  time: Date;
+  type: "confirmed";
+  title: string;
+  body: string;
+};
 
-type MedicationEvent = NotificationEvent | ConfirmedEvent
+type MedicationEvent = NotificationEvent | ConfirmedEvent;
 
 type DayData = {
-  date: number
-  dayName: string
-  isToday: boolean
-  isSelected: boolean
-  events: MedicationEvent[]
-  confirmedCount: number
-  pendingCount: number
-}
+  date: number;
+  dayName: string;
+  isToday: boolean;
+  isSelected: boolean;
+  events: MedicationEvent[];
+  confirmedCount: number;
+  pendingCount: number;
+};
 
 const MedicineCalendar = () => {
-  const today = new Date()
-  const [selectedDate, setSelectedDate] = useState<number>(today.getDate())
-  const [currentDate] = useState<string>(`Hôm nay, ${today.toLocaleDateString("vi-VN")}`)
-  const [confirmedDoses, setConfirmedDoses] = useState<string[]>([])
-  const [dayData, setDayData] = useState<DayData[]>([])
+  const today = new Date();
+  const [selectedDate, setSelectedDate] = useState<number>(today.getDate());
+  const [currentDate] = useState<string>(
+    `Hôm nay, ${today.toLocaleDateString("vi-VN")}`
+  );
+  const [confirmedDoses, setConfirmedDoses] = useState<string[]>([]);
+  const [dayData, setDayData] = useState<DayData[]>([]);
 
   // Load confirmed doses from AsyncStorage
   const loadConfirmedDoses = async () => {
     try {
-      const stored = await AsyncStorage.getItem("confirmedDoses")
+      const stored = await AsyncStorage.getItem("confirmedDoses");
       if (stored) {
-        const arr: string[] = JSON.parse(stored)
-        setConfirmedDoses(arr)
+        const arr: string[] = JSON.parse(stored);
+        setConfirmedDoses(arr);
       } else {
-        setConfirmedDoses([])
+        setConfirmedDoses([]);
       }
     } catch (error) {
-      console.error("Error loading confirmed doses:", error)
+      console.error("Error loading confirmed doses:", error);
     }
-  }
+  };
 
   // Load and organize all medication data
   const loadMedicationData = async () => {
     try {
-      const scheduled = await Notifications.getAllScheduledNotificationsAsync()
+      const scheduled = await Notifications.getAllScheduledNotificationsAsync();
 
       // Generate week data
-      const weekDays = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]
-      const weekData: DayData[] = []
+      const weekDays = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+      const weekData: DayData[] = [];
 
       for (let i = 0; i < 7; i++) {
-        const date = today.getDate() + i
-        const dayName = weekDays[i]
-        const isToday = i === 0
-        const isSelected = date === selectedDate
+        const date = today.getDate() + i;
+        const dayName = weekDays[i];
+        const isToday = i === 0;
+        const isSelected = date === selectedDate;
 
         // Get scheduled notifications for this date
         const dayNotifications: NotificationEvent[] = scheduled
           .map((item): NotificationEvent | null => {
-            const trig = item.trigger as any
-            const raw = trig.date ?? trig.value
-            if (!raw) return null
-            const time = new Date(raw)
-            if (time.getDate() !== date) return null
+            const trig = item.trigger as any;
+            const raw = trig.date ?? trig.value;
+            if (!raw) return null;
+            const time = new Date(raw);
+            if (time.getDate() !== date) return null;
 
             // Determine notification type based on content
-            let type: "countdown" | "reminder" | "warning" = "reminder"
-            if (item.content.title?.includes("Countdown")) type = "countdown"
-            else if (item.content.title?.includes("Warning")) type = "warning"
+            let type: "countdown" | "reminder" | "warning" = "reminder";
+            if (item.content.title?.includes("Countdown")) type = "countdown";
+            else if (item.content.title?.includes("Warning")) type = "warning";
 
             return {
               id: item.identifier,
@@ -95,9 +102,9 @@ const MedicineCalendar = () => {
               title: item.content.title || "",
               body: item.content.body || "",
               doseTime: item.content.data?.doseTime as string | undefined,
-            }
+            };
           })
-          .filter((item): item is NotificationEvent => item !== null)
+          .filter((item): item is NotificationEvent => item !== null);
 
         // Get confirmed doses for this date
         const dayConfirmed: ConfirmedEvent[] = confirmedDoses
@@ -110,13 +117,14 @@ const MedicineCalendar = () => {
               type: "confirmed",
               title: "✅ Đã uống",
               body: "Đã xác nhận uống thuốc",
-            }),
-          )
+            })
+          );
 
         // Combine and sort all events
-        const allEvents: MedicationEvent[] = [...dayNotifications, ...dayConfirmed].sort(
-          (a, b) => a.time.getTime() - b.time.getTime(),
-        )
+        const allEvents: MedicationEvent[] = [
+          ...dayNotifications,
+          ...dayConfirmed,
+        ].sort((a, b) => a.time.getTime() - b.time.getTime());
 
         weekData.push({
           date,
@@ -126,73 +134,76 @@ const MedicineCalendar = () => {
           events: allEvents,
           confirmedCount: dayConfirmed.length,
           pendingCount: dayNotifications.length,
-        })
+        });
       }
 
-      setDayData(weekData)
+      setDayData(weekData);
     } catch (error) {
-      console.error("Error loading medication data:", error)
+      console.error("Error loading medication data:", error);
     }
-  }
+  };
 
   useEffect(() => {
-    loadConfirmedDoses()
-  }, [])
+    loadConfirmedDoses();
+  }, []);
 
   useEffect(() => {
-    loadMedicationData()
-  }, [confirmedDoses, selectedDate])
+    loadMedicationData();
+  }, [confirmedDoses, selectedDate]);
 
   const handleDatePress = (date: number) => {
-    setSelectedDate(date)
-  }
+    setSelectedDate(date);
+  };
 
   const handleCreateReminder = () => {
-    navigate("/(medicine-reminder)/add-reminder")
-  }
+    navigate("/(medicine-reminder)/add-reminder");
+  };
 
   const handleHomePress = () => {
-    Alert.alert("Trang chủ", "Quay về trang chủ")
-  }
+    Alert.alert("Trang chủ", "Quay về trang chủ");
+  };
 
   const getSelectedDayData = () => {
-    return dayData.find((day) => day.date === selectedDate)
-  }
+    return dayData.find((day) => day.date === selectedDate);
+  };
 
   const getEventIcon = (type: MedicationEvent["type"]) => {
     switch (type) {
       case "countdown":
-        return "⏳"
+        return "⏳";
       case "reminder":
-        return "💊"
+        return "💊";
       case "warning":
-        return "⚠️"
+        return "⚠️";
       case "confirmed":
-        return "✅"
+        return "✅";
       default:
-        return "📋"
+        return "📋";
     }
-  }
+  };
 
   const getEventColor = (type: MedicationEvent["type"]) => {
     switch (type) {
       case "countdown":
-        return { bg: "#E3F2FD", text: "#1976D2", border: "#2196F3" }
+        return { bg: "#E3F2FD", text: "#1976D2", border: "#2196F3" };
       case "reminder":
-        return { bg: "#F3E5F5", text: "#7B1FA2", border: "#9C27B0" }
+        return { bg: "#F3E5F5", text: "#7B1FA2", border: "#9C27B0" };
       case "warning":
-        return { bg: "#FFEBEE", text: "#C62828", border: "#F44336" }
+        return { bg: "#FFEBEE", text: "#C62828", border: "#F44336" };
       case "confirmed":
-        return { bg: "#E8F5E8", text: "#2E7D32", border: "#4CAF50" }
+        return { bg: "#E8F5E8", text: "#2E7D32", border: "#4CAF50" };
       default:
-        return { bg: "#F5F5F5", text: "#424242", border: "#9E9E9E" }
+        return { bg: "#F5F5F5", text: "#424242", border: "#9E9E9E" };
     }
-  }
+  };
 
-  const selectedDayData = getSelectedDayData()
+  const selectedDayData = getSelectedDayData();
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#3B82F6" }} edges={["top", "left", "right"]}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: "#3B82F6" }}
+      edges={["top", "left", "right"]}
+    >
       <StatusBar backgroundColor="#3B82F6" barStyle="light-content" />
 
       {/* Header */}
@@ -208,13 +219,27 @@ const MedicineCalendar = () => {
         }}
       >
         <TouchableOpacity
-          style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}
+          style={{
+            width: 40,
+            height: 40,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
           onPress={handleHomePress}
         >
           <Text style={{ fontSize: 24, color: "white" }}>🏠</Text>
         </TouchableOpacity>
-        <Text style={{ fontSize: 18, fontWeight: "bold", color: "white" }}>Lịch uống thuốc</Text>
-        <TouchableOpacity style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}>
+        <Text style={{ fontSize: 18, fontWeight: "bold", color: "white" }}>
+          Lịch uống thuốc
+        </Text>
+        <TouchableOpacity
+          style={{
+            width: 40,
+            height: 40,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
           <View
             style={{
               width: 24,
@@ -225,7 +250,11 @@ const MedicineCalendar = () => {
               justifyContent: "center",
             }}
           >
-            <Text style={{ fontSize: 16, fontWeight: "bold", color: "#3B82F6" }}>!</Text>
+            <Text
+              style={{ fontSize: 16, fontWeight: "bold", color: "#3B82F6" }}
+            >
+              !
+            </Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -241,21 +270,45 @@ const MedicineCalendar = () => {
           backgroundColor: "white",
         }}
       >
-        <TouchableOpacity style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}>
+        <TouchableOpacity
+          style={{
+            width: 40,
+            height: 40,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
           <Text style={{ fontSize: 24, color: "#666" }}>‹</Text>
         </TouchableOpacity>
-        <Text style={{ fontSize: 16, fontWeight: "600", color: "#3B82F6" }}>{currentDate}</Text>
-        <TouchableOpacity style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}>
+        <Text style={{ fontSize: 16, fontWeight: "600", color: "#3B82F6" }}>
+          {currentDate}
+        </Text>
+        <TouchableOpacity
+          style={{
+            width: 40,
+            height: 40,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
           <Text style={{ fontSize: 24, color: "#666" }}>›</Text>
         </TouchableOpacity>
       </View>
 
       {/* Week Calendar with Event Indicators */}
-      <View style={{ backgroundColor: "white", paddingHorizontal: 16, paddingBottom: 16 }}>
+      <View
+        style={{
+          backgroundColor: "white",
+          paddingHorizontal: 16,
+          paddingBottom: 16,
+        }}
+      >
         <View style={{ flexDirection: "row" }}>
           {dayData.map((day, index) => (
             <View key={index} style={{ flex: 1, alignItems: "center" }}>
-              <Text style={{ fontSize: 12, color: "#999", marginBottom: 8 }}>{day.dayName}</Text>
+              <Text style={{ fontSize: 12, color: "#999", marginBottom: 8 }}>
+                {day.dayName}
+              </Text>
               <TouchableOpacity
                 style={{
                   width: 40,
@@ -318,14 +371,42 @@ const MedicineCalendar = () => {
       </View>
 
       {/* Content Area */}
-      <View style={{ flex: 1, backgroundColor: "#F5F5F5", paddingHorizontal: 16 }}>
+      <View
+        style={{ flex: 1, backgroundColor: "#F5F5F5", paddingHorizontal: 16 }}
+      >
         {!selectedDayData || selectedDayData.events.length === 0 ? (
-          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32 }}>
-            <Text style={{ fontSize: 16, fontWeight: "600", color: "#666", textAlign: "center", marginBottom: 8 }}>
+          <View
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              paddingHorizontal: 32,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: "600",
+                color: "#666",
+                textAlign: "center",
+                marginBottom: 8,
+              }}
+            >
               Ngày này chưa có lịch nhắc uống thuốc
             </Text>
-            <Text style={{ fontSize: 14, color: "#999", textAlign: "center", marginBottom: 32 }}>
-              Hãy <Text style={{ color: "#3B82F6", fontWeight: "600" }}>Tạo lịch nhắc uống thuốc</Text> mới
+            <Text
+              style={{
+                fontSize: 14,
+                color: "#999",
+                textAlign: "center",
+                marginBottom: 32,
+              }}
+            >
+              Hãy{" "}
+              <Text style={{ color: "#3B82F6", fontWeight: "600" }}>
+                Tạo lịch nhắc uống thuốc
+              </Text>{" "}
+              mới
             </Text>
             <TouchableOpacity
               style={{
@@ -341,11 +422,16 @@ const MedicineCalendar = () => {
               }}
               onPress={handleCreateReminder}
             >
-              <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>Tạo lịch nhắc</Text>
+              <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>
+                Tạo lịch nhắc
+              </Text>
             </TouchableOpacity>
           </View>
         ) : (
-          <ScrollView showsVerticalScrollIndicator={false} style={{ paddingTop: 16 }}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            style={{ paddingTop: 16 }}
+          >
             {/* Summary Card */}
             <View
               style={{
@@ -360,24 +446,51 @@ const MedicineCalendar = () => {
                 shadowRadius: 4,
               }}
             >
-              <Text style={{ fontSize: 16, fontWeight: "bold", color: "#333", marginBottom: 12 }}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "bold",
+                  color: "#333",
+                  marginBottom: 12,
+                }}
+              >
                 📊 Tổng quan ngày {selectedDate}
               </Text>
-              <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
+              <View
+                style={{ flexDirection: "row", justifyContent: "space-around" }}
+              >
                 <View style={{ alignItems: "center" }}>
-                  <Text style={{ fontSize: 24, fontWeight: "bold", color: "#4CAF50" }}>
+                  <Text
+                    style={{
+                      fontSize: 24,
+                      fontWeight: "bold",
+                      color: "#4CAF50",
+                    }}
+                  >
                     {selectedDayData.confirmedCount}
                   </Text>
                   <Text style={{ fontSize: 12, color: "#666" }}>Đã uống</Text>
                 </View>
                 <View style={{ alignItems: "center" }}>
-                  <Text style={{ fontSize: 24, fontWeight: "bold", color: "#FF9800" }}>
+                  <Text
+                    style={{
+                      fontSize: 24,
+                      fontWeight: "bold",
+                      color: "#FF9800",
+                    }}
+                  >
                     {selectedDayData.pendingCount}
                   </Text>
                   <Text style={{ fontSize: 12, color: "#666" }}>Chờ uống</Text>
                 </View>
                 <View style={{ alignItems: "center" }}>
-                  <Text style={{ fontSize: 24, fontWeight: "bold", color: "#2196F3" }}>
+                  <Text
+                    style={{
+                      fontSize: 24,
+                      fontWeight: "bold",
+                      color: "#2196F3",
+                    }}
+                  >
                     {selectedDayData.events.length}
                   </Text>
                   <Text style={{ fontSize: 12, color: "#666" }}>Tổng cộng</Text>
@@ -399,19 +512,27 @@ const MedicineCalendar = () => {
                 shadowRadius: 4,
               }}
             >
-              <Text style={{ fontSize: 16, fontWeight: "bold", color: "#333", marginBottom: 16 }}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "bold",
+                  color: "#333",
+                  marginBottom: 16,
+                }}
+              >
                 📅 Lịch trình chi tiết
               </Text>
 
               {selectedDayData.events.map((event, index) => {
-                const colors = getEventColor(event.type)
+                const colors = getEventColor(event.type);
                 return (
                   <View
                     key={event.id}
                     style={{
                       flexDirection: "row",
                       alignItems: "flex-start",
-                      marginBottom: index < selectedDayData.events.length - 1 ? 16 : 0,
+                      marginBottom:
+                        index < selectedDayData.events.length - 1 ? 16 : 0,
                     }}
                   >
                     {/* Timeline indicator */}
@@ -428,7 +549,9 @@ const MedicineCalendar = () => {
                           justifyContent: "center",
                         }}
                       >
-                        <Text style={{ fontSize: 16 }}>{getEventIcon(event.type)}</Text>
+                        <Text style={{ fontSize: 16 }}>
+                          {getEventIcon(event.type)}
+                        </Text>
                       </View>
                       {index < selectedDayData.events.length - 1 && (
                         <View
@@ -444,9 +567,24 @@ const MedicineCalendar = () => {
 
                     {/* Event content */}
                     <View style={{ flex: 1 }}>
-                      <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
-                        <Text style={{ fontSize: 14, fontWeight: "600", color: colors.text }}>
-                          {event.time.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          marginBottom: 4,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            fontWeight: "600",
+                            color: colors.text,
+                          }}
+                        >
+                          {event.time.toLocaleTimeString("vi-VN", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                         </Text>
                         <View
                           style={{
@@ -457,18 +595,33 @@ const MedicineCalendar = () => {
                             marginLeft: 8,
                           }}
                         >
-                          <Text style={{ fontSize: 10, fontWeight: "500", color: colors.text }}>
+                          <Text
+                            style={{
+                              fontSize: 10,
+                              fontWeight: "500",
+                              color: colors.text,
+                            }}
+                          >
                             {event.type.toUpperCase()}
                           </Text>
                         </View>
                       </View>
-                      <Text style={{ fontSize: 14, fontWeight: "500", color: "#333", marginBottom: 2 }}>
+                      <Text
+                        style={{
+                          fontSize: 14,
+                          fontWeight: "500",
+                          color: "#333",
+                          marginBottom: 2,
+                        }}
+                      >
                         {event.title}
                       </Text>
-                      <Text style={{ fontSize: 12, color: "#666" }}>{event.body}</Text>
+                      <Text style={{ fontSize: 12, color: "#666" }}>
+                        {event.body}
+                      </Text>
                     </View>
                   </View>
-                )
+                );
               })}
             </View>
 
@@ -488,13 +641,15 @@ const MedicineCalendar = () => {
               }}
               onPress={handleCreateReminder}
             >
-              <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>➕ Thêm lịch nhắc mới</Text>
+              <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>
+                ➕ Thêm lịch nhắc mới
+              </Text>
             </TouchableOpacity>
           </ScrollView>
         )}
       </View>
     </SafeAreaView>
-  )
-}
+  );
+};
 
-export default MedicineCalendar
+export default MedicineCalendar;

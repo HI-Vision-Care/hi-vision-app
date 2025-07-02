@@ -1,4 +1,3 @@
-"use client"
 
 import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker"
 import { Picker } from "@react-native-picker/picker"
