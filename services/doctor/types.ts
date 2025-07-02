@@ -4,5 +4,5 @@ export interface Doctor {
   gender: string;
   specialty: string;
   degrees: string;
-  img?: string; // Optional field for doctor's image URL
+  avatar?: string; // Optional field for doctor's image URL
 }

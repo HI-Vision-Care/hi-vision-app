@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Linking, Pressable, Text, View } from "react-native";
 
 // Enhanced MedicalRecord type with new fields
 interface MedicalRecord {
@@ -11,6 +11,7 @@ interface MedicalRecord {
   notes?: string;
   status: "completed" | "pending" | "cancelled" | "in-progress" | "scheduled";
   isAnonymous?: boolean;
+  urlLink?: string;
   note?: string; // Additional note field
   medicalService?: {
     name: string;
@@ -97,6 +98,14 @@ const MedicalRecordCard: React.FC<{ record: MedicalRecord }> = ({ record }) => {
                 >
                   {record.medicalService?.name ?? "Unknown service"}
                 </Text>
+                {record.urlLink && (
+                  <Ionicons
+                    name="videocam"
+                    size={16}
+                    color="#0F67FE"
+                    style={{ marginLeft: 4 }}
+                  />
+                )}
                 {record.isAnonymous && (
                   <View className="flex-row items-center mt-1">
                     <Ionicons name="eye-off" size={12} color="#6B7280" />
@@ -184,6 +193,28 @@ const MedicalRecordCard: React.FC<{ record: MedicalRecord }> = ({ record }) => {
                   </View>
                 </View>
               </View>
+
+              {record.urlLink && (
+                <View className="mb-4">
+                  <Text className="text-sm font-medium text-gray-700 mb-2">
+                    Online meeting
+                  </Text>
+                  <Pressable
+                    onPress={() => {
+                      // Chỉ mở nếu urlLink tồn tại
+                      if (record.urlLink) {
+                        Linking.openURL(record.urlLink);
+                      }
+                    }}
+                    className="flex-row items-center bg-blue-100 px-3 py-2 rounded-lg"
+                  >
+                    <Ionicons name="videocam" size={18} color="#2563EB" />
+                    <Text className="text-blue-700 ml-2 font-semibold">
+                      Join Meeting
+                    </Text>
+                  </Pressable>
+                </View>
+              )}
 
               {/* Medical Information */}
               {record.diagnosis && (

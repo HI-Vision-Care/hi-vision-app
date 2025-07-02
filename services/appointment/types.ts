@@ -36,5 +36,6 @@ export interface AppointmentDetail {
   appointmentID: string;
   patient: Patient;
   doctor: Doctor;
+  createAt: Date;
   // Thêm các trường khác nếu backend trả về
 }

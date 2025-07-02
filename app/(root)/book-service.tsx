@@ -179,7 +179,7 @@ export default function BookingScreen() {
         {
           onSuccess: () => {
             Alert.alert("Scheduled successfully!");
-            router.push("/(personal-info)/history");
+            router.replace("/(personal-info)/history");
           },
           onError: (error: any) => {
             Alert.alert(
@@ -226,14 +226,20 @@ export default function BookingScreen() {
           onNextWeek={() => navigateWeek(1)}
         />
 
-        {shiftsLoading ? (
+        {!selectedDoctor ? (
+          <View className="items-center py-4">
+            <Text className="text-gray-500 text-center">
+              Please select a doctor to view available time slots.
+            </Text>
+          </View>
+        ) : shiftsLoading ? (
           <View className="items-center py-4">
             <ActivityIndicator />
             <Text>Loading availability...</Text>
           </View>
         ) : shiftsError ? (
           <Text className="text-red-500 text-center py-4">
-            Lỗi tải lịch: {shiftsError.message}
+            Error loading schedule: {shiftsError.message}
           </Text>
         ) : null}
 

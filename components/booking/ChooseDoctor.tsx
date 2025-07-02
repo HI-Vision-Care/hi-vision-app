@@ -50,9 +50,9 @@ export default function ChooseDoctor({
           </Text>
           {selectedDoctor ? (
             <View className="flex-row items-center mt-2">
-              {selectedDoctor.img ? (
+              {selectedDoctor.avatar ? (
                 <Image
-                  source={{ uri: selectedDoctor.img }}
+                  source={{ uri: selectedDoctor.avatar }}
                   className="w-10 h-10 rounded-full mr-3"
                 />
               ) : (
@@ -92,9 +92,9 @@ export default function ChooseDoctor({
         }`}
         activeOpacity={0.7}
       >
-        {doctor.img ? (
+        {doctor.avatar ? (
           <Image
-            source={{ uri: doctor.img }}
+            source={{ uri: doctor.avatar }}
             className="w-14 h-14 rounded-full"
           />
         ) : (
