@@ -16,12 +16,12 @@ export const useGetAppointmentByPatientId = (
     {
       enabled: !!patientId && enabled,
       select: (data) => {
-        // sort mới nhất lên đầu
         return (data || [])
           .slice()
           .sort(
             (a, b) =>
-              new Date(b.createAt).getTime() - new Date(a.createAt).getTime()
+              new Date(a.appointmentDate).getTime() -
+              new Date(b.appointmentDate).getTime()
           );
       },
     }

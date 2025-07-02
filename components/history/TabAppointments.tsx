@@ -39,15 +39,27 @@ const TabAppointments: React.FC<Props> = ({
   const upcoming = appointments.filter(
     (a) => a.status?.toLowerCase?.() === "scheduled"
   );
+
   if (upcoming.length === 0)
     return (
       <View className="flex-1 items-center justify-center mt-10">
         <Text className="text-gray-500">No upcoming appointments.</Text>
       </View>
     );
+
+  // --- SORT Ở ĐÂY ---
+  const sortedUpcoming = upcoming
+    .slice()
+    .sort(
+      (a, b) =>
+        new Date(b.appointmentDate).getTime() -
+        new Date(a.appointmentDate).getTime()
+    );
+  // Nếu muốn "lịch hẹn sớm nhất" lên đầu thì đổi b, a thành a, b
+
   return (
     <View>
-      {upcoming.map((record) => (
+      {sortedUpcoming.map((record) => (
         <MedicalRecordCard
           key={record.appointmentID}
           record={{
