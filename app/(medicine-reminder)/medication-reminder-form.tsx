@@ -1,258 +1,341 @@
-import React, { useState } from 'react';
+"use client"
+
+import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker"
+import { Picker } from "@react-native-picker/picker"
+import * as Notifications from "expo-notifications"
+import { useEffect, useState } from "react"
+import { ActivityIndicator, Alert, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native"
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
+
 import {
-  SafeAreaView,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  StyleSheet,
-  ScrollView,
-  Platform
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Picker } from '@react-native-picker/picker';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+  requestNotificationPermissions,
+  scheduleNotifications as scheduleNotif,
+  testNotification,
+  type NotificationSchedule
+} from "../../services/notification/prep-notification"
 
-type RegimenType = 'Daily PrEP' | 'On-demand (2-1-1)';
+// Configure notification behavior when app is foreground
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+})
 
-interface DailySchedule {
-  date: Date;
-  time: Date;
-  pills: number;
-  note: string;
-}
-
-interface OnDemandSchedule {
-  eventDate: Date;
-  preHours: number;
-  schedules: {
-    dose1: { date: Date; pills: number; note: string }; // Before event
-    dose2: { date: Date; pills: number; note: string }; // 24h after
-    dose3: { date: Date; pills: number; note: string }; // 48h after
-  };
-}
+type RegimenType = "Daily PrEP" | "On-demand (2-1-1)"
 
 export default function MedicationReminderForm() {
-  const insets = useSafeAreaInsets();
-  const [regimen, setRegimen] = useState<RegimenType>('Daily PrEP');
+  const insets = useSafeAreaInsets()
+  const [regimen, setRegimen] = useState<RegimenType>("Daily PrEP")
+  const [isLoading, setIsLoading] = useState(false)
 
   // Daily PrEP state
-  const [startDate, setStartDate] = useState<Date>(new Date());
-  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-  const [dailyTime, setDailyTime] = useState<Date>(new Date());
-  const [showDailyTimePicker, setShowDailyTimePicker] = useState(false);
-  const [days, setDays] = useState<string>('30');
+  const [startDate, setStartDate] = useState<Date>(new Date())
+  const [showStartPicker, setShowStartPicker] = useState(false)
+  const [dailyTime, setDailyTime] = useState<Date>(new Date())
+  const [showDailyTimePicker, setShowDailyTimePicker] = useState(false)
+  const [days, setDays] = useState<string>("30")
 
-  // On-demand state
-  const [eventDateTime, setEventDateTime] = useState<Date>(new Date());
-  const [showEventPicker, setShowEventPicker] = useState(false);
-  const [preHours, setPreHours] = useState<string>('2');
+  // On-demand state - Split into separate date and time
+  const [eventDate, setEventDate] = useState<Date>(new Date())
+  const [showEventDatePicker, setShowEventDatePicker] = useState(false)
+  const [eventTime, setEventTime] = useState<Date>(new Date())
+  const [showEventTimePicker, setShowEventTimePicker] = useState(false)
+  const [preHours, setPreHours] = useState<string>("2")
 
-  // Common
-  const [notes, setNotes] = useState<string>('');
+  // Common notes
+  const [notes, setNotes] = useState<string>("")
 
+  // Request notification permission on mount
+  useEffect(() => {
+    requestNotificationPermissions()
+  }, [])
+
+  // Date pickers handlers
   const onChangeStartDate = (event: DateTimePickerEvent, selected?: Date) => {
-    const currentDate = selected || startDate;
-    setShowStartDatePicker(Platform.OS === 'ios');
-    setStartDate(currentDate);
-  };
+    if (Platform.OS === "android") setShowStartPicker(false)
+    if (selected) setStartDate(selected)
+  }
 
   const onChangeDailyTime = (event: DateTimePickerEvent, selected?: Date) => {
-    const currentTime = selected || dailyTime;
-    setShowDailyTimePicker(Platform.OS === 'ios');
-    setDailyTime(currentTime);
-  };
+    if (Platform.OS === "android") setShowDailyTimePicker(false)
+    if (selected) setDailyTime(selected)
+  }
 
-  const onChangeEventDateTime = (event: DateTimePickerEvent, selected?: Date) => {
-    const currentDateTime = selected || eventDateTime;
-    setShowEventPicker(Platform.OS === 'ios');
-    setEventDateTime(currentDateTime);
-  };
+  const onChangeEventDate = (event: DateTimePickerEvent, selected?: Date) => {
+    if (Platform.OS === "android") setShowEventDatePicker(false)
+    if (selected) setEventDate(selected)
+  }
 
-  const showStartDatePickerHandler = () => {
-    setShowStartDatePicker(true);
-  };
+  const onChangeEventTime = (event: DateTimePickerEvent, selected?: Date) => {
+    if (Platform.OS === "android") setShowEventTimePicker(false)
+    if (selected) setEventTime(selected)
+  }
 
-  const showDailyTimePickerHandler = () => {
-    setShowDailyTimePicker(true);
-  };
+  // Formatters
+  const formatDate = (d: Date): string => d.toLocaleDateString("vi-VN")
+  const formatTime = (d: Date): string =>
+    d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", hour12: false })
+  const formatDateTime = (d: Date): string => d.toLocaleString("vi-VN")
 
-  const showEventPickerHandler = () => {
-    setShowEventPicker(true);
-  };
+  // Get combined event datetime for On-demand
+  const getEventDateTime = (): Date => {
+    const combined = new Date(eventDate)
+    combined.setHours(eventTime.getHours(), eventTime.getMinutes(), 0, 0)
+    return combined
+  }
 
-  const formatDate = (date: Date): string => {
-    return date.toLocaleDateString('vi-VN');
-  };
-
-  const formatTime = (date: Date): string => {
-    return date.toLocaleTimeString('vi-VN', { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      hour12: false 
-    });
-  };
-
-  const formatDateTime = (date: Date): string => {
-    return date.toLocaleString('vi-VN');
-  };
-
-  const generateDailySchedule = (): DailySchedule[] => {
-    const totalDays = parseInt(days, 10);
-    const schedules: DailySchedule[] = [];
-    
-    for (let i = 0; i < totalDays; i++) {
-      const scheduleDate = new Date(startDate);
-      scheduleDate.setDate(startDate.getDate() + i);
-      
-      const scheduleTime = new Date(scheduleDate);
-      scheduleTime.setHours(dailyTime.getHours(), dailyTime.getMinutes(), 0, 0);
-      
-      schedules.push({
-        date: scheduleDate,
-        time: scheduleTime,
-        pills: 1,
-        note: `Ngày ${i + 1}/${totalDays} - Daily PrEP`
-      });
+  // Input validation
+  const validateInputs = (): string | null => {
+    if (regimen === "Daily PrEP") {
+      const totalDays = Number.parseInt(days, 10)
+      if (isNaN(totalDays) || totalDays < 1 || totalDays > 365) {
+        return "Số ngày phải từ 1 đến 365"
+      }
+      if (startDate < new Date(Date.now() - 24 * 60 * 60 * 1000)) {
+        return "Ngày bắt đầu không thể là quá khứ"
+      }
+    } else {
+      const h = Number.parseInt(preHours, 10)
+      if (isNaN(h) || h < 1 || h > 72) {
+        return "Số giờ nhắc trước phải từ 1 đến 72"
+      }
+      const eventDateTime = getEventDateTime()
+      if (eventDateTime <= new Date()) {
+        return "Thời gian sự kiện phải trong tương lai"
+      }
+      const minNotificationTime = new Date(eventDateTime.getTime() - h * 60 * 60 * 1000)
+      if (minNotificationTime <= new Date()) {
+        return "Thời gian nhắc nhở đầu tiên phải trong tương lai"
+      }
     }
-    
-    return schedules;
-  };
+    return null
+  }
 
-  const generateOnDemandSchedule = (): OnDemandSchedule => {
-    const preHoursNum = parseInt(preHours, 10);
-    
-    // Dose 1: Before event (2 pills)
-    const dose1Date = new Date(eventDateTime);
-    dose1Date.setHours(dose1Date.getHours() - preHoursNum);
-    
-    // Dose 2: 24 hours after event (1 pill)
-    const dose2Date = new Date(eventDateTime);
-    dose2Date.setHours(dose2Date.getHours() + 24);
-    
-    // Dose 3: 48 hours after event (1 pill)
-    const dose3Date = new Date(eventDateTime);
-    dose3Date.setHours(dose3Date.getHours() + 48);
-    
-    return {
-      eventDate: eventDateTime,
-      preHours: preHoursNum,
-      schedules: {
-        dose1: {
-          date: dose1Date,
-          pills: 2,
-          note: `Liều trước sự kiện (${preHoursNum}h trước)`
-        },
-        dose2: {
-          date: dose2Date,
-          pills: 1,
-          note: 'Liều sau 24h'
-        },
-        dose3: {
-          date: dose3Date,
-          pills: 1,
-          note: 'Liều sau 48h'
-        }
-      }
-    };
-  };
+  // Generate notification schedules
+  const generateDailySchedule = (): NotificationSchedule[] => {
+    const count = Number.parseInt(days, 10) || 0
+    const schedules: NotificationSchedule[] = []
 
-  const scheduleNotifications = () => {
-    if (regimen === 'Daily PrEP') {
-      const totalDays = parseInt(days, 10);
-      if (isNaN(totalDays) || totalDays < 1) {
-        Alert.alert('Lỗi', 'Số ngày phải là số dương');
-        return;
+    for (let i = 0; i < count; i++) {
+      const scheduleDate = new Date(startDate)
+      scheduleDate.setDate(scheduleDate.getDate() + i)
+      scheduleDate.setHours(dailyTime.getHours(), dailyTime.getMinutes(), 0, 0)
+
+      // Skip past dates
+      if (scheduleDate > new Date()) {
+        schedules.push({
+          time: scheduleDate,
+          pills: 1,
+          note: `Daily PrEP - Ngày ${i + 1}/${count}`,
+        })
       }
-      
-      const schedule = generateDailySchedule();
-      
+    }
+    return schedules
+  }
+
+  const generateOnDemandSchedule = (): NotificationSchedule[] => {
+    const h = Number.parseInt(preHours, 10) || 0
+    const eventDateTime = getEventDateTime()
+
+    const dose1Time = new Date(eventDateTime)
+    dose1Time.setHours(dose1Time.getHours() - h)
+
+    const dose2Time = new Date(eventDateTime)
+    dose2Time.setHours(dose2Time.getHours() + 24)
+
+    const dose3Time = new Date(eventDateTime)
+    dose3Time.setHours(dose3Time.getHours() + 48)
+
+    const schedules: NotificationSchedule[] = []
+
+    // Only add notifications that are in the future
+    if (dose1Time > new Date()) {
+      schedules.push({
+        time: dose1Time,
+        pills: 2,
+        note: `On-demand PrEP - Liều trước sự kiện (${h}h trước)`,
+      })
+    }
+
+    schedules.push(
+      {
+        time: dose2Time,
+        pills: 1,
+        note: "On-demand PrEP - Liều sau 24h",
+      },
+      {
+        time: dose3Time,
+        pills: 1,
+        note: "On-demand PrEP - Liều sau 48h",
+      },
+    )
+
+    return schedules
+  }
+
+  // Main function to schedule notifications using service
+  const onSave = async (): Promise<void> => {
+    try {
+      // 1. Validate inputs
+      const validationError = validateInputs()
+      if (validationError) {
+        Alert.alert("Lỗi nhập liệu", validationError)
+        return
+      }
+
+      // 2. Request permissions
+      if (!(await requestNotificationPermissions())) return
+
+      // 3. Cancel existing notifications
+      // await cancelAll()
+
+      // 4. Build schedules
+      const schedules: NotificationSchedule[] =
+        regimen === "Daily PrEP" ? generateDailySchedule() : generateOnDemandSchedule()
+
+      if (schedules.length === 0) {
+        Alert.alert("Thông báo", "Không có lịch nhắc nào được tạo (có thể do thời gian đã qua)")
+        return
+      }
+
+      // 5. Schedule notifications using service
+      setIsLoading(true)
+      const { success, totalPills } = await scheduleNotif(schedules, regimen, notes)
+      setIsLoading(false)
+
+      // 6. Show success message
       Alert.alert(
-        'Đã lên lịch Daily PrEP',
-        `Bắt đầu: ${formatDate(startDate)} lúc ${formatTime(dailyTime)}\n` +
-        `Thời gian: ${totalDays} ngày\n` +
-        `Tổng cộng: ${totalDays} liều (1 viên/ngày)`,
+        "✅ Thành công!",
+        `Đã lên lịch ${success}/${schedules.length} thông báo\n` +
+        `Tổng cộng: ${totalPills} viên\n` +
+        `Chế độ: ${regimen}` +
+        (notes ? `\nGhi chú: ${notes}` : ""),
         [
           {
-            text: 'Xem chi tiết',
-            onPress: () => {
-              const details = schedule.slice(0, 3).map((s, i) => 
-                `${i + 1}. ${formatDateTime(s.time)} - ${s.pills} viên`
-              ).join('\n');
-              Alert.alert('Chi tiết lịch uống (3 ngày đầu)', details);
-            }
+            text: "Xem chi tiết",
+            onPress: () => showScheduleDetails(schedules),
           },
-          { text: 'OK' }
-        ]
-      );
-    } else {
-      const preHoursNum = parseInt(preHours, 10);
-      if (isNaN(preHoursNum) || preHoursNum < 1) {
-        Alert.alert('Lỗi', 'Số giờ nhắc trước phải là số dương');
-        return;
-      }
-      
-      const schedule = generateOnDemandSchedule();
-      
-      Alert.alert(
-        'Đã lên lịch On-demand (2-1-1)',
-        `Sự kiện: ${formatDateTime(eventDateTime)}\n\n` +
-        `Liều 1: ${formatDateTime(schedule.schedules.dose1.date)} - 2 viên\n` +
-        `Liều 2: ${formatDateTime(schedule.schedules.dose2.date)} - 1 viên\n` +
-        `Liều 3: ${formatDateTime(schedule.schedules.dose3.date)} - 1 viên\n\n` +
-        `Tổng cộng: 4 viên`,
-        [{ text: 'OK' }]
-      );
+          { text: "OK" },
+        ],
+      )
+    } catch (error) {
+      console.error("Error scheduling notifications:", error)
+      Alert.alert("Lỗi", "Không thể lên lịch thông báo. Vui lòng thử lại.")
+      setIsLoading(false)
     }
-  };
+  }
+
+  const showScheduleDetails = (schedules: NotificationSchedule[]): void => {
+    const details = schedules
+      .slice(0, 5) // Show first 5 schedules
+      .map((s, i) => `${i + 1}. ${formatDateTime(s.time)} - ${s.pills} viên`)
+      .join("\n")
+
+    const moreText = schedules.length > 5 ? `\n... và ${schedules.length - 5} lịch khác` : ""
+
+    Alert.alert("Chi tiết lịch nhắc", details + moreText)
+  }
+
+  // Test notification function using service
+  const handleTestNotification = async (): Promise<void> => {
+    try {
+      await testNotification()
+      Alert.alert("Test", "Thông báo test sẽ hiển thị sau 3 giây")
+    } catch (error) {
+      Alert.alert("Lỗi", "Không thể gửi thông báo test")
+    }
+  }
+
+  // Show pickers
+  const showStart = () => setShowStartPicker(true)
+  const showTime = () => setShowDailyTimePicker(true)
+  const showEventTimePickerHandler = () => setShowEventTimePicker(true)
 
   return (
-    <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#f5f5f5", paddingTop: insets.top }}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
-          <Text style={styles.backButtonText}>←</Text>
+      <View
+        style={{
+          backgroundColor: "#4285F4",
+          flexDirection: "row",
+          alignItems: "center",
+          paddingVertical: 15,
+          paddingHorizontal: 15,
+        }}
+      >
+        <TouchableOpacity style={{ marginRight: 15 }}>
+          <Text style={{ color: "white", fontSize: 24, fontWeight: "bold" }}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Tạo lịch nhắc PrEP</Text>
+        <Text
+          style={{
+            color: "white",
+            fontSize: 20,
+            fontWeight: "bold",
+            flex: 1,
+            textAlign: "center",
+          }}
+        >
+          Tạo lịch nhắc PrEP
+        </Text>
+        <TouchableOpacity
+          style={{
+            padding: 8,
+            borderRadius: 20,
+            backgroundColor: "rgba(255,255,255,0.2)",
+          }}
+          onPress={handleTestNotification}
+        >
+          <Text style={{ fontSize: 16 }}>🧪</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 20 }]}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 20, paddingBottom: insets.bottom + 20 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Regimen Picker */}
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Chế độ PrEP:</Text>
-          <View style={styles.pickerWrapper}>
-            <Picker
-              selectedValue={regimen}
-              onValueChange={(v) => setRegimen(v as RegimenType)}
-              style={styles.picker}
-            >
+        <View style={{ marginBottom: 20 }}>
+          <Text style={{ marginBottom: 8, fontSize: 16, fontWeight: "600", color: "#333" }}>Chế độ PrEP:</Text>
+          <View
+            style={{
+              backgroundColor: "#fff",
+              borderWidth: 1,
+              borderColor: "#ddd",
+              borderRadius: 8,
+            }}
+          >
+            <Picker selectedValue={regimen} onValueChange={(v) => setRegimen(v as RegimenType)} style={{ height: 50 }}>
               <Picker.Item label="Daily PrEP (Hàng ngày)" value="Daily PrEP" />
               <Picker.Item label="On-demand (2-1-1)" value="On-demand (2-1-1)" />
             </Picker>
           </View>
         </View>
 
-        {regimen === 'Daily PrEP' ? (
+        {regimen === "Daily PrEP" ? (
           <>
             {/* Start Date */}
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Ngày bắt đầu:</Text>
+            <View style={{ marginBottom: 20 }}>
+              <Text style={{ marginBottom: 8, fontSize: 16, fontWeight: "600", color: "#333" }}>Ngày bắt đầu:</Text>
               <TouchableOpacity
-                style={styles.dateInput}
-                onPress={showStartDatePickerHandler}
+                style={{
+                  backgroundColor: "#fff",
+                  borderWidth: 1,
+                  borderColor: "#ddd",
+                  borderRadius: 8,
+                  padding: 15,
+                }}
+                onPress={showStart}
               >
-                <Text style={styles.dateText}>📅 {formatDate(startDate)}</Text>
+                <Text style={{ fontSize: 16, color: "#333" }}>📅 {formatDate(startDate)}</Text>
               </TouchableOpacity>
-              {showStartDatePicker && (
+              {showStartPicker && (
                 <DateTimePicker
-                  testID="startDatePicker"
                   value={startDate}
                   mode="date"
-                  is24Hour={true}
                   display="default"
                   onChange={onChangeStartDate}
                   minimumDate={new Date()}
@@ -261,110 +344,245 @@ export default function MedicationReminderForm() {
             </View>
 
             {/* Daily Time */}
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Giờ uống hàng ngày:</Text>
+            <View style={{ marginBottom: 20 }}>
+              <Text style={{ marginBottom: 8, fontSize: 16, fontWeight: "600", color: "#333" }}>
+                Giờ uống hàng ngày:
+              </Text>
               <TouchableOpacity
-                style={styles.dateInput}
-                onPress={showDailyTimePickerHandler}
+                style={{
+                  backgroundColor: "#fff",
+                  borderWidth: 1,
+                  borderColor: "#ddd",
+                  borderRadius: 8,
+                  padding: 15,
+                }}
+                onPress={showTime}
               >
-                <Text style={styles.dateText}>⏰ {formatTime(dailyTime)}</Text>
+                <Text style={{ fontSize: 16, color: "#333" }}>⏰ {formatTime(dailyTime)}</Text>
               </TouchableOpacity>
               {showDailyTimePicker && (
-                <DateTimePicker
-                  testID="dailyTimePicker"
-                  value={dailyTime}
-                  mode="time"
-                  is24Hour={true}
-                  display="default"
-                  onChange={onChangeDailyTime}
-                />
+                <DateTimePicker value={dailyTime} mode="time" display="default" onChange={onChangeDailyTime} />
               )}
             </View>
 
-            {/* Duration in days */}
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Số ngày uống:</Text>
+            {/* Days */}
+            <View style={{ marginBottom: 20 }}>
+              <Text style={{ marginBottom: 8, fontSize: 16, fontWeight: "600", color: "#333" }}>Số ngày uống:</Text>
               <TextInput
-                style={styles.input}
+                style={{
+                  backgroundColor: "#fff",
+                  borderWidth: 1,
+                  borderColor: "#ddd",
+                  borderRadius: 8,
+                  padding: 12,
+                  fontSize: 16,
+                }}
                 keyboardType="numeric"
                 value={days}
                 onChangeText={setDays}
                 placeholder="30"
+                maxLength={3}
               />
-              <Text style={styles.helperText}>Nhắc 1 lần/ngày, 1 viên/lần</Text>
+              <Text
+                style={{
+                  marginTop: 4,
+                  fontSize: 12,
+                  color: "#666",
+                  fontStyle: "italic",
+                }}
+              >
+                Tối đa 365 ngày
+              </Text>
+            </View>
+
+            {/* Daily Preview */}
+            <View
+              style={{
+                backgroundColor: "#fff",
+                borderRadius: 8,
+                padding: 15,
+                borderWidth: 1,
+                borderColor: "#ddd",
+                marginBottom: 10,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "600",
+                  color: "#333",
+                  marginBottom: 10,
+                }}
+              >
+                Xem trước lịch uống:
+              </Text>
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: "#333",
+                  marginBottom: 4,
+                }}
+              >
+                📅 Bắt đầu: {formatDate(startDate)} lúc {formatTime(dailyTime)}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: "#333",
+                  marginBottom: 4,
+                }}
+              >
+                📊 Tổng cộng: {days} ngày × 1 viên = {days} viên
+              </Text>
             </View>
           </>
         ) : (
           <>
-            {/* Event DateTime */}
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Ngày giờ sự kiện:</Text>
+            {/* Event Date */}
+            <View style={{ marginBottom: 20 }}>
+              <Text style={{ marginBottom: 8, fontSize: 16, fontWeight: "600", color: "#333" }}>Ngày sự kiện:</Text>
               <TouchableOpacity
-                style={styles.dateInput}
-                onPress={showEventPickerHandler}
+                style={{
+                  backgroundColor: "#fff",
+                  borderWidth: 1,
+                  borderColor: "#ddd",
+                  borderRadius: 8,
+                  padding: 15,
+                }}
+                onPress={() => setShowEventDatePicker(true)}
               >
-                <Text style={styles.dateText}>📅⏰ {formatDateTime(eventDateTime)}</Text>
+                <Text style={{ fontSize: 16, color: "#333" }}>📅 {formatDate(eventDate)}</Text>
               </TouchableOpacity>
-              {showEventPicker && (
+              {showEventDatePicker && (
                 <DateTimePicker
-                  testID="eventDateTimePicker"
-                  value={eventDateTime}
-                  mode="datetime"
-                  is24Hour={true}
+                  value={eventDate}
+                  mode="date"
                   display="default"
-                  onChange={onChangeEventDateTime}
+                  onChange={onChangeEventDate}
                   minimumDate={new Date()}
                 />
               )}
             </View>
 
+            {/* Event Time */}
+            <View style={{ marginBottom: 20 }}>
+              <Text style={{ marginBottom: 8, fontSize: 16, fontWeight: "600", color: "#333" }}>Giờ sự kiện:</Text>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: "#fff",
+                  borderWidth: 1,
+                  borderColor: "#ddd",
+                  borderRadius: 8,
+                  padding: 15,
+                }}
+                onPress={showEventTimePickerHandler}
+              >
+                <Text style={{ fontSize: 16, color: "#333" }}>⏰ {formatTime(eventTime)}</Text>
+              </TouchableOpacity>
+              {showEventTimePicker && (
+                <DateTimePicker value={eventTime} mode="time" display="default" onChange={onChangeEventTime} />
+              )}
+            </View>
+
             {/* Pre-hours */}
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Nhắc trước sự kiện (giờ):</Text>
+            <View style={{ marginBottom: 20 }}>
+              <Text style={{ marginBottom: 8, fontSize: 16, fontWeight: "600", color: "#333" }}>
+                Nhắc trước sự kiện (giờ):
+              </Text>
               <TextInput
-                style={styles.input}
+                style={{
+                  backgroundColor: "#fff",
+                  borderWidth: 1,
+                  borderColor: "#ddd",
+                  borderRadius: 8,
+                  padding: 12,
+                  fontSize: 16,
+                }}
                 keyboardType="numeric"
                 value={preHours}
                 onChangeText={setPreHours}
                 placeholder="2"
+                maxLength={2}
               />
-              <Text style={styles.helperText}>Tối thiểu 1 giờ trước sự kiện</Text>
+              <Text
+                style={{
+                  marginTop: 4,
+                  fontSize: 12,
+                  color: "#666",
+                  fontStyle: "italic",
+                }}
+              >
+                Từ 1 đến 72 giờ
+              </Text>
             </View>
 
-            {/* Schedule Preview */}
-            <View style={styles.schedulePreview}>
-              <Text style={styles.scheduleTitle}>Lịch uống tự động:</Text>
-              <View style={styles.scheduleItem}>
-                <Text style={styles.scheduleText}>🔴 Liều 1: 2 viên trước sự kiện</Text>
-                <Text style={styles.scheduleSubText}>
-                  {preHours && !isNaN(parseInt(preHours)) ? 
-                    formatDateTime(new Date(eventDateTime.getTime() - parseInt(preHours) * 60 * 60 * 1000)) :
-                    'Chưa xác định'
-                  }
-                </Text>
-              </View>
-              <View style={styles.scheduleItem}>
-                <Text style={styles.scheduleText}>🟡 Liều 2: 1 viên sau 24 giờ</Text>
-                <Text style={styles.scheduleSubText}>
-                  {formatDateTime(new Date(eventDateTime.getTime() + 24 * 60 * 60 * 1000))}
-                </Text>
-              </View>
-              <View style={styles.scheduleItem}>
-                <Text style={styles.scheduleText}>🟢 Liều 3: 1 viên sau 48 giờ</Text>
-                <Text style={styles.scheduleSubText}>
-                  {formatDateTime(new Date(eventDateTime.getTime() + 48 * 60 * 60 * 1000))}
-                </Text>
-              </View>
-              <Text style={styles.totalText}>Tổng cộng: 4 viên</Text>
+            {/* On-demand Preview */}
+            <View
+              style={{
+                backgroundColor: "#fff",
+                borderRadius: 8,
+                padding: 15,
+                borderWidth: 1,
+                borderColor: "#ddd",
+                marginBottom: 10,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "600",
+                  color: "#333",
+                  marginBottom: 10,
+                }}
+              >
+                Lịch uống tự động (2-1-1):
+              </Text>
+              {generateOnDemandSchedule().map((item, idx) => (
+                <View key={idx} style={{ marginBottom: 8 }}>
+                  <Text style={{ fontSize: 14, fontWeight: "500", color: "#333" }}>
+                    {idx === 0 ? "🔴" : idx === 1 ? "🟡" : "🟢"} {item.pills} viên - {formatDateTime(item.time)}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: "#666",
+                      marginLeft: 16,
+                      marginTop: 2,
+                    }}
+                  >
+                    {item.note}
+                  </Text>
+                </View>
+              ))}
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: "bold",
+                  color: "#4285F4",
+                  marginTop: 8,
+                  textAlign: "center",
+                }}
+              >
+                Tổng cộng: 4 viên
+              </Text>
             </View>
           </>
         )}
 
         {/* Notes */}
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Ghi chú:</Text>
+        <View style={{ marginBottom: 20 }}>
+          <Text style={{ marginBottom: 8, fontSize: 16, fontWeight: "600", color: "#333" }}>Ghi chú:</Text>
           <TextInput
-            style={[styles.input, styles.notesInput]}
+            style={{
+              backgroundColor: "#fff",
+              borderWidth: 1,
+              borderColor: "#ddd",
+              borderRadius: 8,
+              padding: 12,
+              fontSize: 16,
+              height: 80,
+              textAlignVertical: "top",
+            }}
             multiline
             value={notes}
             onChangeText={setNotes}
@@ -374,138 +592,33 @@ export default function MedicationReminderForm() {
         </View>
 
         {/* Save Button */}
-        <TouchableOpacity style={styles.button} onPress={scheduleNotifications}>
-          <Text style={styles.buttonText}>Lưu & Kích hoạt nhắc nhở</Text>
+        <TouchableOpacity
+          style={{
+            backgroundColor: isLoading ? "#ccc" : "#4285F4",
+            paddingVertical: 15,
+            borderRadius: 8,
+            alignItems: "center",
+            marginTop: 24,
+            marginBottom: 40,
+          }}
+          onPress={onSave}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text
+              style={{
+                color: "#fff",
+                fontSize: 16,
+                fontWeight: "600",
+              }}
+            >
+              💾 Lưu & Kích hoạt nhắc nhở
+            </Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
-  );
+  )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    backgroundColor: '#4285F4',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 15,
-    paddingHorizontal: 15,
-  },
-  backButton: {
-    marginRight: 15,
-  },
-  backButtonText: {
-    color: 'white',
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  headerTitle: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
-    flex: 1,
-    textAlign: 'center',
-    marginRight: 39,
-  },
-  content: {
-    paddingHorizontal: 16,
-    paddingTop: 20,
-  },
-  formGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    marginBottom: 8,
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-  },
-  pickerWrapper: {
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-  },
-  picker: {
-    height: 50,
-  },
-  dateInput: {
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 15,
-  },
-  dateText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  input: {
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-  },
-  notesInput: {
-    height: 80,
-    textAlignVertical: 'top',
-  },
-  helperText: {
-    marginTop: 4,
-    fontSize: 12,
-    color: '#666',
-    fontStyle: 'italic',
-  },
-  schedulePreview: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 15,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  scheduleTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 10,
-  },
-  scheduleItem: {
-    marginBottom: 8,
-  },
-  scheduleText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#333',
-  },
-  scheduleSubText: {
-    fontSize: 12,
-    color: '#666',
-    marginLeft: 16,
-    marginTop: 2,
-  },
-  totalText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#4285F4',
-    marginTop: 8,
-    textAlign: 'center',
-  },
-  button: {
-    backgroundColor: '#4285F4',
-    paddingVertical: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 24,
-    marginBottom: 40,
-  },
-  buttonText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});

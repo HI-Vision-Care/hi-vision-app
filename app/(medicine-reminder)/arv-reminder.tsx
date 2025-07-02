@@ -17,6 +17,7 @@ export default function ARVReminder() {
 
     const handleSetupPress = () => {
         console.log('Setup ARV reminder');
+         router.push('/(medicine-reminder)/arv-reminder-form');
     };
 
     return (
