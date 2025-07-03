@@ -19,15 +19,6 @@ module.exports = function (api) {
           },
         },
       ],
-      [
-        "module:react-native-dotenv",
-        {
-          moduleName: "@env", // import { X } from '@env'
-          path: ".env", // file .env nằm ở gốc
-          safe: false, // nếu đặt true thì cần có .env.example
-          allowUndefined: true, // để biến không có giá trị vẫn không crash
-        },
-      ],
     ],
   };
 };
