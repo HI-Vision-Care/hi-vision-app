@@ -1,303 +1,428 @@
-import { Ionicons } from "@expo/vector-icons";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { Picker } from "@react-native-picker/picker";
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
-  Alert,
-  Platform,
-  ScrollView,
+  View,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
-} from "react-native";
+  StyleSheet,
+  SafeAreaView,
+  StatusBar,
+  Switch,
+  Alert,
+} from 'react-native';
+import { Picker } from '@react-native-picker/picker';
+import { LinearGradient } from 'expo-linear-gradient';
+import { ConsultationRequest } from '@/types/type';
+import { usePatientProfile } from '@/hooks/usePatientId';
+import { bookConsultationGuest, bookConsultationWithAccount } from '@/services/consultant/consultant';
 
-interface BookingData {
-  service: string;
-  doctor: string;
-  date: Date;
-  isAnonymous: boolean;
-  notes: string;
-}
+export default function ConsultationForm() {
+  const [fullName, setFullName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [note, setNote] = useState('');
+  const [isAnonymous, setIsAnonymous] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-const ServiceBookingScreen: React.FC = () => {
-  const [bookingData, setBookingData] = useState<BookingData>({
-    service: "",
-    doctor: "",
-    date: new Date(),
-    isAnonymous: false,
-    notes: "",
-  });
+  // Get patient profile for authenticated booking
+  const { data: patientProfile } = usePatientProfile();
 
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  // Phone number validation function
+  const validatePhoneNumber = (phone: string) => {
+    // Remove all non-digit characters
+    const cleanPhone = phone.replace(/\D/g, '');
 
-  const services = [
-    { label: "Select a service...", value: "" },
-    { label: "HIV Testing & Counseling", value: "hiv_testing" },
-    { label: "PrEP Consultation", value: "prep_consultation" },
-    { label: "HIV Treatment Follow-up", value: "hiv_treatment" },
-    { label: "Sexual Health Screening", value: "sexual_health" },
-    { label: "Support & Counseling", value: "counseling" },
-  ];
-
-  const doctors = [
-    { label: "Select a doctor...", value: "" },
-    { label: "Dr. Sarah Johnson - HIV Specialist", value: "dr_johnson" },
-    { label: "Dr. Michael Chen - Infectious Disease", value: "dr_chen" },
-    { label: "Dr. Emily Rodriguez - Sexual Health", value: "dr_rodriguez" },
-    { label: "Dr. David Thompson - General Practice", value: "dr_thompson" },
-    { label: "Any Available Doctor", value: "any_doctor" },
-  ];
-
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(Platform.OS === "ios");
-    if (selectedDate) {
-      setBookingData({ ...bookingData, date: selectedDate });
-    }
-  };
-
-  const validateForm = (): boolean => {
-    if (!bookingData.service) {
-      Alert.alert("Error", "Please select a service");
+    // Check if it's exactly 10 digits
+    if (cleanPhone.length !== 10) {
       return false;
     }
-    if (!bookingData.doctor) {
-      Alert.alert("Error", "Please select a doctor");
+
+    // Check if it starts with 0 (Vietnamese phone number format)
+    if (!cleanPhone.startsWith('0')) {
       return false;
     }
-    if (bookingData.date < new Date()) {
-      Alert.alert("Error", "Please select a future date");
-      return false;
-    }
+
     return true;
   };
 
-  const handleSubmit = async () => {
-    if (!validateForm()) return;
+  // Format phone number input (optional - for better UX)
+  const handlePhoneNumberChange = (text: string) => {
+    // Only allow digits
+    const cleanText = text.replace(/\D/g, '');
 
-    setIsLoading(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      Alert.alert(
-        "Booking Confirmed",
-        "Your appointment has been successfully booked. You will receive a confirmation shortly.",
-        [{ text: "OK", onPress: () => console.log("Booking confirmed") }]
-      );
-    }, 2000);
+    // Limit to 10 digits
+    if (cleanText.length <= 10) {
+      setPhoneNumber(cleanText);
+    }
   };
 
-  const formatDate = (date: Date): string => {
-    return date.toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+  const handleSubmit = async () => {
+    // Validation for phone number
+    if (!phoneNumber.trim()) {
+      Alert.alert('Lỗi', 'Vui lòng nhập số điện thoại');
+      return;
+    }
+
+    // Validate phone number format
+    if (!validatePhoneNumber(phoneNumber)) {
+      Alert.alert(
+        'Lỗi',
+        'Số điện thoại phải có đúng 10 chữ số và bắt đầu bằng số 0'
+      );
+      return;
+    }
+
+    // Validation for full name
+    if (!fullName.trim()) {
+      Alert.alert('Lỗi', 'Vui lòng nhập họ và tên');
+      return;
+    }
+
+    // Validation for service selection
+    if (!note.trim()) {
+      Alert.alert('Lỗi', 'Vui lòng chọn dịch vụ');
+      return;
+    }
+
+    // Check if user is trying to book with account but no patient profile
+    if (!isAnonymous && !patientProfile?.patientID) {
+      Alert.alert('Lỗi', 'Không thể lấy thông tin tài khoản. Vui lòng đăng nhập lại hoặc chọn đặt lịch ẩn danh.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const consultationData: ConsultationRequest = {
+        phone: phoneNumber.trim(),
+        name: fullName.trim(),
+        note: note,
+      };
+
+      let result;
+
+      if (isAnonymous) {
+        // Book as guest
+        result = await bookConsultationGuest(consultationData);
+      } else {
+        // Book with account
+        result = await bookConsultationWithAccount(
+          patientProfile!.patientID,
+          consultationData
+        );
+      }
+
+      Alert.alert(
+        'Thành công',
+        'Đã gửi yêu cầu tư vấn thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              // Reset form
+              setFullName('');
+              setPhoneNumber('');
+              setNote('');
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error('Booking error:', error);
+      Alert.alert(
+        'Lỗi',
+        'Có lỗi xảy ra khi gửi yêu cầu. Vui lòng thử lại sau.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const getServiceLabel = (value: string) => {
+    const services = {
+      general: 'Xét nghiệm tổng quát',
+      tu_van_thuoc: 'Cần tư vấn thuốc',
+      tu_van_xet_nghiem: 'Tư vấn xét nghiệm',
+      lay_mau_xet_nghiem_tai_nha: 'Lấy mẫu xét nghiệm tại nhà',
+      other: 'Dịch vụ khác',
+    };
+    return services[value as keyof typeof services] || value;
   };
 
   return (
-    <ScrollView className="flex-1 bg-[#f2f5f9]">
-      <View className="px-6 py-8">
-        {/* Header */}
-        <View className="mb-8">
-          <Text className="text-3xl font-bold text-gray-900 mb-2">
-            Book Your Appointment
-          </Text>
-          <Text className="text-base text-gray-600 leading-6">
-            Schedule your confidential HIV services appointment. All information
-            is kept strictly private.
-          </Text>
-        </View>
-
-        {/* Service Selection */}
-        <View className="mb-6">
-          <Text className="text-lg font-semibold text-gray-900 mb-3">
-            Service Required *
-          </Text>
-          <View className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <Picker
-              selectedValue={bookingData.service}
-              onValueChange={(value) =>
-                setBookingData({ ...bookingData, service: value })
-              }
-              style={{ height: 50 }}
-            >
-              {services.map((service) => (
-                <Picker.Item
-                  key={service.value}
-                  label={service.label}
-                  value={service.value}
-                  color={service.value === "" ? "#9CA3AF" : "#111827"}
-                />
-              ))}
-            </Picker>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      <LinearGradient
+        colors={['#6366f1', '#3b82f6', '#2563eb']}
+        style={styles.gradient}
+      >
+        <View style={styles.content}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Tư vấn miễn phí!</Text>
+            <View style={styles.underline} />
           </View>
-        </View>
 
-        {/* Doctor Selection */}
-        <View className="mb-6">
-          <Text className="text-lg font-semibold text-gray-900 mb-3">
-            Preferred Doctor *
+          {/* Subtitle */}
+          <Text style={styles.subtitle}>
+            Tất cả thông tin y tế của Khách hàng đều{'\n'}
+            được bảo mật tuyệt đối, riêng tư
           </Text>
-          <View className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <Picker
-              selectedValue={bookingData.doctor}
-              onValueChange={(value) =>
-                setBookingData({ ...bookingData, doctor: value })
-              }
-              style={{ height: 50 }}
-            >
-              {doctors.map((doctor) => (
-                <Picker.Item
-                  key={doctor.value}
-                  label={doctor.label}
-                  value={doctor.value}
-                  color={doctor.value === "" ? "#9CA3AF" : "#111827"}
-                />
-              ))}
-            </Picker>
-          </View>
-        </View>
 
-        {/* Date Selection */}
-        <View className="mb-6">
-          <Text className="text-lg font-semibold text-gray-900 mb-3">
-            Preferred Date *
-          </Text>
-          <TouchableOpacity
-            onPress={() => setShowDatePicker(true)}
-            className="bg-white rounded-xl border border-gray-200 p-4 flex-row items-center justify-between"
-          >
-            <Text className="text-base text-gray-900">
-              {formatDate(bookingData.date)}
-            </Text>
-            <Ionicons name="calendar-outline" size={24} color="#0f67fe" />
-          </TouchableOpacity>
-
-          {showDatePicker && (
-            <DateTimePicker
-              value={bookingData.date}
-              mode="date"
-              display="default"
-              onChange={handleDateChange}
-              minimumDate={new Date()}
+          {/* Anonymous Switch */}
+          <View style={styles.switchContainer}>
+            <Text style={styles.switchLabel}>Đặt lịch ẩn danh</Text>
+            <Switch
+              value={isAnonymous}
+              onValueChange={setIsAnonymous}
+              trackColor={{ false: '#767577', true: '#f97316' }}
+              thumbColor={isAnonymous ? '#ffffff' : '#f4f3f4'}
             />
-          )}
-        </View>
+          </View>
 
-        {/* Anonymous Option */}
-        <View className="mb-6">
-          <TouchableOpacity
-            onPress={() =>
-              setBookingData({
-                ...bookingData,
-                isAnonymous: !bookingData.isAnonymous,
-              })
-            }
-            className="bg-white rounded-xl border border-gray-200 p-4 flex-row items-center justify-between"
-          >
-            <View className="flex-1">
-              <Text className="text-lg font-semibold text-gray-900 mb-1">
-                Anonymous Appointment
-              </Text>
-              <Text className="text-sm text-gray-600">
-                Keep your identity private during the appointment
+          {/* Account Info Display */}
+          {!isAnonymous && patientProfile && (
+            <View style={styles.accountInfo}>
+              <Text style={styles.accountInfoText}>
+                Đặt lịch với tài khoản: {patientProfile.name || 'Người dùng'}
               </Text>
             </View>
-            <View
-              className={`w-12 h-6 rounded-full ${
-                bookingData.isAnonymous ? "bg-[#0f67fe]" : "bg-gray-300"
-              } flex-row items-center ${
-                bookingData.isAnonymous ? "justify-end" : "justify-start"
-              } px-1`}
+          )}
+
+          {/* Form */}
+          <View style={styles.form}>
+            {/* Full Name Input */}
+            <TextInput
+              style={styles.input}
+              placeholder="Họ và tên"
+              placeholderTextColor="#9ca3af"
+              value={fullName}
+              onChangeText={setFullName}
+              editable={!isSubmitting}
+            />
+
+            {/* Phone Number Input */}
+            <TextInput
+              style={[
+                styles.input,
+                phoneNumber && !validatePhoneNumber(phoneNumber) && styles.inputError
+              ]}
+              placeholder="Số điện thoại"
+              placeholderTextColor="#9ca3af"
+              value={phoneNumber}
+              onChangeText={handlePhoneNumberChange}
+              keyboardType="numeric"
+              maxLength={10}
+              editable={!isSubmitting}
+            />
+
+            {/* Phone validation message */}
+            {phoneNumber && !validatePhoneNumber(phoneNumber) && (
+              <Text style={styles.errorText}>
+                Số điện thoại phải có đúng 10 chữ số và bắt đầu bằng số 0
+              </Text>
+            )}
+
+            {/* Service Picker */}
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={note}
+                onValueChange={setNote}
+                style={styles.picker}
+                enabled={!isSubmitting}
+              >
+                <Picker.Item
+                  label="Chọn dịch vụ"
+                  value=""
+                  color="#9ca3af"
+                />
+                <Picker.Item
+                  label="Xét nghiệm tổng quát"
+                  value="general"
+                />
+                <Picker.Item
+                  label="Cần tư vấn thuốc"
+                  value="tu_van_thuoc"
+                />
+                <Picker.Item
+                  label="Tư vấn xét nghiệm"
+                  value="tu_van_xet_nghiem"
+                />
+                <Picker.Item
+                  label="Lấy mẫu xét nghiệm tại nhà"
+                  value="lay_mau_xet_nghiem_tai_nha"
+                />
+                <Picker.Item
+                  label="Dịch vụ khác"
+                  value="other"
+                />
+              </Picker>
+            </View>
+
+            {/* Submit Button */}
+            <TouchableOpacity
+              style={[
+                styles.submitButton,
+                isSubmitting && styles.submitButtonDisabled
+              ]}
+              onPress={handleSubmit}
+              activeOpacity={0.8}
+              disabled={isSubmitting}
             >
-              <View className="w-4 h-4 bg-white rounded-full" />
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* Notes Section */}
-        <View className="mb-8">
-          <Text className="text-lg font-semibold text-gray-900 mb-3">
-            Additional Notes
-          </Text>
-          <TextInput
-            value={bookingData.notes}
-            onChangeText={(text) =>
-              setBookingData({ ...bookingData, notes: text })
-            }
-            placeholder="Any specific concerns, symptoms, or requests you'd like to discuss..."
-            multiline
-            numberOfLines={4}
-            className="bg-white rounded-xl border border-gray-200 p-4 text-base text-gray-900 min-h-[100px]"
-            textAlignVertical="top"
-          />
-        </View>
-
-        {/* Privacy Notice */}
-        <View className="bg-[#8a3ffc]/10 rounded-xl p-4 mb-6 border border-[#8a3ffc]/20">
-          <View className="flex-row items-start">
-            <Ionicons name="shield-checkmark" size={20} color="#8a3ffc" />
-            <View className="ml-3 flex-1">
-              <Text className="text-sm font-medium text-[#8a3ffc] mb-1">
-                Your Privacy is Protected
-              </Text>
-              <Text className="text-xs text-gray-600 leading-4">
-                All appointments and medical information are kept strictly
-                confidential in accordance with HIPAA regulations.
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Submit Button */}
-        <TouchableOpacity
-          onPress={handleSubmit}
-          disabled={isLoading}
-          className={`rounded-xl p-4 flex-row items-center justify-center ${
-            isLoading ? "bg-gray-400" : "bg-[#0f67fe]"
-          }`}
-        >
-          {isLoading ? (
-            <Text className="text-white text-lg font-semibold">
-              Booking Appointment...
-            </Text>
-          ) : (
-            <>
-              <Text className="text-white text-lg font-semibold mr-2">
-                Book Appointment
-              </Text>
-              <Ionicons name="arrow-forward" size={20} color="white" />
-            </>
-          )}
-        </TouchableOpacity>
-
-        {/* Help Section */}
-        <View className="mt-8 pt-6 border-t border-gray-200">
-          <Text className="text-center text-sm text-gray-600 mb-4">
-            Need help or have questions?
-          </Text>
-          <View className="flex-row justify-center space-x-6">
-            <TouchableOpacity className="flex-row items-center">
-              <Ionicons name="call" size={16} color="#0f67fe" />
-              <Text className="text-[#0f67fe] text-sm font-medium ml-2">
-                Call Us
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity className="flex-row items-center">
-              <Ionicons name="chatbubble" size={16} color="#0f67fe" />
-              <Text className="text-[#0f67fe] text-sm font-medium ml-2">
-                Live Chat
+              <Text style={styles.submitButtonText}>
+                {isSubmitting ? 'ĐANG GỬI...' : 'GỬI THÔNG TIN'}
               </Text>
             </TouchableOpacity>
           </View>
         </View>
-      </View>
-    </ScrollView>
+      </LinearGradient>
+    </SafeAreaView>
   );
-};
+}
 
-export default ServiceBookingScreen;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  gradient: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    alignItems: 'center',
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  underline: {
+    width: 120,
+    height: 3,
+    backgroundColor: 'white',
+  },
+  subtitle: {
+    fontSize: 18,
+    color: 'white',
+    textAlign: 'center',
+    lineHeight: 26,
+    marginBottom: 30,
+    opacity: 0.9,
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderRadius: 25,
+    marginBottom: 20,
+    width: '100%',
+    maxWidth: 400,
+  },
+  switchLabel: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  accountInfo: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    marginBottom: 20,
+    width: '100%',
+    maxWidth: 400,
+  },
+  accountInfoText: {
+    color: 'white',
+    fontSize: 14,
+    textAlign: 'center',
+    opacity: 0.9,
+  },
+  form: {
+    width: '100%',
+    maxWidth: 400,
+  },
+  input: {
+    backgroundColor: 'white',
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    fontSize: 16,
+    marginBottom: 5,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+  },
+  inputError: {
+    borderWidth: 2,
+    borderColor: '#ef4444',
+  },
+  errorText: {
+    color: '#fecaca',
+    fontSize: 12,
+    marginBottom: 15,
+    marginLeft: 20,
+    marginTop: -5,
+  },
+  noteInput: {
+    minHeight: 80,
+    paddingTop: 15,
+  },
+  pickerContainer: {
+    backgroundColor: 'white',
+    borderRadius: 25,
+    marginBottom: 20,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    overflow: 'hidden',
+  },
+  picker: {
+    height: 50,
+    paddingHorizontal: 20,
+  },
+  submitButton: {
+    backgroundColor: '#f97316',
+    borderRadius: 25,
+    paddingVertical: 18,
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#9ca3af',
+    elevation: 1,
+  },
+  submitButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+});

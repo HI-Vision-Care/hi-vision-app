@@ -1,209 +1,703 @@
-// components/history/TabLabResults.tsx
-import { LabResult } from "@/types/type";
-import { format } from "date-fns";
-import { ActivityIndicator, Text, View } from "react-native";
+"use client"
 
-type Props = {
-  isLoading: boolean;
-  isError: boolean;
-  error: any;
-  labResults?: LabResult[];
-};
+import type React from "react"
+import { useState, useEffect } from "react"
+import {
+  SafeAreaView,
+  View,
+  Text,
+  ScrollView,
+  ActivityIndicator,
+  TouchableOpacity,
+  Dimensions,
+  StyleSheet,
+} from "react-native"
+import { format } from "date-fns"
 
-const TabLabResults: React.FC<Props> = ({
-  isLoading,
-  isError,
-  error,
-  labResults,
-}) => {
-  if (isLoading)
+type LabResult = {
+  recordId: string
+  testType: string
+  resultText: string | null
+  resultValue: string | null
+  unit: string | null
+  referenceRange: string | null
+  testDate: string
+  performedBy: string | null
+}
+
+const sampleData: LabResult[] = [
+  {
+    recordId: "MR001",
+    testType: "HBsAg",
+    resultText: null,
+    resultValue: "0.13",
+    unit: null,
+    referenceRange: null,
+    testDate: "2025-06-01T09:10:00Z",
+    performedBy: "LabCorp",
+  },
+  {
+    recordId: "MR003",
+    testType: "CD4 Count",
+    resultText: null,
+    resultValue: "520",
+    unit: "cells/µL",
+    referenceRange: "500–1600",
+    testDate: "2025-06-15T09:20:00Z",
+    performedBy: null,
+  },
+  {
+    recordId: "MR004",
+    testType: "eGFR",
+    resultText: null,
+    resultValue: "89",
+    unit: "mL/min/1.73m²",
+    referenceRange: "90–120",
+    testDate: "2025-06-20T09:25:00Z",
+    performedBy: null,
+  },
+  {
+    recordId: "MR005",
+    testType: "Hemoglobin A1C",
+    resultText: null,
+    resultValue: "6.2",
+    unit: "%",
+    referenceRange: "4.0–5.6",
+    testDate: "2025-06-20T09:30:00Z",
+    performedBy: "Quest Diagnostics",
+  },
+  {
+    recordId: "MR006",
+    testType: "Total Cholesterol",
+    resultText: null,
+    resultValue: "185",
+    unit: "mg/dL",
+    referenceRange: "<200",
+    testDate: "2025-06-20T09:35:00Z",
+    performedBy: "Quest Diagnostics",
+  },
+]
+
+const { width, height } = Dimensions.get("window")
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f8fafc",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    backgroundColor: "#f8fafc",
+  },
+  loadingIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#3b82f6",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 20,
+    shadowColor: "#3b82f6",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  loadingTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#1f2937",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  loadingText: {
+    fontSize: 16,
+    color: "#6b7280",
+    textAlign: "center",
+    lineHeight: 24,
+  },
+  errorIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#ef4444",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  emptyIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#9ca3af",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  headerContainer: {
+    marginHorizontal: 16,
+    marginTop: 20,
+    marginBottom: 24,
+    borderRadius: 20,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  headerGradient: {
+    backgroundColor: "#3b82f6",
+    paddingHorizontal: 24,
+    paddingVertical: 32,
+    position: "relative",
+  },
+  headerContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  headerLeft: {
+    flex: 1,
+  },
+  headerIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: "white",
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: "rgba(255,255,255,0.8)",
+  },
+  headerRight: {
+    alignItems: "flex-end",
+  },
+  headerDateLabel: {
+    fontSize: 14,
+    color: "rgba(255,255,255,0.8)",
+    marginBottom: 4,
+  },
+  headerDate: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "white",
+  },
+  contentContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 32,
+  },
+  dateSection: {
+    marginBottom: 32,
+  },
+  dateHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  dateDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 16,
+  },
+  dateHeaderContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  dateTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1f2937",
+    marginRight: 12,
+  },
+  latestBadge: {
+    backgroundColor: "#dbeafe",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  latestBadgeText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#1d4ed8",
+  },
+  dateLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#e5e7eb",
+    marginLeft: 16,
+  },
+  resultsContainer: {
+    gap: 16,
+  },
+  resultCard: {
+    backgroundColor: "white",
+    borderRadius: 16,
+    padding: 20,
+    borderLeftWidth: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  resultHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 16,
+  },
+  resultHeaderLeft: {
+    flex: 1,
+    marginRight: 12,
+  },
+  resultTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1f2937",
+    marginBottom: 6,
+  },
+  resultTime: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  resultTimeText: {
+    fontSize: 14,
+    color: "#6b7280",
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  statusBadgeText: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  resultValueContainer: {
+    marginBottom: 16,
+  },
+  resultValueRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    marginBottom: 8,
+  },
+  resultValue: {
+    fontSize: 36,
+    fontWeight: "800",
+    marginRight: 8,
+  },
+  resultUnit: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#6b7280",
+  },
+  resultText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 8,
+  },
+  referenceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  referenceText: {
+    fontSize: 14,
+    color: "#6b7280",
+  },
+  resultFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#f3f4f6",
+  },
+  footerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  footerText: {
+    fontSize: 12,
+    color: "#9ca3af",
+    marginRight: 16,
+  },
+  performedByContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  performedByText: {
+    fontSize: 12,
+    color: "#9ca3af",
+  },
+  noteContainer: {
+    marginHorizontal: 16,
+    marginBottom: 32,
+    backgroundColor: "#eff6ff",
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+  },
+  noteContent: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  noteIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#dbeafe",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+    marginTop: 2,
+  },
+  noteTextContainer: {
+    flex: 1,
+  },
+  noteTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1e40af",
+    marginBottom: 4,
+  },
+  noteText: {
+    fontSize: 14,
+    color: "#1e40af",
+    lineHeight: 20,
+  },
+})
+
+const TabLabResults: React.FC<{
+  isLoading: boolean
+  isError: boolean
+  error?: any
+  labResults?: LabResult[]
+}> = ({ isLoading, isError, error, labResults }) => {
+  if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center py-12">
-        <View className="bg-white rounded-full p-4 shadow-sm mb-4">
-          <ActivityIndicator size="large" color="#0F67FE" />
+      <View style={styles.loadingContainer}>
+        <View style={styles.loadingIcon}>
+          <Text style={{ fontSize: 32, color: "white" }}>🧪</Text>
+          <ActivityIndicator size="small" color="white" style={{ position: "absolute", bottom: 8, right: 8 }} />
         </View>
-        <Text className="text-gray-600 font-medium">
-          Loading lab results...
-        </Text>
-        <Text className="text-gray-400 text-sm mt-1">Please wait a moment</Text>
+        <Text style={styles.loadingTitle}>Loading Results</Text>
+        <Text style={styles.loadingText}>Fetching your latest lab results...</Text>
       </View>
-    );
-  if (isError)
-    return (
-      <View className="flex-1 items-center justify-center py-12">
-        <View className="bg-red-50 rounded-full p-4 mb-4">
-          <Text className="text-red-500 text-2xl">⚠️</Text>
-        </View>
-        <Text className="text-red-600 font-semibold text-center px-6">
-          Unable to load lab results
-        </Text>
-        <Text className="text-red-400 text-sm text-center px-6 mt-1">
-          {error?.message || "Please try again later"}
-        </Text>
-      </View>
-    );
-  if (!labResults || labResults.length === 0)
-    return (
-      <View className="flex-1 items-center justify-center py-12">
-        <View className="bg-gray-100 rounded-full p-6 mb-4">
-          <Text className="text-gray-400 text-3xl">📋</Text>
-        </View>
-        <Text className="text-gray-600 font-semibold text-lg">
-          No lab results yet
-        </Text>
-        <Text className="text-gray-400 text-center px-8 mt-2">
-          Your lab results will appear here once they&apos;re available
-        </Text>
-      </View>
-    );
+    )
+  }
 
-  // Group results by date
-  const groupedResults = labResults.reduce(
-    (groups: { [key: string]: LabResult[] }, result) => {
-      const dateKey = format(new Date(result.testDate), "yyyy-MM-dd");
-      if (!groups[dateKey]) groups[dateKey] = [];
-      groups[dateKey].push(result);
-      return groups;
-    },
-    {}
-  );
-  const sortedDates = Object.keys(groupedResults).sort(
-    (a, b) => new Date(b).getTime() - new Date(a).getTime()
-  );
+  if (isError) {
+    return (
+      <View style={styles.loadingContainer}>
+        <View style={styles.errorIcon}>
+          <Text style={{ fontSize: 32, color: "white" }}>⚠️</Text>
+        </View>
+        <Text style={styles.loadingTitle}>Unable to Load Results</Text>
+        <Text style={styles.loadingText}>{error?.message || "An unexpected error occurred"}</Text>
+      </View>
+    )
+  }
 
-  // Helper function: màu text tuỳ theo giá trị test
-  const getResultColor = (testType: string, value: string) => {
-    const numericValue = parseFloat(value);
-    if (isNaN(numericValue)) return "text-gray-700";
-    if (testType.toLowerCase().includes("glucose")) {
-      return numericValue > 140 || numericValue < 70
-        ? "text-amber-600"
-        : "text-green-600";
+  if (!labResults || labResults.length === 0) {
+    return (
+      <View style={styles.loadingContainer}>
+        <View style={styles.emptyIcon}>
+          <Text style={{ fontSize: 32, color: "white" }}>🧪</Text>
+        </View>
+        <Text style={styles.loadingTitle}>No Results Available</Text>
+        <Text style={styles.loadingText}>Your lab results will appear here once available</Text>
+      </View>
+    )
+  }
+
+  // Group and sort by date
+  const grouped = labResults.reduce<Record<string, LabResult[]>>((acc, r) => {
+    const key = r.recordId
+    acc[key] = acc[key] ? [...acc[key], r] : [r]
+    return acc
+  }, {})
+
+  const recordIds = Object.keys(grouped).sort((a, b) => {
+    // Sort by latest test date in each record
+    const aLatest = Math.max(...grouped[a].map((test) => new Date(test.testDate).getTime()))
+    const bLatest = Math.max(...grouped[b].map((test) => new Date(test.testDate).getTime()))
+    return bLatest - aLatest
+  })
+
+  const getResultStatus = (type: string, val: string | null, range: string | null) => {
+    const num = val ? Number.parseFloat(val) : Number.NaN
+
+    if (!isNaN(num)) {
+      // CD4 Count logic
+      if (type.toLowerCase().includes("cd4")) {
+        if (num < 200) return { status: "critical", color: "#ef4444", bgColor: "#fef2f2", icon: "🚨" }
+        if (num < 500) return { status: "low", color: "#f59e0b", bgColor: "#fffbeb", icon: "⚠️" }
+        return { status: "normal", color: "#10b981", bgColor: "#f0fdf4", icon: "✅" }
+      }
+
+      // A1C logic
+      if (type.toLowerCase().includes("a1c")) {
+        if (num > 7.0) return { status: "high", color: "#ef4444", bgColor: "#fef2f2", icon: "🚨" }
+        if (num > 5.6) return { status: "elevated", color: "#f59e0b", bgColor: "#fffbeb", icon: "⚠️" }
+        return { status: "normal", color: "#10b981", bgColor: "#f0fdf4", icon: "✅" }
+      }
+
+      // eGFR logic
+      if (type.toLowerCase().includes("egfr")) {
+        if (num < 60) return { status: "low", color: "#ef4444", bgColor: "#fef2f2", icon: "🚨" }
+        if (num < 90) return { status: "mild", color: "#f59e0b", bgColor: "#fffbeb", icon: "⚠️" }
+        return { status: "normal", color: "#10b981", bgColor: "#f0fdf4", icon: "✅" }
+      }
     }
-    if (testType.toLowerCase().includes("cholesterol")) {
-      return numericValue > 200 ? "text-amber-600" : "text-green-600";
+
+    return { status: "normal", color: "#10b981", bgColor: "#f0fdf4", icon: "✅" }
+  }
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "critical":
+        return "Critical"
+      case "high":
+        return "High"
+      case "low":
+        return "Low"
+      case "elevated":
+        return "Elevated"
+      case "mild":
+        return "Mild"
+      default:
+        return "Normal"
     }
-    return "text-gray-700";
-  };
+  }
+
+  // Generate background dots for header
+  const backgroundDots = Array.from({ length: 15 }).map((_, i) => (
+    <View
+      key={i}
+      style={{
+        position: "absolute",
+        width: 4,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: "white",
+        opacity: 0.1,
+        top: Math.random() * 120,
+        left: Math.random() * (width - 32),
+      }}
+    />
+  ))
 
   return (
-    <View className="px-4 py-2">
-      <View className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4 mb-6 border border-blue-100">
-        <View className="flex-row items-center justify-between">
-          <View>
-            <Text className="text-lg font-bold text-gray-900">Lab Results</Text>
-            <Text className="text-sm text-gray-600 mt-1">
-              {labResults.length} test{labResults.length !== 1 ? "s" : ""}{" "}
-              available
-            </Text>
-          </View>
-          <View className="bg-blue-100 rounded-full p-3">
-            <Text className="text-blue-600 text-xl">🧪</Text>
+    <ScrollView style={styles.container}>
+      {/* Header */}
+      <View style={styles.headerContainer}>
+        <View style={styles.headerGradient}>
+          {/* Background pattern */}
+          <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}>{backgroundDots}</View>
+
+          <View style={styles.headerContent}>
+            <View style={styles.headerLeft}>
+              <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
+                <View style={styles.headerIconContainer}>
+                  <Text style={{ fontSize: 24 }}>📊</Text>
+                </View>
+                <View>
+                  <Text style={styles.headerTitle}>Lab Results</Text>
+                  <Text style={styles.headerSubtitle}>
+                    {recordIds.length} record{recordIds.length !== 1 && "s"} • {labResults.length} test
+                    {labResults.length !== 1 && "s"}
+                  </Text>
+                </View>
+              </View>
+            </View>
+            <View style={styles.headerRight}>
+              <Text style={styles.headerDateLabel}>Last updated</Text>
+              <Text style={styles.headerDate}>
+                {format(new Date(Math.max(...labResults.map((r) => new Date(r.testDate).getTime()))), "MMM dd, yyyy")}
+              </Text>
+            </View>
           </View>
         </View>
       </View>
-      {sortedDates.map((dateKey) => {
-        const dateResults = groupedResults[dateKey];
-        const displayDate = format(new Date(dateKey), "MMMM dd, yyyy");
-        return (
-          <View key={dateKey} className="mb-6">
-            <View className="flex-row items-center mb-3">
-              <View className="bg-gray-200 rounded-full w-2 h-2 mr-3" />
-              <Text className="text-base font-semibold text-gray-700">
-                {displayDate}
-              </Text>
-              <View className="flex-1 h-px bg-gray-200 ml-3" />
-            </View>
-            <View className="space-y-3">
-              {dateResults.map((result) => {
-                const resultColor = getResultColor(
-                  result.testType,
-                  result.resultValue
-                );
-                const isAbnormal = resultColor.includes("amber");
-                return (
-                  <View
-                    key={result.recordId}
-                    className={`bg-white rounded-xl p-4 shadow-sm border-l-4 ${
-                      isAbnormal
-                        ? "border-l-amber-400 bg-amber-50/30"
-                        : "border-l-green-400 bg-green-50/30"
-                    }`}
-                  >
-                    <View className="flex-row items-start justify-between">
-                      <View className="flex-1">
-                        <View className="flex-row items-center mb-2">
-                          <Text className="text-base font-semibold text-gray-900 flex-1">
-                            {result.testType}
+
+      {/* Results grouped by recordId */}
+      <View style={styles.contentContainer}>
+        {recordIds.map((recordId, recordIndex) => {
+          const tests = grouped[recordId]
+          const isLatest = recordIndex === 0
+          const latestTestDate = Math.max(...tests.map((test) => new Date(test.testDate).getTime()))
+
+          return (
+            <View key={recordId} style={styles.dateSection}>
+              {/* Record header */}
+              <View style={styles.dateHeader}>
+                <View style={[styles.dateDot, { backgroundColor: isLatest ? "#3b82f6" : "#d1d5db" }]} />
+                <View style={styles.dateHeaderContent}>
+                  <Text style={{ fontSize: 16, marginRight: 8 }}>📋</Text>
+                  <Text style={styles.dateTitle}>Record ID: {recordId}</Text>
+                  {isLatest && (
+                    <View style={styles.latestBadge}>
+                      <Text style={styles.latestBadgeText}>Latest</Text>
+                    </View>
+                  )}
+                </View>
+                <View style={styles.dateLine} />
+              </View>
+
+              {/* Record info */}
+              <View style={{ marginBottom: 12, paddingHorizontal: 4 }}>
+                <Text style={{ fontSize: 14, color: "#6b7280" }}>
+                  {tests.length} test{tests.length !== 1 && "s"} • {format(new Date(latestTestDate), "MMM dd, yyyy")}
+                </Text>
+              </View>
+
+              {/* Test results for this record */}
+              <View style={styles.resultsContainer}>
+                {tests.map((result, testIndex) => {
+                  const resultStatus = getResultStatus(result.testType, result.resultValue, result.referenceRange)
+
+                  return (
+                    <TouchableOpacity
+                      key={`${result.recordId}-${testIndex}`}
+                      activeOpacity={0.7}
+                      style={[styles.resultCard, { borderLeftColor: resultStatus.color }]}
+                    >
+                      {/* Test header */}
+                      <View style={styles.resultHeader}>
+                        <View style={styles.resultHeaderLeft}>
+                          <Text style={styles.resultTitle}>{result.testType}</Text>
+                          <View style={styles.resultTime}>
+                            <Text style={{ fontSize: 16, marginRight: 6 }}>🕐</Text>
+                            <Text style={styles.resultTimeText}>
+                              {format(new Date(result.testDate), "MMM dd, yyyy 'at' h:mm a")}
+                            </Text>
+                          </View>
+                        </View>
+                        <View
+                          style={[
+                            styles.statusBadge,
+                            {
+                              backgroundColor: resultStatus.bgColor,
+                              borderColor: resultStatus.color + "40",
+                            },
+                          ]}
+                        >
+                          <Text style={{ fontSize: 14, marginRight: 4 }}>{resultStatus.icon}</Text>
+                          <Text style={[styles.statusBadgeText, { color: resultStatus.color }]}>
+                            {getStatusText(resultStatus.status)}
                           </Text>
-                          {isAbnormal && (
-                            <View className="bg-amber-100 rounded-full px-2 py-1">
-                              <Text className="text-amber-700 text-xs font-medium">
-                                Review
-                              </Text>
+                        </View>
+                      </View>
+
+                      {/* Result value */}
+                      <View style={styles.resultValueContainer}>
+                        {result.resultValue ? (
+                          <View style={styles.resultValueRow}>
+                            <Text style={[styles.resultValue, { color: resultStatus.color }]}>
+                              {result.resultValue}
+                            </Text>
+                            {result.unit && <Text style={styles.resultUnit}>{result.unit}</Text>}
+                          </View>
+                        ) : result.resultText ? (
+                          <Text style={styles.resultText}>{result.resultText}</Text>
+                        ) : (
+                          <Text style={[styles.resultText, { color: "#9ca3af", fontStyle: "italic" }]}>
+                            No result available
+                          </Text>
+                        )}
+
+                        {result.referenceRange && (
+                          <View style={styles.referenceRow}>
+                            <Text style={{ fontSize: 14, marginRight: 6 }}>ℹ️</Text>
+                            <Text style={styles.referenceText}>Reference: {result.referenceRange}</Text>
+                          </View>
+                        )}
+                      </View>
+
+                      {/* Footer */}
+                      <View style={styles.resultFooter}>
+                        <View style={styles.footerLeft}>
+                          <Text style={styles.footerText}>Record: {result.recordId}</Text>
+                          {result.performedBy && (
+                            <View style={styles.performedByContainer}>
+                              <Text style={{ fontSize: 12, marginRight: 4 }}>👨‍⚕️</Text>
+                              <Text style={styles.performedByText}>{result.performedBy}</Text>
                             </View>
                           )}
                         </View>
-                        <View className="flex-row items-baseline mb-2">
-                          <Text className={`text-2xl font-bold ${resultColor}`}>
-                            {result.resultValue}
-                          </Text>
-                          <Text className="text-sm text-gray-500 ml-1"></Text>
-                        </View>
-                        <View className="flex-row items-center">
-                          <View className="bg-gray-100 rounded-full p-1 mr-2">
-                            <Text className="text-gray-500 text-xs">📅</Text>
-                          </View>
-                          <Text className="text-xs text-gray-500">
-                            {format(new Date(result.testDate), "h:mm a")}
-                          </Text>
-                          <Text className="text-xs text-gray-400 ml-4">
-                            ID: {result.recordId.slice(-6)}
-                          </Text>
-                        </View>
                       </View>
-                      <View className="ml-3">
-                        <View
-                          className={`w-3 h-3 rounded-full ${
-                            isAbnormal ? "bg-amber-400" : "bg-green-400"
-                          }`}
-                        />
-                      </View>
-                    </View>
-                    {!isNaN(parseFloat(result.resultValue)) && (
-                      <View className="mt-3">
-                        <View className="bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                          <View
-                            className={`h-full rounded-full ${
-                              isAbnormal ? "bg-amber-400" : "bg-green-400"
-                            }`}
-                            style={{
-                              width: `${Math.min(
-                                Math.max(
-                                  (parseFloat(result.resultValue) / 200) * 100,
-                                  10
-                                ),
-                                100
-                              )}%`,
-                            }}
-                          />
-                        </View>
-                      </View>
-                    )}
-                  </View>
-                );
-              })}
+                    </TouchableOpacity>
+                  )
+                })}
+              </View>
             </View>
-          </View>
-        );
-      })}
-      <View className="bg-blue-50 rounded-xl p-4 mt-4 border border-blue-100">
-        <Text className="text-sm text-blue-700 text-center">
-          💡 Consult with your healthcare provider to discuss these results
-        </Text>
+          )
+        })}
       </View>
-    </View>
-  );
-};
 
-export default TabLabResults;
+      {/* Footer note */}
+      <View style={styles.noteContainer}>
+        <View style={styles.noteContent}>
+          <View style={styles.noteIcon}>
+            <Text style={{ fontSize: 16 }}>💡</Text>
+          </View>
+          <View style={styles.noteTextContainer}>
+            <Text style={styles.noteTitle}>Important Note</Text>
+            <Text style={styles.noteText}>
+              These results are for informational purposes only. Please consult with your healthcare provider to discuss
+              your results and any necessary follow-up actions.
+            </Text>
+          </View>
+        </View>
+      </View>
+    </ScrollView>
+  )
+}
+
+const LabResultsPage: React.FC = () => {
+  const [data, setData] = useState<LabResult[]>()
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+
+  useEffect(() => {
+    // Simulate API fetch
+    setTimeout(() => {
+      try {
+        setData(sampleData)
+      } catch (e: any) {
+        setError(e)
+      } finally {
+        setLoading(false)
+      }
+    }, 1200)
+  }, [])
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <TabLabResults isLoading={loading} isError={!!error} error={error || undefined} labResults={data} />
+    </SafeAreaView>
+  )
+}
+
+export default LabResultsPage

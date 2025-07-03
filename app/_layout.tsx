@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import "./global.css";
 import * as Notifications from "expo-notifications";
 import { Alert, Platform } from "react-native";
+import { listenArvConfirm } from "@/services/notification/arv-notification";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -36,6 +37,15 @@ export default function RootLayout() {
     Jakarta: require("../assets/fonts/PlusJakartaSans-Regular.ttf"),
     "Jakarta-SemiBold": require("../assets/fonts/PlusJakartaSans-SemiBold.ttf"),
   });
+
+   useEffect(() => {
+    const subscription = listenArvConfirm((doseTime) => {
+      // Xử lý logic confirm, có thể gọi setState/toast hoặc reload data nếu muốn
+      console.log("Đã xác nhận ARV cho:", doseTime);
+    });
+    return () => subscription.remove();
+  }, []);
+
 
   useEffect(() => {
     (async () => {

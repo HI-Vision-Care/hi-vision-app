@@ -1,3 +1,5 @@
+import { cancelAllArvNotifications } from "@/services/notification/arv-notification";
+import { cancelAll } from "@/services/notification/prep-notification";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { navigate } from "expo-router/build/global-state/routing";
@@ -50,6 +52,7 @@ const MedicineCalendar = () => {
   );
   const [confirmedDoses, setConfirmedDoses] = useState<string[]>([]);
   const [dayData, setDayData] = useState<DayData[]>([]);
+ const ARV_CATEGORY = "ARV_REMINDER_CATEGORY";
 
   // Load confirmed doses from AsyncStorage
   const loadConfirmedDoses = async () => {
@@ -198,6 +201,39 @@ const MedicineCalendar = () => {
   };
 
   const selectedDayData = getSelectedDayData();
+  const logAllArvSchedules = async (): Promise<void> => {
+  try {
+    const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
+    const arvNotifications = scheduledNotifications.filter(
+      (notification) =>
+        notification.content.categoryIdentifier === ARV_CATEGORY ||
+        (notification.content.title && notification.content.title.includes("ARV"))
+    );
+
+    if (arvNotifications.length === 0) {
+      console.log("Không có lịch thông báo ARV nào được đặt!");
+      Alert.alert("Log ARV", "Không có lịch thông báo ARV nào được đặt!");
+      return; // <- nên return ở đây
+    }
+
+    console.log(`Đang có ${arvNotifications.length} lịch thông báo ARV đã đặt:`);
+    arvNotifications.forEach((n, i) => {
+      console.log(
+        `[${i + 1}] id=${n.identifier}, title=${n.content.title}, trigger=`,
+        n.trigger
+      );
+    });
+
+    Alert.alert(
+      "Log ARV",
+      `Có ${arvNotifications.length} lịch ARV. Xem chi tiết ở log console.`
+    );
+  } catch (error) {
+    console.error("Lỗi khi log lịch ARV:", error);
+    Alert.alert("Log ARV", "Lỗi khi log lịch ARV. Xem log console!");
+  }
+};
+
 
   return (
     <SafeAreaView
@@ -643,6 +679,66 @@ const MedicineCalendar = () => {
             >
               <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>
                 ➕ Thêm lịch nhắc mới
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{
+                backgroundColor: "#4CAF50",
+                borderRadius: 12,
+                padding: 16,
+                alignItems: "center",
+                marginBottom: 32,
+                elevation: 2,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 4,
+              }}
+              onPress={cancelAllArvNotifications}
+            >
+              <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>
+                ➕ Xóa lịch arv
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{
+                backgroundColor: "#4CAF50",
+                borderRadius: 12,
+                padding: 16,
+                alignItems: "center",
+                marginBottom: 32,
+                elevation: 2,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 4,
+              }}
+              onPress={cancelAll}
+            >
+              <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>
+                ➕ Xóa hết lịch
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{
+                backgroundColor: "#4CAF50",
+                borderRadius: 12,
+                padding: 16,
+                alignItems: "center",
+                marginBottom: 32,
+                elevation: 2,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 4,
+              }}
+              onPress={logAllArvSchedules}
+            >
+              <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>
+                ➕ Log ra ARV
               </Text>
             </TouchableOpacity>
           </ScrollView>

@@ -221,3 +221,9 @@ export interface LabResult {
   resultValue: string;
   testDate: string;
 }
+
+export interface ConsultationRequest {
+  phone: string;
+  name: string;
+  note: string;
+}

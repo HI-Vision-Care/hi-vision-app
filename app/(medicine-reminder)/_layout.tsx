@@ -7,7 +7,6 @@ export default function MedicineReminderLayout() {
         <Tabs
             screenOptions={{
                 headerShown: false,
-                lazy: false, // Load all screens for smooth swiping
             }}
             // custom BottomTabBar component
             tabBar={props => <BottomTabBar {...props} />}

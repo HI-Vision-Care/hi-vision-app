@@ -88,6 +88,26 @@ export async function scheduleArvNotifications(
 /**
  * 4. Lắng nghe Confirm action, hủy đúng warning & reminder và lưu kết quả vào AsyncStorage
  */
+
+
+export async function cancelAllArvNotifications(): Promise<void> {
+  try {
+    const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync()
+    const arvNotifications = scheduledNotifications.filter(
+      (notification) =>
+        notification.content.categoryIdentifier === ARV_CATEGORY || notification.content.title?.includes("ARV"),
+    )
+
+    for (const notification of arvNotifications) {
+      await Notifications.cancelScheduledNotificationAsync(notification.identifier)
+    }
+
+    console.log(`Canceled ${arvNotifications.length} ARV notifications`)
+  } catch (error) {
+    console.error("Error canceling ARV notifications:", error)
+  }
+}
+
 export function listenArvConfirm(onConfirm: (doseTime: string) => void): {
   remove: () => void;
 } {
