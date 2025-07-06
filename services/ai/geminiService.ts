@@ -1,6 +1,4 @@
-import Constants from "expo-constants";
-
-const API_KEY ="AIzaSyCKlweT5JnG331LOc9mbysHShdUSzNVSVk";
+const API_KEY = process.env.EXPO_PUBLIC_GEMINI_KEY;
 
 export async function generateContent(prompt: string) {
   const body = {

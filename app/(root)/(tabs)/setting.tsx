@@ -39,8 +39,6 @@ const Setting: React.FC = () => {
   const email = account.email ?? "";
   const name = profile?.name ?? "User";
 
-  // Removed unused darkMode state
-
   const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem("token");
@@ -68,41 +66,81 @@ const Setting: React.FC = () => {
     // No-op: darkmode toggle is not implemented
   };
 
-  const getFeatureIconColor = (card: FeatureCard) => {
+  const getFeatureCardStyle = (card: FeatureCard) => {
     switch (card.id) {
       case "gold":
-        return "#FFD700"; // vàng gold
+        return {
+          backgroundColor: "#FFD700",
+          shadowColor: "#FFD700",
+        };
       case "activity-history":
-        return "#3B82F6"; // xanh dương
+        return {
+          backgroundColor: "#3B82F6",
+          shadowColor: "#3B82F6",
+        };
       default:
-        return "#374151"; // xám mặc định
+        return {
+          backgroundColor: "#F3F4F6",
+          shadowColor: "#000",
+        };
     }
   };
 
-  const renderFeatureCard = (card: FeatureCard) => (
-    <TouchableOpacity
-      key={card.id}
-      onPress={() => handleCardPress(card.id)}
-      className="flex-1 bg-[#f5f3f0] rounded-[16px] p-[5px] mx-[6px] items-center justify-center min-h-[50px] relative shadow-md"
-    >
-      {card.hasBadge && card.badgeCount && (
-        <View className="absolute top-[12px] right-[12px] bg-black rounded-[12px] min-w-[24px] h-[24px] justify-center items-center px-2">
-          <Text className="text-[12px] font-semibold text-white">
-            {card.badgeCount}
-          </Text>
+  const getFeatureIconColor = (card: FeatureCard) => {
+    switch (card.id) {
+      case "gold":
+      case "activity-history":
+        return "#FFFFFF";
+      default:
+        return "#374151";
+    }
+  };
+
+  const renderFeatureCard = (card: FeatureCard) => {
+    const cardStyle = getFeatureCardStyle(card);
+    
+    return (
+      <TouchableOpacity
+        key={card.id}
+        onPress={() => handleCardPress(card.id)}
+        className="flex-1 mx-2 relative rounded-2xl p-4 items-center justify-center min-h-[100px]"
+        style={{
+          backgroundColor: cardStyle.backgroundColor,
+          shadowColor: cardStyle.shadowColor,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.2,
+          shadowRadius: 12,
+          elevation: 8,
+        }}
+      >
+        {card.hasBadge && card.badgeCount && (
+          <View className="absolute top-3 right-3 bg-black/80 rounded-full min-w-[24px] h-[24px] justify-center items-center px-2">
+            <Text className="text-xs font-bold text-white">
+              {card.badgeCount}
+            </Text>
+          </View>
+        )}
+        <View 
+          className="rounded-full p-3 mb-3"
+          style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+        >
+          <Ionicons
+            name={card.icon as React.ComponentProps<typeof Ionicons>["name"]}
+            size={28}
+            color={getFeatureIconColor(card)}
+          />
         </View>
-      )}
-      <Ionicons
-        name={card.icon as React.ComponentProps<typeof Ionicons>["name"]}
-        size={25}
-        color={getFeatureIconColor(card)}
-        style={{ marginBottom: 12 }}
-      />
-      <Text className="text-base font-semibold text-[#374151] text-center">
-        {card.title}
-      </Text>
-    </TouchableOpacity>
-  );
+        <Text 
+          className="text-sm font-bold text-center leading-5"
+          style={{ 
+            color: card.id === 'gold' || card.id === 'activity-history' ? '#FFFFFF' : '#374151' 
+          }}
+        >
+          {card.title}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   const renderMenuItem = (item: MenuItem) => (
     <TouchableOpacity
@@ -111,7 +149,6 @@ const Setting: React.FC = () => {
         if (item.id === "signout") {
           handleLogout();
         } else if (item.id === "delete") {
-          // gọi deleteAccount, và sau khi xóa thành công nhớ xóa token + back to sign-in
           if (accountId) {
             deleteAccount(accountId, {
               onSuccess: async () => {
@@ -126,39 +163,49 @@ const Setting: React.FC = () => {
           handleMenuPress(item.id);
         }
       }}
-      className="flex-row items-center justify-between bg-white px-5 py-4 border-b border-[#f1f5f9]"
+      className="flex-row items-center justify-between px-5 py-4"
+      style={{
+        backgroundColor: item.isDanger ? "#FEF2F2" : "#FFFFFF",
+      }}
     >
-      {/* icon + title */}
       <View className="flex-row items-center flex-1">
         <View
-          className={`w-10 h-10 rounded-[10px] justify-center items-center mr-4 ${
-            item.isDanger ? "bg-red-50" : "bg-gray-50"
-          }`}
+          className="w-12 h-12 rounded-xl justify-center items-center mr-4"
+          style={{
+            backgroundColor: item.isDanger ? "#FEE2E2" : "#F8FAFC",
+          }}
         >
           <Ionicons
             name={item.icon as React.ComponentProps<typeof Ionicons>["name"]}
-            size={22}
-            color={item.iconColor || (item.isDanger ? "#EF4444" : "#374151")}
+            size={24}
+            color={item.iconColor || (item.isDanger ? "#EF4444" : "#64748B")}
           />
         </View>
-        <Text
-          className={`text-base font-medium ${
-            item.isDanger ? "text-red-600" : "text-[#374151]"
-          }`}
-        >
-          {item.title}
-        </Text>
+        <View className="flex-1">
+          <Text
+            className={`text-base font-semibold ${
+              item.isDanger ? "text-red-600" : "text-gray-800"
+            }`}
+          >
+            {item.title}
+          </Text>
+        </View>
       </View>
 
       {item.isToggle ? (
         <Switch
           value={item.toggleValue}
           onValueChange={(value) => handleToggle(item.id, value)}
-          trackColor={{ false: "#e5e7eb", true: "#3b82f6" }}
-          thumbColor={item.toggleValue ? "#ffffff" : "#ffffff"}
+          trackColor={{ false: "#E2E8F0", true: "#3B82F6" }}
+          thumbColor="#FFFFFF"
+          style={{
+            transform: [{ scaleX: 1.1 }, { scaleY: 1.1 }],
+          }}
         />
       ) : item.hasArrow ? (
-        <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+        <View className="bg-gray-100 rounded-full p-2">
+          <Ionicons name="chevron-forward" size={18} color="#64748B" />
+        </View>
       ) : null}
     </TouchableOpacity>
   );
@@ -166,21 +213,31 @@ const Setting: React.FC = () => {
   const renderSection = (section: MenuSection, index: number) => (
     <View key={index} className="mb-6">
       {/* Section Header */}
-      <View className="flex-row justify-between items-center px-5 mb-2">
-        <Text className="text-base font-semibold text-gray-500">
+      <View className="flex-row justify-between items-center px-6 mb-3">
+        <Text className="text-lg font-bold text-gray-800">
           {section.title}
         </Text>
-        <TouchableOpacity>
-          <Ionicons name="ellipsis-horizontal" size={22} color="#9ca3af" />
+        <TouchableOpacity className="bg-gray-100 rounded-full p-2">
+          <Ionicons name="ellipsis-horizontal" size={20} color="#64748B" />
         </TouchableOpacity>
       </View>
+      
       {/* Section Items */}
-      <View className="bg-white rounded-[16px] mx-4 overflow-hidden shadow-sm">
+      <View 
+        className="bg-white rounded-2xl mx-4 overflow-hidden"
+        style={{
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.05,
+          shadowRadius: 8,
+          elevation: 3,
+        }}
+      >
         {section.items.map((item, itemIndex) => (
           <View key={item.id}>
             {renderMenuItem(item)}
             {itemIndex < section.items.length - 1 && (
-              <View className="h-px bg-[#f1f5f9] ml-20" />
+              <View className="h-px bg-gray-100 ml-20" />
             )}
           </View>
         ))}
@@ -188,41 +245,108 @@ const Setting: React.FC = () => {
     </View>
   );
 
+  // Custom Header Component để match với background
+  const CustomHeader = () => (
+    <View className="flex-row items-center justify-between px-4 py-3 bg-[#FAFBFC]">
+      <TouchableOpacity 
+        onPress={() => router.back()}
+        className="w-10 h-10 rounded-full bg-white justify-center items-center"
+        style={{
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 2,
+        }}
+      >
+        <Ionicons name="chevron-back" size={20} color="#374151" />
+      </TouchableOpacity>
+      
+      <Text className="text-xl font-bold text-gray-900">Settings</Text>
+      
+      <TouchableOpacity 
+        className="w-10 h-10 rounded-full bg-white justify-center items-center"
+        style={{
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 2,
+        }}
+      >
+        <Ionicons name="ellipsis-horizontal" size={20} color="#374151" />
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
     <>
-      <StatusBar barStyle="dark-content" backgroundColor="#f2f5f9" />
-      <SafeAreaView className="flex-1 bg-[#f2f5f9]">
+      <StatusBar barStyle="dark-content" backgroundColor="#FAFBFC" />
+      <SafeAreaView className="flex-1 bg-[#FAFBFC]">
         <ScrollView showsVerticalScrollIndicator={false}>
-          {/* Header */}
-          <HeaderBack title="Settings" />
+          {/* Custom Header - cùng màu với background, không có border */}
+          <CustomHeader />
 
           {/* Profile Card */}
-          <View className="px-4 mb-5">
-            <View className="bg-blue-500 rounded-[20px] p-5 flex-row items-center justify-between shadow-lg">
-              <View className="flex-row items-center flex-1">
-                <View className="w-[60px] h-[60px] rounded-[16px] bg-white p-0.5 mr-4">
-                  <Image
-                    source={imageSource}
-                    className="w-full h-full rounded-[14px]"
-                  />
+          <View className="px-4 mb-6 mt-4">
+            <View
+              className="rounded-3xl p-6"
+              style={{
+                backgroundColor: "#667EEA",
+                shadowColor: "#667EEA",
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.3,
+                shadowRadius: 16,
+                elevation: 12,
+              }}
+            >
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center flex-1">
+                  <View 
+                    className="w-16 h-16 rounded-2xl p-1 mr-4"
+                    style={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.2,
+                      shadowRadius: 8,
+                    }}
+                  >
+                    <Image
+                      source={imageSource}
+                      className="w-full h-full rounded-xl"
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-xl font-bold text-white mb-1">
+                      {name}
+                    </Text>
+                    <Text className="text-sm font-medium" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                      {email}
+                    </Text>
+                    <View className="flex-row items-center mt-2">
+                      <View className="bg-green-400 w-2 h-2 rounded-full mr-2" />
+                      <Text className="text-xs" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                        Active now
+                      </Text>
+                    </View>
+                  </View>
                 </View>
-                <View className="flex-1">
-                  <Text className="text-lg font-bold text-white mb-1">
-                    {name}
-                  </Text>
-                  <Text className="text-sm text-white opacity-80">{email}</Text>
-                </View>
+                <TouchableOpacity 
+                  className="w-12 h-12 rounded-xl justify-center items-center"
+                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+                >
+                  <Ionicons name="pencil-outline" size={22} color="#fff" />
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity className="w-[36px] h-[36px] bg-white/20 rounded-[10px] justify-center items-center">
-                <Text className="text-base text-white">
-                  <Ionicons name="pencil-outline" size={20} color="#fff" />
-                </Text>
-              </TouchableOpacity>
             </View>
           </View>
 
           {/* Feature Cards Section */}
-          <View className="px-4 mb-5">
+          <View className="px-4 mb-8">
+            <Text className="text-lg font-bold text-gray-800 mb-4 px-2">
+              Quick Actions
+            </Text>
             <View className="flex-row justify-between">
               {featureCards.map((card) => renderFeatureCard(card))}
             </View>
@@ -232,7 +356,7 @@ const Setting: React.FC = () => {
           {menuSections.map((section, index) => renderSection(section, index))}
 
           {/* Bottom Spacing */}
-          <View className="h-[100px]" />
+          <View className="h-[120px]" />
         </ScrollView>
       </SafeAreaView>
     </>
