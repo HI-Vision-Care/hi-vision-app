@@ -1,8 +1,8 @@
-"use client"
-import { Ionicons } from "@expo/vector-icons"
-import { router } from "expo-router"
-import React, { useCallback, useRef, useState } from "react"
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import React, { useCallback, useRef, useState } from "react";
 import {
+  Animated,
   Dimensions,
   FlatList,
   type NativeScrollEvent,
@@ -11,26 +11,25 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Animated,
-} from "react-native"
+} from "react-native";
 
-const { width } = Dimensions.get("window")
-const CARD_MARGIN = 0
-const HORIZONTAL_PADDING = 0
-const cardWidth = (width/1.6 - HORIZONTAL_PADDING - CARD_MARGIN) / 2
+const { width } = Dimensions.get("window");
+const CARD_MARGIN = 0;
+const HORIZONTAL_PADDING = 0;
+const cardWidth = (width / 1.6 - HORIZONTAL_PADDING - CARD_MARGIN) / 2;
 
 // Tính toán số items hiển thị cùng lúc
-const ITEMS_PER_PAGE = 3
-const TOTAL_PAGES = Math.ceil(5 / ITEMS_PER_PAGE) // 5 items total = 2 pages
+const ITEMS_PER_PAGE = 3;
+const TOTAL_PAGES = Math.ceil(5 / ITEMS_PER_PAGE); // 5 items total = 2 pages
 
 interface HealthService {
-  id: string
-  title: string
-  icon: keyof typeof Ionicons.glyphMap
-  iconColor: string
-  backgroundColor: string
-  gradientColors: string[]
-  onPress: () => void
+  id: string;
+  title: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  iconColor: string;
+  backgroundColor: string;
+  gradientColors: string[];
+  onPress: () => void;
 }
 
 const healthServices: HealthService[] = [
@@ -42,7 +41,7 @@ const healthServices: HealthService[] = [
     backgroundColor: "#3B82F6",
     gradientColors: ["#3B82F6", "#1D4ED8"],
     onPress: () => {
-      router.push("/(chat-bot)/chat-bot")
+      router.push("/(chat-bot)/chat-bot");
     },
   },
   {
@@ -53,7 +52,7 @@ const healthServices: HealthService[] = [
     backgroundColor: "#10B981",
     gradientColors: ["#10B981", "#059669"],
     onPress: () => {
-      router.push("/(medicine-reminder)/medicine-calendar")
+      router.push("/(medicine-reminder)/medicine-calendar");
     },
   },
   {
@@ -83,58 +82,58 @@ const healthServices: HealthService[] = [
     gradientColors: ["#EF4444", "#DC2626"],
     onPress: () => console.log("Tìm bác sĩ"),
   },
-]
+];
 
 const HealthServicesSwiper: React.FC = React.memo(() => {
-  const [activeIndex, setActiveIndex] = useState(0)
-  const flatListRef = useRef<FlatList<HealthService>>(null)
-  const scrollX = useRef(new Animated.Value(0)).current
+  const [activeIndex, setActiveIndex] = useState(0);
+  const flatListRef = useRef<FlatList<HealthService>>(null);
+  const scrollX = useRef(new Animated.Value(0)).current;
 
   // Sửa lại logic tính toán page dựa trên scroll position
-  const onScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const x = event.nativeEvent.contentOffset.x
-    const totalWidth = cardWidth * healthServices.length
-    const pageWidth = totalWidth / TOTAL_PAGES
-    const currentPage = Math.round(x / pageWidth)
-    setActiveIndex(Math.max(0, Math.min(currentPage, TOTAL_PAGES - 1)))
-  }, [])
+  const onScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const x = event.nativeEvent.contentOffset.x;
+      const totalWidth = cardWidth * healthServices.length;
+      const pageWidth = totalWidth / TOTAL_PAGES;
+      const currentPage = Math.round(x / pageWidth);
+      setActiveIndex(Math.max(0, Math.min(currentPage, TOTAL_PAGES - 1)));
+    },
+    []
+  );
 
   const renderItem = useCallback(
     ({ item, index }: { item: HealthService; index: number }) => {
       // Approach đơn giản: tính dựa trên scroll position và vị trí item
       const inputRange = [
-        (index - 1) * cardWidth - cardWidth/2,
-        index * cardWidth - cardWidth/2,
-        (index + 1) * cardWidth - cardWidth/2,
-      ]
+        (index - 1) * cardWidth - cardWidth / 2,
+        index * cardWidth - cardWidth / 2,
+        (index + 1) * cardWidth - cardWidth / 2,
+      ];
 
       const scale = scrollX.interpolate({
         inputRange,
         outputRange: [0.7, 1, 0.4], // Center item to hơn
-        extrapolate: 'clamp',
-      })
+        extrapolate: "clamp",
+      });
 
       const opacity = scrollX.interpolate({
         inputRange,
         outputRange: [0.7, 1, 0.3],
-        extrapolate: 'clamp',
-      })
+        extrapolate: "clamp",
+      });
 
       // Thêm translateY để tạo hiệu ứng item center nổi lên
       const translateY = scrollX.interpolate({
         inputRange,
         outputRange: [10, -10, 10], // Center item sẽ cao hơn
-        extrapolate: 'clamp',
-      })
+        extrapolate: "clamp",
+      });
 
       return (
-        <Animated.View 
-          style={{ 
-            transform: [
-              { scale },
-              { translateY }
-            ], 
-            opacity 
+        <Animated.View
+          style={{
+            transform: [{ scale }, { translateY }],
+            opacity,
           }}
         >
           <TouchableOpacity
@@ -143,7 +142,12 @@ const HealthServicesSwiper: React.FC = React.memo(() => {
             activeOpacity={0.8}
           >
             <View style={styles.cardContent}>
-              <View style={[styles.iconContainer, { backgroundColor: item.backgroundColor }]}>
+              <View
+                style={[
+                  styles.iconContainer,
+                  { backgroundColor: item.backgroundColor },
+                ]}
+              >
                 <View style={styles.iconInner}>
                   <Ionicons name={item.icon} size={40} color={item.iconColor} />
                 </View>
@@ -152,44 +156,47 @@ const HealthServicesSwiper: React.FC = React.memo(() => {
             </View>
           </TouchableOpacity>
         </Animated.View>
-      )
+      );
     },
-    [scrollX],
-  )
+    [scrollX]
+  );
 
-  const renderSeparator = useCallback(() => <View style={{ width: CARD_MARGIN }} />, [])
+  const renderSeparator = useCallback(
+    () => <View style={{ width: CARD_MARGIN }} />,
+    []
+  );
 
   // Tạo thanh progress bar với chấm di chuyển
   const renderProgressBar = useCallback(() => {
-    const totalWidth = cardWidth * healthServices.length
-    const maxScrollX = totalWidth - width // Tổng khoảng cách có thể scroll
-    const trackWidth = 120 // Chiều rộng của track
-    const thumbWidth = 24 // Chiều rộng của chấm di chuyển
-    
+    const totalWidth = cardWidth * healthServices.length;
+    const maxScrollX = totalWidth - width; // Tổng khoảng cách có thể scroll
+    const trackWidth = 120; // Chiều rộng của track
+    const thumbWidth = 24; // Chiều rộng của chấm di chuyển
+
     // Tính vị trí của chấm di chuyển
     const thumbPosition = scrollX.interpolate({
       inputRange: [0, maxScrollX],
       outputRange: [0, trackWidth - thumbWidth], // Chấm di chuyển từ 0 đến cuối track
-      extrapolate: 'clamp',
-    })
+      extrapolate: "clamp",
+    });
 
     return (
       <View style={styles.progressContainer}>
         <View style={styles.progressTrack}>
           {/* Chấm di chuyển */}
-          <Animated.View 
+          <Animated.View
             style={[
               styles.progressThumb,
-              { 
+              {
                 transform: [{ translateX: thumbPosition }],
                 width: thumbWidth,
-              }
-            ]} 
+              },
+            ]}
           />
         </View>
       </View>
-    )
-  }, [scrollX])
+    );
+  }, [scrollX]);
 
   return (
     <View style={styles.wrapper}>
@@ -219,15 +226,15 @@ const HealthServicesSwiper: React.FC = React.memo(() => {
         ItemSeparatorComponent={renderSeparator}
         renderItem={renderItem}
         decelerationRate="fast"
-        snapToInterval={cardWidth } // Snap theo page thay vì item
+        snapToInterval={cardWidth} // Snap theo page thay vì item
         snapToAlignment="start"
       />
 
       {/* Progress bar với chấm di chuyển */}
       {renderProgressBar()}
     </View>
-  )
-})
+  );
+});
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -255,7 +262,7 @@ const styles = StyleSheet.create({
   moreButton: {
     padding: 8,
     borderRadius: 12,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: "#F3F4F6",
   },
   listContainer: {
     paddingHorizontal: HORIZONTAL_PADDING,
@@ -285,7 +292,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
   },
   title: {
     fontSize: 15,
@@ -326,6 +333,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-})
+});
 
-export default HealthServicesSwiper
+export default HealthServicesSwiper;

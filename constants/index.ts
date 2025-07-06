@@ -13,6 +13,8 @@ import arrow from "@/assets/icons/arrow.png";
 import arrowBack from "@/assets/icons/arrowBack.png";
 import bed from "@/assets/icons/bed.png";
 import bell from "@/assets/icons/bell.png";
+import browerHealth from "@/assets/icons/browerHealth.png";
+import browerService from "@/assets/icons/browerService.png";
 import calendar from "@/assets/icons/calendar.png";
 import checkbox from "@/assets/icons/checkbox.png";
 import chevronLeft from "@/assets/icons/chevronleft.png";
@@ -136,6 +138,8 @@ export const icons = {
   female,
   transgender,
   user,
+  browerHealth,
+  browerService,
 };
 
 export const onboarding = [
