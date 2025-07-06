@@ -28,18 +28,18 @@ const getSpecialtyColor = (specialty: string) => {
     Emergency: { bg: "#FEF2F2", border: "#FECACA", text: "#DC2626" },
     Surgery: { bg: "#FFFBEB", border: "#FDE68A", text: "#D97706" },
     "Internal Medicine": { bg: "#F5F3FF", border: "#DDD6FE", text: "#6D28D9" },
-    "General Medicine": { bg: "#F8FAFC", border: "#E2E8F0", text: "#475569" }, // Xám xanh dịu
+    "General Medicine": { bg: "#F8FAFC", border: "#E2E8F0", text: "#475569" },
     "Infectious Diseases": {
       bg: "#F0F9FF",
       border: "#BAE6FD",
       text: "#0C4A6E",
-    }, // Xanh biển nhạt
-    "Sexual Health": { bg: "#FDF4FF", border: "#F3E8FF", text: "#7C2D12" }, // Hồng tím nhẹ
+    },
+    "Sexual Health": { bg: "#FDF4FF", border: "#F3E8FF", text: "#7C2D12" },
     "Laboratory Medicine": {
       bg: "#F5F3FF",
       border: "#DDD6FE",
       text: "#6D28D9",
-    }, // Tím nhạt
+    },
   };
 
   return colors[specialty as keyof typeof colors] || colors["General"];
@@ -64,7 +64,10 @@ const Menu = () => {
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-slate-50">
+      <SafeAreaView 
+        edges={["top", "left", "right", "bottom"]} 
+        className="flex-1 bg-white"
+      >
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#3B82F6" />
           <Text className="text-slate-600 mt-4 text-base font-medium">
@@ -77,7 +80,10 @@ const Menu = () => {
 
   if (isError) {
     return (
-      <SafeAreaView className="flex-1 bg-slate-50">
+      <SafeAreaView 
+        edges={["top", "left", "right", "bottom"]} 
+        className="flex-1 bg-white"
+      >
         <View className="flex-1 justify-center items-center px-6">
           <View className="bg-red-50 p-6 rounded-2xl border border-red-100">
             <Text className="text-red-800 text-center text-base font-semibold mb-2">
@@ -93,47 +99,56 @@ const Menu = () => {
   }
 
   return (
-    <SafeAreaView
-      edges={["top", "left", "right", "bottom"]}
-      className="flex-1 bg-[#f2f5f9]"
-    >
-      {/* Header */}
-      <HeaderAllServices />
-
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ padding: isTablet ? 24 : 16 }}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#3B82F6" // màu spinner trên iOS
-            colors={["#3B82F6"]} // màu spinner trên Android
-          />
-        }
+    <View className="flex-1 bg-white">
+      {/* SafeAreaView chỉ cho phần top để có cùng màu với header */}
+      <SafeAreaView 
+        edges={["top"]} 
+        className="bg-white"
       >
-        <ServiceCard
-          services={services}
-          isTablet={isTablet}
-          getSpecialtyColor={getSpecialtyColor}
-          router={router}
-        />
-        {/* Empty state */}
-        {services?.length === 0 && (
-          <View className="flex-1 justify-center items-center py-12">
-            <View className="bg-slate-100 p-6 rounded-2xl">
-              <Text className="text-slate-600 text-center text-base font-medium">
-                No services available at the moment
-              </Text>
-            </View>
-          </View>
-        )}
+        {/* Header */}
+        <HeaderAllServices />
+      </SafeAreaView>
 
-        {/* Bottom spacing */}
-        <View className="h-8" />
-      </ScrollView>
-    </SafeAreaView>
+      {/* SafeAreaView cho phần còn lại với màu nền khác */}
+      <SafeAreaView
+        edges={["left", "right", "bottom"]}
+        className="flex-1 bg-[#f2f5f9]"
+      >
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ padding: isTablet ? 24 : 16 }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#3B82F6" // màu spinner trên iOS
+              colors={["#3B82F6"]} // màu spinner trên Android
+            />
+          }
+        >
+          <ServiceCard
+            services={services}
+            isTablet={isTablet}
+            getSpecialtyColor={getSpecialtyColor}
+            router={router}
+          />
+          {/* Empty state */}
+          {services?.length === 0 && (
+            <View className="flex-1 justify-center items-center py-12">
+              <View className="bg-slate-100 p-6 rounded-2xl">
+                <Text className="text-slate-600 text-center text-base font-medium">
+                  No services available at the moment
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {/* Bottom spacing */}
+          <View className="h-8" />
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 };
 

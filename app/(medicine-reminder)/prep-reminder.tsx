@@ -5,8 +5,8 @@ import {
     TouchableOpacity,
     StatusBar,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function PrEPReminder() {
     const router = useRouter();

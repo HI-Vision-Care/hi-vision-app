@@ -14,46 +14,29 @@ const Stats = () => {
   const articles = [
     {
       id: 1,
-      category: 'Khoẻ đẹp',
-      title: 'Kính chống ánh sáng xanh là gì? Có nên đeo kính chống ánh sáng xanh không?',
-      image: 'https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=100&h=100&fit=crop',
+      category: 'Bừng Sáng',
+      title: '🎙️ CHÍNH THỨC RA MẮT PODCAST “RỰC” 🔥',
+      image: 'https://scontent.fsgn5-5.fna.fbcdn.net/v/t39.30808-6/510115691_122207932502500724_7932094556930319225_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=833d8c&_nc_ohc=dHFJoYrl-sAQ7kNvwEeIHZ3&_nc_oc=AdnGwQjqX-XEqKUQdo6R8aN9NF-hGaCTni352QMroJEq8lHQs6Fp7EgZeGn1kcScb34&_nc_zt=23&_nc_ht=scontent.fsgn5-5.fna&_nc_gid=1MjhPnaztlQU6arr0kNHzQ&oh=00_AfROGoGhT1rJOgOUtnD6nzTHxf18x3MGHumxfbPzAYHXQQ&oe=686EBB09',
     },
     {
       id: 2,
-      category: 'Phòng bệnh & Sống khoẻ',
-      title: 'Mỗi ngày nên ăn mấy quả chuối xanh luộc?',
-      image: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=100&h=100&fit=crop',
-    },
-    {
-      id: 3,
-      category: 'Giới tính',
-      title: 'Hình ảnh nổi mụn ở vùng kín nam: Nhận biết để có phương pháp điều trị phù hợp',
-      image: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=100&h=100&fit=crop',
+      category: 'Sự kiện',
+      title: '🏳️‍🌈 Pride Month – Tháng Tự Hào',
+      image: 'https://scontent.fsgn5-10.fna.fbcdn.net/v/t39.30808-6/503336153_122204542640500724_3083070366278773332_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=833d8c&_nc_ohc=GOx_cNG3fOkQ7kNvwHr7pcd&_nc_oc=Adnrn9-KJM9LkmuvOPwUhpdL9GyyPrmdHiTWxzk0gwVF2WuhJ2F6TyX1niDL7h65RyE&_nc_zt=23&_nc_ht=scontent.fsgn5-10.fna&_nc_gid=Q1j0I0EVPn3rhq8l_ARc5Q&oh=00_AfQ5VLL9NoGPoBi3HesFJLTj2AOZKf66E2ialSCqiEML9w&oe=686EB1AF',
     },
     {
       id: 5,
-      category: 'Khoẻ đẹp',
-      title: 'Kính chống ánh sáng xanh là gì? Có nên đeo kính chống ánh sáng xanh không?',
-      image: 'https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=100&h=100&fit=crop',
+      category: 'Thông tin',
+      title: '🌈 Hiến pháp đang sửa đổi',
+      image: 'https://scontent.fsgn5-10.fna.fbcdn.net/v/t39.30808-6/500741364_122202931010500724_914107304753116686_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=833d8c&_nc_ohc=kJWnsTt_ka0Q7kNvwHAeBQK&_nc_oc=Adl9ZKVYdQfMTlgfMxwL-hCH2_9lAT8RvG6ubIP03h9hNYooIMmBPALUpYt_1b7vnOw&_nc_zt=23&_nc_ht=scontent.fsgn5-10.fna&_nc_gid=cwwgrGBDQoOx_I0FNMTy3w&oh=00_AfT6XRImrRHZW6tkA1Jm80BuWNUqU8N0d3YZMFzdDpr0MA&oe=686EC1BA',
     },
     {
       id: 6,
-      category: 'Phòng bệnh & Sống khoẻ',
-      title: 'Mỗi ngày nên ăn mấy quả chuối xanh luộc?',
-      image: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=100&h=100&fit=crop',
+      category: 'Sự Kiện',
+      title: 'Ngày 30/04 – Hành trình của những con người dám mơ về một tương lai tự do.',
+      image: 'https://scontent.fsgn5-14.fna.fbcdn.net/v/t39.30808-6/494046890_122193833852500724_7921167563976051558_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=833d8c&_nc_ohc=2XzOpH2MFzkQ7kNvwGuSqgX&_nc_oc=Adl88YQwsPHfdR8BGM0aMS7fYFyeuj35c1lG8z-AYtOuEXkdunsbeVgq13AfWLHREXs&_nc_zt=23&_nc_ht=scontent.fsgn5-14.fna&_nc_gid=FAzkJpanceh0I5tF4n27Ug&oh=00_AfRdhud_T4BMssvGfczozxnIabIhoxnb0h-Y4yfyWlTDiw&oe=686EBA24',
     },
-    {
-      id: 7,
-      category: 'Giới tính',
-      title: 'Hình ảnh nổi mụn ở vùng kín nam: Nhận biết để có phương pháp điều trị phù hợp',
-      image: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=100&h=100&fit=crop',
-    },
-    {
-      id: 8,
-      category: 'Phòng bệnh & Sống khoẻ',
-      title: 'Đi ngoài ra máu tươi là dấu hiệu cảnh báo bệnh gì? Cách xử lý như thế nào?',
-      image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=100&h=100&fit=crop',
-    },
+
   ];
 
   return (
@@ -63,7 +46,7 @@ const Stats = () => {
         <TouchableOpacity style={styles.headerButton}>
           <Ionicons name="chevron-back" size={24} color="white" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Góc sức khoẻ</Text>
+        <Text style={styles.headerTitle}>Trang tin tức</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.headerButton}>
             <Ionicons name="share-outline" size={24} color="white" />
@@ -80,26 +63,30 @@ const Stats = () => {
           <View style={styles.tabContainer}>
             <TouchableOpacity style={[styles.tab, styles.activeTab]}>
               <Text style={[styles.tabText, styles.activeTabText]}>
-                Phòng bệnh & Sống khoẻ
+              Bừng Sáng
               </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.tab}>
+              <Text style={styles.tabText}>Sống khoẻ</Text>
+            </TouchableOpacity>
+             <TouchableOpacity style={styles.tab}>
               <Text style={styles.tabText}>Dinh dưỡng</Text>
             </TouchableOpacity>
+        
           </View>
 
           {/* Featured Article */}
           <View style={styles.featuredArticle}>
             <Image
               source={{
-                uri: 'https://images.unsplash.com/photo-1547592180-85f173990554?w=400&h=200&fit=crop',
+                uri: 'https://scontent.fsgn5-10.fna.fbcdn.net/v/t39.30808-6/506052891_122206346642500724_8601191760144311831_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=833d8c&_nc_ohc=b7KEGqU1oNUQ7kNvwGiLsQ0&_nc_oc=Adk0ZCGeVYbRE_2vJLuA_rvP4CKkwp8iKrwDkdlWdFr3_uFVFH0BEshKJjJrp44LO3w&_nc_zt=23&_nc_ht=scontent.fsgn5-10.fna&_nc_gid=0-WsF-UWunR3LDY1z7xtzg&oh=00_AfQ7ZA52hkk4IeLKxIa6WrOCYOFz_DlFrY944OfVSKm7FQ&oe=686EA98A',
               }}
               style={styles.featuredImage}
             />
             <View style={styles.featuredContent}>
-              <Text style={styles.featuredCategory}>Dinh dưỡng</Text>
+              <Text style={styles.featuredCategory}>Thông tin</Text>
               <Text style={styles.featuredTitle}>
-                Đừng ép ăn nếu chưa hiểu bé 7 tháng ăn bao nhiều ml cháo là đủ
+                65% NGƯỜI DÂN VIỆT NAM ỦNG HỘ HÔN NHÂN CÙNG GIỚI
               </Text>
             </View>
           </View>
@@ -146,6 +133,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     flex: 1,
     textAlign: 'center',
+    paddingLeft:30,
   },
   headerActions: {
     flexDirection: 'row',
@@ -200,7 +188,7 @@ const styles = StyleSheet.create({
   },
   featuredImage: {
     width: '100%',
-    height: 200,
+    height: 220,
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
   },
@@ -244,12 +232,13 @@ const styles = StyleSheet.create({
   },
   articleContent: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+    marginTop: 10,
   },
   articleCategory: {
     fontSize: 12,
     color: '#4285f4',
-    marginBottom: 4,
+    marginBottom: 5,
     fontWeight: '500',
   },
   articleTitle: {
