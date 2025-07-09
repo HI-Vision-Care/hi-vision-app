@@ -7,7 +7,6 @@ import {
   SafeAreaProvider,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 const TAB_HEIGHT = 30;
@@ -111,8 +110,9 @@ function LayoutInner() {
               d={`
                 M0,0
                 L${startX - 10},0
-                C${startX + 5},0 ${startX + 10},${NOTCH_DEPTH} ${startX + NOTCH_WIDTH / 2
-                },${NOTCH_DEPTH}
+                C${startX + 5},0 ${startX + 10},${NOTCH_DEPTH} ${
+                startX + NOTCH_WIDTH / 2
+              },${NOTCH_DEPTH}
                 C${endX - 10},${NOTCH_DEPTH} ${endX - 5},0 ${endX + 10},0
                 L${width},0
                 L${width},${TAB_HEIGHT + NOTCH_DEPTH + insets.bottom}
@@ -138,7 +138,7 @@ function LayoutInner() {
         options={{
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <TabIcon source={icons.stats} focused={focused} />
+            <TabIcon source={icons.browerHealth} focused={focused} />
           ),
         }}
       />
@@ -156,11 +156,7 @@ function LayoutInner() {
         options={{
           headerShown: false,
           tabBarIcon: ({ focused, color, size }) => (
-            <Ionicons
-              name={focused ? "medical" : "medical-outline"}
-              size={size}
-              color={color}
-            />
+            <TabIcon source={icons.browerService} focused={focused} />
           ),
         }}
       />
