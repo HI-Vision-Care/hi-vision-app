@@ -110,6 +110,10 @@ export default function ConsultationForm() {
 
   const handleLiveChat = () => {
     // Navigate to live chat screen
+    router.push({
+      pathname: '/(root)/(consultant)/chatbox',
+      params: { type: 'live-chat' },
+    });
   };
 
   const ConsultationOption = ({ 
@@ -193,21 +197,21 @@ export default function ConsultationForm() {
             <Text style={styles.sectionTitle}>Chọn hình thức tư vấn</Text>
             
             <ConsultationOption
-              icon="chatbubbles"
-              title="Chat trực tiếp"
-              subtitle="Nhận tư vấn ngay lập tức qua chat"
-              onPress={handleLiveChat}
-              backgroundColor="#EFF6FF"
-              iconColor="#3B82F6"
-            />
-
-            <ConsultationOption
               icon="call"
               title="Đặt lịch gọi lại"
               subtitle="Chuyên gia sẽ gọi lại trong 30 phút"
               onPress={() => {}}
               backgroundColor="#F0FDF4"
               iconColor="#10B981"
+            />
+
+            <ConsultationOption
+              icon="chatbubbles"
+              title="Chat trực tiếp"
+              subtitle="Nhận tư vấn ngay lập tức qua chat"
+              onPress={handleLiveChat}
+              backgroundColor="#EFF6FF"
+              iconColor="#3B82F6"
             />
 
             <ConsultationOption
