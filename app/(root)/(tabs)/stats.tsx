@@ -6,44 +6,41 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { useGetBlogPosts } from '@/services/blog/hooks';
+import { BlogPost } from '@/services/blog/types';
 
-const Stats = () => {
-  const articles = [
-    {
-      id: 1,
-      category: 'Bừng Sáng',
-      title: '🎙️ CHÍNH THỨC RA MẮT PODCAST “RỰC” 🔥',
-      image: 'https://scontent.fsgn5-5.fna.fbcdn.net/v/t39.30808-6/510115691_122207932502500724_7932094556930319225_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=833d8c&_nc_ohc=dHFJoYrl-sAQ7kNvwEeIHZ3&_nc_oc=AdnGwQjqX-XEqKUQdo6R8aN9NF-hGaCTni352QMroJEq8lHQs6Fp7EgZeGn1kcScb34&_nc_zt=23&_nc_ht=scontent.fsgn5-5.fna&_nc_gid=1MjhPnaztlQU6arr0kNHzQ&oh=00_AfROGoGhT1rJOgOUtnD6nzTHxf18x3MGHumxfbPzAYHXQQ&oe=686EBB09',
-    },
-    {
-      id: 2,
-      category: 'Sự kiện',
-      title: '🏳️‍🌈 Pride Month – Tháng Tự Hào',
-      image: 'https://scontent.fsgn5-10.fna.fbcdn.net/v/t39.30808-6/503336153_122204542640500724_3083070366278773332_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=833d8c&_nc_ohc=GOx_cNG3fOkQ7kNvwHr7pcd&_nc_oc=Adnrn9-KJM9LkmuvOPwUhpdL9GyyPrmdHiTWxzk0gwVF2WuhJ2F6TyX1niDL7h65RyE&_nc_zt=23&_nc_ht=scontent.fsgn5-10.fna&_nc_gid=Q1j0I0EVPn3rhq8l_ARc5Q&oh=00_AfQ5VLL9NoGPoBi3HesFJLTj2AOZKf66E2ialSCqiEML9w&oe=686EB1AF',
-    },
-    {
-      id: 5,
-      category: 'Thông tin',
-      title: '🌈 Hiến pháp đang sửa đổi',
-      image: 'https://scontent.fsgn5-10.fna.fbcdn.net/v/t39.30808-6/500741364_122202931010500724_914107304753116686_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=833d8c&_nc_ohc=kJWnsTt_ka0Q7kNvwHAeBQK&_nc_oc=Adl9ZKVYdQfMTlgfMxwL-hCH2_9lAT8RvG6ubIP03h9hNYooIMmBPALUpYt_1b7vnOw&_nc_zt=23&_nc_ht=scontent.fsgn5-10.fna&_nc_gid=cwwgrGBDQoOx_I0FNMTy3w&oh=00_AfT6XRImrRHZW6tkA1Jm80BuWNUqU8N0d3YZMFzdDpr0MA&oe=686EC1BA',
-    },
-    {
-      id: 6,
-      category: 'Sự Kiện',
-      title: 'Ngày 30/04 – Hành trình của những con người dám mơ về một tương lai tự do.',
-      image: 'https://scontent.fsgn5-14.fna.fbcdn.net/v/t39.30808-6/494046890_122193833852500724_7921167563976051558_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=833d8c&_nc_ohc=2XzOpH2MFzkQ7kNvwGuSqgX&_nc_oc=Adl88YQwsPHfdR8BGM0aMS7fYFyeuj35c1lG8z-AYtOuEXkdunsbeVgq13AfWLHREXs&_nc_zt=23&_nc_ht=scontent.fsgn5-14.fna&_nc_gid=FAzkJpanceh0I5tF4n27Ug&oh=00_AfRdhud_T4BMssvGfczozxnIabIhoxnb0h-Y4yfyWlTDiw&oe=686EBA24',
-    },
+const Stats: React.FC = () => {
+  const { data: posts, isLoading, isError, error } = useGetBlogPosts();
 
-  ];
+  if (isLoading) {
+    return (
+      <SafeAreaView style={[styles.container, styles.center]}>
+        <ActivityIndicator size="large" color="#4285f4" />
+      </SafeAreaView>
+    );
+  }
+
+  if (isError) {
+    return (
+      <SafeAreaView style={[styles.container, styles.center]}>
+        <Text style={styles.errorText}>{error?.message || 'Lỗi tải bài viết'}</Text>
+      </SafeAreaView>
+    );
+  }
+
+  const featured = posts && posts.length > 0 ? posts[0] : null;
+  const list = posts && posts.length > 1 ? posts.slice(1) : [];
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.headerButton}>
+        <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={24} color="white" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Trang tin tức</Text>
@@ -62,44 +59,58 @@ const Stats = () => {
           {/* Category Tabs */}
           <View style={styles.tabContainer}>
             <TouchableOpacity style={[styles.tab, styles.activeTab]}>
-              <Text style={[styles.tabText, styles.activeTabText]}>
-              Bừng Sáng
-              </Text>
+              <Text style={[styles.tabText, styles.activeTabText]}>Bừng Sáng</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.tab}>
               <Text style={styles.tabText}>Sống khoẻ</Text>
             </TouchableOpacity>
-             <TouchableOpacity style={styles.tab}>
+            <TouchableOpacity style={styles.tab}>
               <Text style={styles.tabText}>Dinh dưỡng</Text>
             </TouchableOpacity>
-        
           </View>
 
           {/* Featured Article */}
-          <View style={styles.featuredArticle}>
-            <Image
-              source={{
-                uri: 'https://scontent.fsgn5-10.fna.fbcdn.net/v/t39.30808-6/506052891_122206346642500724_8601191760144311831_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=833d8c&_nc_ohc=b7KEGqU1oNUQ7kNvwGiLsQ0&_nc_oc=Adk0ZCGeVYbRE_2vJLuA_rvP4CKkwp8iKrwDkdlWdFr3_uFVFH0BEshKJjJrp44LO3w&_nc_zt=23&_nc_ht=scontent.fsgn5-10.fna&_nc_gid=0-WsF-UWunR3LDY1z7xtzg&oh=00_AfQ7ZA52hkk4IeLKxIa6WrOCYOFz_DlFrY944OfVSKm7FQ&oe=686EA98A',
-              }}
-              style={styles.featuredImage}
-            />
-            <View style={styles.featuredContent}>
-              <Text style={styles.featuredCategory}>Thông tin</Text>
-              <Text style={styles.featuredTitle}>
-                65% NGƯỜI DÂN VIỆT NAM ỦNG HỘ HÔN NHÂN CÙNG GIỚI
-              </Text>
-            </View>
-          </View>
+          {featured && (
+            <TouchableOpacity
+              style={styles.featuredArticle}
+              onPress={() =>
+                router.push({
+                  pathname: '/forums/[id]',
+                  params: { id: featured.id.toString() },
+                })
+              }
+            >
+              <Image source={{ uri: featured.banner }} style={styles.featuredImage} />
+              <View style={styles.featuredContent}>
+                <Text style={styles.featuredCategory}>{featured.topic}</Text>
+                <Text style={styles.featuredTitle} numberOfLines={2}>
+                  {featured.title}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
 
           {/* Articles List */}
           <View style={styles.articlesList}>
-            {articles.map((article) => (
-              <TouchableOpacity key={article.id} style={styles.articleItem}>
-                <Image source={{ uri: article.image }} style={styles.articleImage} />
+            {list.map((post: BlogPost) => (
+              <TouchableOpacity
+                key={post.id}
+                style={styles.articleItem}
+                onPress={() =>
+                  router.push({
+                    pathname: '/forums/[id]',
+                    params: { id: post.id.toString() },
+                  })
+                }
+              >
+                <Image source={{ uri: post.banner }} style={styles.articleImage} />
                 <View style={styles.articleContent}>
-                  <Text style={styles.articleCategory}>{article.category}</Text>
+                  <Text style={styles.articleCategory}>{post.topic}</Text>
                   <Text style={styles.articleTitle} numberOfLines={2}>
-                    {article.title}
+                    {post.title}
+                  </Text>
+                  <Text style={styles.articleMeta}>
+                    {new Date(post.createAt).toLocaleDateString()}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -114,7 +125,15 @@ const Stats = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#4285f4', // Changed from '#f5f5f5' to match header
+    backgroundColor: '#4285f4',
+  },
+  center: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#fff',
+    fontSize: 16,
   },
   header: {
     backgroundColor: '#4285f4',
@@ -133,7 +152,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     flex: 1,
     textAlign: 'center',
-    paddingLeft:30,
+    paddingLeft: 30,
   },
   headerActions: {
     flexDirection: 'row',
@@ -177,11 +196,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderRadius: 12,
     backgroundColor: 'white',
+    overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
@@ -189,8 +206,6 @@ const styles = StyleSheet.create({
   featuredImage: {
     width: '100%',
     height: 220,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
   },
   featuredContent: {
     padding: 16,
@@ -216,17 +231,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 5,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
   },
   articleImage: {
     width: 100,
-    height:100,
+    height: 100,
     borderRadius: 8,
     marginRight: 16,
   },
@@ -246,6 +258,11 @@ const styles = StyleSheet.create({
     color: '#333',
     lineHeight: 18,
     fontWeight: '500',
+  },
+  articleMeta: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
   },
 });
 
