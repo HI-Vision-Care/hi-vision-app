@@ -1,7 +1,17 @@
 // services/patient/hooks.ts
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { deleteAccount, getLabResults, getPatientProfile } from "./api";
-import { DeleteAccountResponse, LabResult, PatientProfile } from "./types";
+import {
+  deleteAccount,
+  getLabResults,
+  getPatientProfile,
+  updatePatientProfile,
+} from "./api";
+import {
+  DeleteAccountResponse,
+  LabResult,
+  PatientProfile,
+  UpdatePatientProfilePayload,
+} from "./types";
 
 /**
  * Hook fetch profile của patient dựa trên accountId
@@ -15,6 +25,17 @@ export const useGetPatientProfile = (accountId: string) => {
     }
   );
 };
+
+export const useUpdatePatientProfile = () =>
+  useMutation({
+    mutationFn: ({
+      patientId,
+      payload,
+    }: {
+      patientId: string;
+      payload: UpdatePatientProfilePayload;
+    }) => updatePatientProfile(patientId, payload),
+  });
 
 export const useDeleteAccount = () => {
   return useMutation<DeleteAccountResponse, Error, string>(

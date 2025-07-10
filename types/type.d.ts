@@ -227,3 +227,5 @@ export interface ConsultationRequest {
   name: string;
   note: string;
 }
+
+export type NavState = { url: string };

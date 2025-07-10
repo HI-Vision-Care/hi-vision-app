@@ -1,5 +1,6 @@
 import { GenderCard, OnboardingLayout } from "@/components";
 import { icons, images } from "@/constants";
+import { useOnboarding } from "@/contexts/OnboardingContext";
 import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
 import { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -50,13 +51,20 @@ const GenderSelection: React.FC = () => {
     setSelectedGender(genders[index]?.id);
   };
 
+  const { setData } = useOnboarding();
+
+  const handleContinueAndSave = () => {
+    setData({ gender: selectedGender });
+    handleContinue();
+  };
+
   return (
     <OnboardingLayout
       question="What is your Gender?"
       progress={progress}
       onBack={handleBack}
       onSkip={handleSkip}
-      onContinue={handleContinue}
+      onContinue={handleContinueAndSave}
       disabled={!selectedGender}
       childrenWrapperClassName="flex-1 justify-start"
     >

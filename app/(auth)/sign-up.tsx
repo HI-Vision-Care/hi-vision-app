@@ -18,7 +18,6 @@ import {
 
 const SignUp: React.FC = () => {
   const insets = useSafeAreaInsets();
-  // 1. States cho các trường input
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
@@ -48,20 +47,8 @@ const SignUp: React.FC = () => {
     setErrorMessage("");
 
     try {
-      // 3. Gọi API qua hook với full payload
       await signUp({ email, password, phone });
-
-      // 4. Hiển thị thông báo và điều hướng về Sign In
-      Alert.alert(
-        "Registration Successful",
-        "Your account has been created. Please log in to continue.",
-        [
-          {
-            text: "OK",
-            onPress: () => router.replace("/(auth)/sign-in"),
-          },
-        ]
-      );
+      router.replace("/(onboarding)/patient-name");
     } catch (error: any) {
       Alert.alert("Error", error.message);
     }
