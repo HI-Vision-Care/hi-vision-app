@@ -4,6 +4,7 @@ import { usePatientProfile } from "@/hooks/usePatientId";
 import { useDeleteAccount } from "@/services/patient/hooks";
 import { useCreateWallet, useWalletByAccountId } from "@/services/wallet/hooks";
 import { Account, FeatureCard, MenuItem, MenuSection } from "@/types/type";
+import { formatVND } from "@/utils/format";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
@@ -369,7 +370,7 @@ const Setting = () => {
                   {isWalletLoading
                     ? "Loading..."
                     : wallet
-                    ? `${wallet.balance} đ`
+                    ? `${formatVND(wallet.balance)} `
                     : "No Wallet"}
                 </Text>
               </View>

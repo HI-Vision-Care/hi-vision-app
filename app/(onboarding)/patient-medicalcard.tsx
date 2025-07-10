@@ -4,6 +4,7 @@ import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
 import { usePatientProfile } from "@/hooks/usePatientId";
 import { useUpdatePatientProfile } from "@/services/patient/hooks";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -91,6 +92,7 @@ const PatientMedicalCard = () => {
       {
         onSuccess: () => {
           Alert.alert("Cập nhật thành công", "Thông tin hồ sơ đã lưu.");
+          router.replace("/(root)/(tabs)/home");
           reset();
         },
         onError: (err: any) => {

@@ -52,7 +52,7 @@ const MedicalHistory: React.FC = () => {
             : []
           ).map((a: any) => ({
             ...a,
-            medicalService: a.medicalService ?? "", // Provide a default or map as needed
+            medicalService: a.medicalService ?? "",
           }))}
         />
       );
