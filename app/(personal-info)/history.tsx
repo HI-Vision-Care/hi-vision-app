@@ -13,7 +13,7 @@ import { ScrollView, StatusBar, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Main Component
-const MedicalHistory: React.FC = () => {
+const MedicalHistory = () => {
   const [activeTab, setActiveTab] = useState("appointments");
   const { data: profile } = usePatientProfile();
   const patientId = profile?.patientID;

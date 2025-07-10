@@ -1,84 +1,29 @@
-"use client"
-
-import type React from "react"
-import { useState, useEffect } from "react"
+import { usePatientProfile } from "@/hooks/usePatientId";
+import { useGetLabResults } from "@/services/lab-results/hooks";
+import { format } from "date-fns";
 import {
-  SafeAreaView,
-  View,
-  Text,
-  ScrollView,
   ActivityIndicator,
-  TouchableOpacity,
   Dimensions,
+  SafeAreaView,
+  ScrollView,
   StyleSheet,
-} from "react-native"
-import { format } from "date-fns"
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 type LabResult = {
-  recordId: string
-  testType: string
-  resultText: string | null
-  resultValue: string | null
-  unit: string | null
-  referenceRange: string | null
-  testDate: string
-  performedBy: string | null
-}
+  recordId: string;
+  testType: string;
+  resultText: string | null;
+  resultValue: string | null;
+  unit: string | null;
+  referenceRange: string | null;
+  testDate: string;
+  performedBy: string | null;
+};
 
-const sampleData: LabResult[] = [
-  {
-    recordId: "MR001",
-    testType: "HBsAg",
-    resultText: null,
-    resultValue: "0.13",
-    unit: null,
-    referenceRange: null,
-    testDate: "2025-06-01T09:10:00Z",
-    performedBy: "LabCorp",
-  },
-  {
-    recordId: "MR003",
-    testType: "CD4 Count",
-    resultText: null,
-    resultValue: "520",
-    unit: "cells/µL",
-    referenceRange: "500–1600",
-    testDate: "2025-06-15T09:20:00Z",
-    performedBy: null,
-  },
-  {
-    recordId: "MR004",
-    testType: "eGFR",
-    resultText: null,
-    resultValue: "89",
-    unit: "mL/min/1.73m²",
-    referenceRange: "90–120",
-    testDate: "2025-06-20T09:25:00Z",
-    performedBy: null,
-  },
-  {
-    recordId: "MR005",
-    testType: "Hemoglobin A1C",
-    resultText: null,
-    resultValue: "6.2",
-    unit: "%",
-    referenceRange: "4.0–5.6",
-    testDate: "2025-06-20T09:30:00Z",
-    performedBy: "Quest Diagnostics",
-  },
-  {
-    recordId: "MR006",
-    testType: "Total Cholesterol",
-    resultText: null,
-    resultValue: "185",
-    unit: "mg/dL",
-    referenceRange: "<200",
-    testDate: "2025-06-20T09:35:00Z",
-    performedBy: "Quest Diagnostics",
-  },
-]
-
-const { width, height } = Dimensions.get("window")
+const { width } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   container: {
@@ -386,25 +331,31 @@ const styles = StyleSheet.create({
     color: "#1e40af",
     lineHeight: 20,
   },
-})
+});
 
 const TabLabResults: React.FC<{
-  isLoading: boolean
-  isError: boolean
-  error?: any
-  labResults?: LabResult[]
+  isLoading: boolean;
+  isError: boolean;
+  error?: any;
+  labResults?: LabResult[];
 }> = ({ isLoading, isError, error, labResults }) => {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <View style={styles.loadingIcon}>
           <Text style={{ fontSize: 32, color: "white" }}>🧪</Text>
-          <ActivityIndicator size="small" color="white" style={{ position: "absolute", bottom: 8, right: 8 }} />
+          <ActivityIndicator
+            size="small"
+            color="white"
+            style={{ position: "absolute", bottom: 8, right: 8 }}
+          />
         </View>
         <Text style={styles.loadingTitle}>Loading Results</Text>
-        <Text style={styles.loadingText}>Fetching your latest lab results...</Text>
+        <Text style={styles.loadingText}>
+          Fetching your latest lab results...
+        </Text>
       </View>
-    )
+    );
   }
 
   if (isError) {
@@ -414,9 +365,11 @@ const TabLabResults: React.FC<{
           <Text style={{ fontSize: 32, color: "white" }}>⚠️</Text>
         </View>
         <Text style={styles.loadingTitle}>Unable to Load Results</Text>
-        <Text style={styles.loadingText}>{error?.message || "An unexpected error occurred"}</Text>
+        <Text style={styles.loadingText}>
+          {error?.message || "An unexpected error occurred"}
+        </Text>
       </View>
-    )
+    );
   }
 
   if (!labResults || labResults.length === 0) {
@@ -426,70 +379,136 @@ const TabLabResults: React.FC<{
           <Text style={{ fontSize: 32, color: "white" }}>🧪</Text>
         </View>
         <Text style={styles.loadingTitle}>No Results Available</Text>
-        <Text style={styles.loadingText}>Your lab results will appear here once available</Text>
+        <Text style={styles.loadingText}>
+          Your lab results will appear here once available
+        </Text>
       </View>
-    )
+    );
   }
 
   // Group and sort by date
   const grouped = labResults.reduce<Record<string, LabResult[]>>((acc, r) => {
-    const key = r.recordId
-    acc[key] = acc[key] ? [...acc[key], r] : [r]
-    return acc
-  }, {})
+    const key = r.recordId;
+    acc[key] = acc[key] ? [...acc[key], r] : [r];
+    return acc;
+  }, {});
 
   const recordIds = Object.keys(grouped).sort((a, b) => {
     // Sort by latest test date in each record
-    const aLatest = Math.max(...grouped[a].map((test) => new Date(test.testDate).getTime()))
-    const bLatest = Math.max(...grouped[b].map((test) => new Date(test.testDate).getTime()))
-    return bLatest - aLatest
-  })
+    const aLatest = Math.max(
+      ...grouped[a].map((test) => new Date(test.testDate).getTime())
+    );
+    const bLatest = Math.max(
+      ...grouped[b].map((test) => new Date(test.testDate).getTime())
+    );
+    return bLatest - aLatest;
+  });
 
-  const getResultStatus = (type: string, val: string | null, range: string | null) => {
-    const num = val ? Number.parseFloat(val) : Number.NaN
+  const getResultStatus = (
+    type: string,
+    val: string | null,
+    range: string | null
+  ) => {
+    const num = val ? Number.parseFloat(val) : Number.NaN;
 
     if (!isNaN(num)) {
       // CD4 Count logic
       if (type.toLowerCase().includes("cd4")) {
-        if (num < 200) return { status: "critical", color: "#ef4444", bgColor: "#fef2f2", icon: "🚨" }
-        if (num < 500) return { status: "low", color: "#f59e0b", bgColor: "#fffbeb", icon: "⚠️" }
-        return { status: "normal", color: "#10b981", bgColor: "#f0fdf4", icon: "✅" }
+        if (num < 200)
+          return {
+            status: "critical",
+            color: "#ef4444",
+            bgColor: "#fef2f2",
+            icon: "🚨",
+          };
+        if (num < 500)
+          return {
+            status: "low",
+            color: "#f59e0b",
+            bgColor: "#fffbeb",
+            icon: "⚠️",
+          };
+        return {
+          status: "normal",
+          color: "#10b981",
+          bgColor: "#f0fdf4",
+          icon: "✅",
+        };
       }
 
       // A1C logic
       if (type.toLowerCase().includes("a1c")) {
-        if (num > 7.0) return { status: "high", color: "#ef4444", bgColor: "#fef2f2", icon: "🚨" }
-        if (num > 5.6) return { status: "elevated", color: "#f59e0b", bgColor: "#fffbeb", icon: "⚠️" }
-        return { status: "normal", color: "#10b981", bgColor: "#f0fdf4", icon: "✅" }
+        if (num > 7.0)
+          return {
+            status: "high",
+            color: "#ef4444",
+            bgColor: "#fef2f2",
+            icon: "🚨",
+          };
+        if (num > 5.6)
+          return {
+            status: "elevated",
+            color: "#f59e0b",
+            bgColor: "#fffbeb",
+            icon: "⚠️",
+          };
+        return {
+          status: "normal",
+          color: "#10b981",
+          bgColor: "#f0fdf4",
+          icon: "✅",
+        };
       }
 
       // eGFR logic
       if (type.toLowerCase().includes("egfr")) {
-        if (num < 60) return { status: "low", color: "#ef4444", bgColor: "#fef2f2", icon: "🚨" }
-        if (num < 90) return { status: "mild", color: "#f59e0b", bgColor: "#fffbeb", icon: "⚠️" }
-        return { status: "normal", color: "#10b981", bgColor: "#f0fdf4", icon: "✅" }
+        if (num < 60)
+          return {
+            status: "low",
+            color: "#ef4444",
+            bgColor: "#fef2f2",
+            icon: "🚨",
+          };
+        if (num < 90)
+          return {
+            status: "mild",
+            color: "#f59e0b",
+            bgColor: "#fffbeb",
+            icon: "⚠️",
+          };
+        return {
+          status: "normal",
+          color: "#10b981",
+          bgColor: "#f0fdf4",
+          icon: "✅",
+        };
       }
     }
 
-    return { status: "normal", color: "#10b981", bgColor: "#f0fdf4", icon: "✅" }
-  }
+    return {
+      status: "normal",
+      color: "#10b981",
+      bgColor: "#f0fdf4",
+      icon: "✅",
+    };
+  };
 
   const getStatusText = (status: string) => {
     switch (status) {
       case "critical":
-        return "Critical"
+        return "Critical";
       case "high":
-        return "High"
+        return "High";
       case "low":
-        return "Low"
+        return "Low";
       case "elevated":
-        return "Elevated"
+        return "Elevated";
       case "mild":
-        return "Mild"
+        return "Mild";
       default:
-        return "Normal"
+        return "Normal";
     }
-  }
+  };
 
   // Generate background dots for header
   const backgroundDots = Array.from({ length: 15 }).map((_, i) => (
@@ -506,7 +525,7 @@ const TabLabResults: React.FC<{
         left: Math.random() * (width - 32),
       }}
     />
-  ))
+  ));
 
   return (
     <ScrollView style={styles.container}>
@@ -514,18 +533,35 @@ const TabLabResults: React.FC<{
       <View style={styles.headerContainer}>
         <View style={styles.headerGradient}>
           {/* Background pattern */}
-          <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}>{backgroundDots}</View>
+          <View
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+          >
+            {backgroundDots}
+          </View>
 
           <View style={styles.headerContent}>
             <View style={styles.headerLeft}>
-              <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginBottom: 8,
+                }}
+              >
                 <View style={styles.headerIconContainer}>
                   <Text style={{ fontSize: 24 }}>📊</Text>
                 </View>
                 <View>
                   <Text style={styles.headerTitle}>Lab Results</Text>
                   <Text style={styles.headerSubtitle}>
-                    {recordIds.length} record{recordIds.length !== 1 && "s"} • {labResults.length} test
+                    {recordIds.length} record{recordIds.length !== 1 && "s"} •{" "}
+                    {labResults.length} test
                     {labResults.length !== 1 && "s"}
                   </Text>
                 </View>
@@ -534,7 +570,14 @@ const TabLabResults: React.FC<{
             <View style={styles.headerRight}>
               <Text style={styles.headerDateLabel}>Last updated</Text>
               <Text style={styles.headerDate}>
-                {format(new Date(Math.max(...labResults.map((r) => new Date(r.testDate).getTime()))), "MMM dd, yyyy")}
+                {format(
+                  new Date(
+                    Math.max(
+                      ...labResults.map((r) => new Date(r.testDate).getTime())
+                    )
+                  ),
+                  "MMM dd, yyyy"
+                )}
               </Text>
             </View>
           </View>
@@ -544,53 +587,54 @@ const TabLabResults: React.FC<{
       {/* Results grouped by recordId */}
       <View style={styles.contentContainer}>
         {recordIds.map((recordId, recordIndex) => {
-          const tests = grouped[recordId]
-          const isLatest = recordIndex === 0
-          const latestTestDate = Math.max(...tests.map((test) => new Date(test.testDate).getTime()))
+          const tests = grouped[recordId];
+          const latestTestDate = Math.max(
+            ...tests.map((test) => new Date(test.testDate).getTime())
+          );
 
           return (
             <View key={recordId} style={styles.dateSection}>
-              {/* Record header */}
-              <View style={styles.dateHeader}>
-                <View style={[styles.dateDot, { backgroundColor: isLatest ? "#3b82f6" : "#d1d5db" }]} />
-                <View style={styles.dateHeaderContent}>
-                  <Text style={{ fontSize: 16, marginRight: 8 }}>📋</Text>
-                  <Text style={styles.dateTitle}>Record ID: {recordId}</Text>
-                  {isLatest && (
-                    <View style={styles.latestBadge}>
-                      <Text style={styles.latestBadgeText}>Latest</Text>
-                    </View>
-                  )}
-                </View>
-                <View style={styles.dateLine} />
-              </View>
-
+              Record header
               {/* Record info */}
               <View style={{ marginBottom: 12, paddingHorizontal: 4 }}>
                 <Text style={{ fontSize: 14, color: "#6b7280" }}>
-                  {tests.length} test{tests.length !== 1 && "s"} • {format(new Date(latestTestDate), "MMM dd, yyyy")}
+                  {tests.length} test{tests.length !== 1 && "s"} •{" "}
+                  {format(new Date(latestTestDate), "MMM dd, yyyy")}
                 </Text>
               </View>
-
               {/* Test results for this record */}
               <View style={styles.resultsContainer}>
                 {tests.map((result, testIndex) => {
-                  const resultStatus = getResultStatus(result.testType, result.resultValue, result.referenceRange)
+                  const resultStatus = getResultStatus(
+                    result.testType,
+                    result.resultValue,
+                    result.referenceRange
+                  );
 
                   return (
                     <TouchableOpacity
                       key={`${result.recordId}-${testIndex}`}
                       activeOpacity={0.7}
-                      style={[styles.resultCard, { borderLeftColor: resultStatus.color }]}
+                      style={[
+                        styles.resultCard,
+                        { borderLeftColor: resultStatus.color },
+                      ]}
                     >
                       {/* Test header */}
                       <View style={styles.resultHeader}>
                         <View style={styles.resultHeaderLeft}>
-                          <Text style={styles.resultTitle}>{result.testType}</Text>
+                          <Text style={styles.resultTitle}>
+                            {result.testType}
+                          </Text>
                           <View style={styles.resultTime}>
-                            <Text style={{ fontSize: 16, marginRight: 6 }}>🕐</Text>
+                            <Text style={{ fontSize: 16, marginRight: 6 }}>
+                              🕐
+                            </Text>
                             <Text style={styles.resultTimeText}>
-                              {format(new Date(result.testDate), "MMM dd, yyyy 'at' h:mm a")}
+                              {format(
+                                new Date(result.testDate),
+                                "MMM dd, yyyy 'at' h:mm a"
+                              )}
                             </Text>
                           </View>
                         </View>
@@ -603,8 +647,15 @@ const TabLabResults: React.FC<{
                             },
                           ]}
                         >
-                          <Text style={{ fontSize: 14, marginRight: 4 }}>{resultStatus.icon}</Text>
-                          <Text style={[styles.statusBadgeText, { color: resultStatus.color }]}>
+                          <Text style={{ fontSize: 14, marginRight: 4 }}>
+                            {resultStatus.icon}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.statusBadgeText,
+                              { color: resultStatus.color },
+                            ]}
+                          >
                             {getStatusText(resultStatus.status)}
                           </Text>
                         </View>
@@ -614,23 +665,43 @@ const TabLabResults: React.FC<{
                       <View style={styles.resultValueContainer}>
                         {result.resultValue ? (
                           <View style={styles.resultValueRow}>
-                            <Text style={[styles.resultValue, { color: resultStatus.color }]}>
+                            <Text
+                              style={[
+                                styles.resultValue,
+                                { color: resultStatus.color },
+                              ]}
+                            >
                               {result.resultValue}
                             </Text>
-                            {result.unit && <Text style={styles.resultUnit}>{result.unit}</Text>}
+                            {result.unit && (
+                              <Text style={styles.resultUnit}>
+                                {result.unit}
+                              </Text>
+                            )}
                           </View>
                         ) : result.resultText ? (
-                          <Text style={styles.resultText}>{result.resultText}</Text>
+                          <Text style={styles.resultText}>
+                            {result.resultText}
+                          </Text>
                         ) : (
-                          <Text style={[styles.resultText, { color: "#9ca3af", fontStyle: "italic" }]}>
+                          <Text
+                            style={[
+                              styles.resultText,
+                              { color: "#9ca3af", fontStyle: "italic" },
+                            ]}
+                          >
                             No result available
                           </Text>
                         )}
 
                         {result.referenceRange && (
                           <View style={styles.referenceRow}>
-                            <Text style={{ fontSize: 14, marginRight: 6 }}>ℹ️</Text>
-                            <Text style={styles.referenceText}>Reference: {result.referenceRange}</Text>
+                            <Text style={{ fontSize: 14, marginRight: 6 }}>
+                              ℹ️
+                            </Text>
+                            <Text style={styles.referenceText}>
+                              Reference: {result.referenceRange}
+                            </Text>
                           </View>
                         )}
                       </View>
@@ -638,21 +709,27 @@ const TabLabResults: React.FC<{
                       {/* Footer */}
                       <View style={styles.resultFooter}>
                         <View style={styles.footerLeft}>
-                          <Text style={styles.footerText}>Record: {result.recordId}</Text>
+                          <Text style={styles.footerText}>
+                            Record: {result.recordId}
+                          </Text>
                           {result.performedBy && (
                             <View style={styles.performedByContainer}>
-                              <Text style={{ fontSize: 12, marginRight: 4 }}>👨‍⚕️</Text>
-                              <Text style={styles.performedByText}>{result.performedBy}</Text>
+                              <Text style={{ fontSize: 12, marginRight: 4 }}>
+                                👨‍⚕️
+                              </Text>
+                              <Text style={styles.performedByText}>
+                                {result.performedBy}
+                              </Text>
                             </View>
                           )}
                         </View>
                       </View>
                     </TouchableOpacity>
-                  )
+                  );
                 })}
               </View>
             </View>
-          )
+          );
         })}
       </View>
 
@@ -665,39 +742,38 @@ const TabLabResults: React.FC<{
           <View style={styles.noteTextContainer}>
             <Text style={styles.noteTitle}>Important Note</Text>
             <Text style={styles.noteText}>
-              These results are for informational purposes only. Please consult with your healthcare provider to discuss
-              your results and any necessary follow-up actions.
+              These results are for informational purposes only. Please consult
+              with your healthcare provider to discuss your results and any
+              necessary follow-up actions.
             </Text>
           </View>
         </View>
       </View>
     </ScrollView>
-  )
-}
+  );
+};
 
 const LabResultsPage: React.FC = () => {
-  const [data, setData] = useState<LabResult[]>()
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<Error | null>(null)
+  const { data: profile } = usePatientProfile();
+  const patientId = profile?.patientID;
 
-  useEffect(() => {
-    // Simulate API fetch
-    setTimeout(() => {
-      try {
-        setData(sampleData)
-      } catch (e: any) {
-        setError(e)
-      } finally {
-        setLoading(false)
-      }
-    }, 1200)
-  }, [])
+  const {
+    data: labResults,
+    isLoading,
+    isError,
+    error,
+  } = useGetLabResults(patientId || "");
 
   return (
     <SafeAreaView style={styles.container}>
-      <TabLabResults isLoading={loading} isError={!!error} error={error || undefined} labResults={data} />
+      <TabLabResults
+        isLoading={isLoading}
+        isError={isError}
+        error={error || undefined}
+        labResults={labResults}
+      />
     </SafeAreaView>
-  )
-}
+  );
+};
 
-export default LabResultsPage
+export default LabResultsPage;
