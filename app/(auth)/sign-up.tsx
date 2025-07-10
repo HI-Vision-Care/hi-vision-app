@@ -19,7 +19,6 @@ import {
 const SignUp: React.FC = () => {
   const insets = useSafeAreaInsets();
   // 1. States cho các trường input
-  const [username, setUsername] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
@@ -33,10 +32,7 @@ const SignUp: React.FC = () => {
 
   const handleSignUp = async () => {
     // 2. Validate các trường bắt buộc
-    if (!username.trim()) {
-      setErrorMessage("Username is required");
-      return;
-    }
+
     if (!email.trim()) {
       setErrorMessage("Email is required");
       return;
@@ -53,7 +49,7 @@ const SignUp: React.FC = () => {
 
     try {
       // 3. Gọi API qua hook với full payload
-      await signUp({ username, email, password, phone });
+      await signUp({ email, password, phone });
 
       // 4. Hiển thị thông báo và điều hướng về Sign In
       Alert.alert(
@@ -97,22 +93,6 @@ const SignUp: React.FC = () => {
 
       {/* Content */}
       <View className="flex-1 px-6 py-8">
-        {/* Username */}
-        <InputField
-          label="Username"
-          icon={icons.user}
-          placeholder="Enter your username"
-          autoCapitalize="none"
-          value={username}
-          onChangeText={(text) => {
-            setUsername(text);
-            setErrorMessage("");
-          }}
-          errorMessage={
-            errorMessage.includes("Username") ? errorMessage : undefined
-          }
-        />
-
         {/* Email */}
         <InputField
           label="Email Address"

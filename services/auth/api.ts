@@ -39,7 +39,6 @@ export const signUp = async (params: SignUpParams): Promise<SignUpResponse> => {
       message: string;
       data: SignUpResponse;
     }>("/account/register", {
-      username: params.username,
       password: params.password,
       email: params.email,
       phone: params.phone,
