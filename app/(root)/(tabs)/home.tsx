@@ -1,9 +1,5 @@
-import AsklepiosScoreCard from "@/components/health/AsklepiosScoreCard";
-import ActivityList from "@/components/metrics/ActivityList";
-import { ChatbotCard, ChatbotSectionHeader } from "@components";
-import MedicationSection from "@/components/health/MedicationSection";
-import HeaderHome from "@/components/layout/HeaderHome";
-import MetricCarousel from "@/components/metrics/MetricCarousel";
+
+import { ActivityList, ChatbotCard, ChatbotSectionHeader, HeaderHome, HealthServicesSwiper, MedicationSection, MetricCarousel } from "@components";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
@@ -35,15 +31,9 @@ const Home = () => {
       >
         <ScrollView className="flex-1 px-4 pt-6">
           {/* Health Score */}
-          <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-gray-900 text-lg font-semibold">
-              Health Score
-            </Text>
-            <Ionicons name="ellipsis-horizontal" size={20} color="#9CA3AF" />
-          </View>
+          <HealthServicesSwiper />
 
-          {/* Asklepios Score Card */}
-          <AsklepiosScoreCard />
+
 
           {/* Smart Health Metrics */}
           <View className="flex-row justify-between items-center mb-4">

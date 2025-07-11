@@ -1,10 +1,16 @@
 import { icons, images } from "@/constants";
 import { useSignUp } from "@/services/auth/hooks";
 import { CustomButton, InputField } from "@components";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { Image, StatusBar, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  Image,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -14,31 +20,37 @@ const SignUp: React.FC = () => {
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [passwordConfirmation, setPasswordConfirmation] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [phone, setPhone] = useState<string>("");
 
-  // 1. State để lưu lỗi (nếu có)
+  // State để lưu lỗi (nếu có)
   const [errorMessage, setErrorMessage] = useState<string>("");
 
   // React Query mutation
   const { mutateAsync: signUp, isLoading } = useSignUp();
 
   const handleSignUp = async () => {
-    // Validate passwords match
-    if (password !== passwordConfirmation) {
+    // 2. Validate các trường bắt buộc
+
+    if (!email.trim()) {
+      setErrorMessage("Email is required");
+      return;
+    }
+    if (password !== confirmPassword) {
       setErrorMessage("Passwords do not match");
+      return;
+    }
+    if (!phone.trim()) {
+      setErrorMessage("Phone number is required");
       return;
     }
     setErrorMessage("");
 
     try {
-      // Call hook: use email input as 'username' for BE
-      const { token } = await signUp({ username: email, password });
-
-      // Save token and navigate to Home
-      await AsyncStorage.setItem("token", token);
-      router.replace("/(root)/(tabs)/home");
-    } catch (err: any) {
-      setErrorMessage(err.message || "Sign up failed. Please try again.");
+      await signUp({ email, password, phone });
+      router.replace("/(onboarding)/patient-name");
+    } catch (error: any) {
+      Alert.alert("Error", error.message);
     }
   };
 
@@ -50,7 +62,7 @@ const SignUp: React.FC = () => {
         barStyle="light-content"
       />
 
-      {/* === Header: background tràn lên notch === */}
+      {/* Header */}
       <View
         className="bg-gray-700 rounded-b-3xl items-center justify-center px-6"
         style={{
@@ -58,21 +70,17 @@ const SignUp: React.FC = () => {
           paddingTop: insets.top,
         }}
       >
-        <View className="items-center">
-          <View className="w-8 h-8  items-center justify-center mb-4">
-            <Image
-              source={images.logo}
-              className="w-14 h-14"
-              resizeMode="contain"
-            />
-          </View>
-          <Text className="text-white text-2xl font-semibold">Sign Up</Text>
-        </View>
+        <Image
+          source={images.logo}
+          className="w-14 h-14 mb-4"
+          resizeMode="contain"
+        />
+        <Text className="text-white text-2xl font-semibold">Sign Up</Text>
       </View>
 
-      {/* === Content phía dưới Header === */}
+      {/* Content */}
       <View className="flex-1 px-6 py-8">
-        {/* Input Email */}
+        {/* Email */}
         <InputField
           label="Email Address"
           icon={icons.email}
@@ -85,16 +93,16 @@ const SignUp: React.FC = () => {
             setErrorMessage("");
           }}
           errorMessage={
-            errorMessage.includes("email") ? errorMessage : undefined
+            errorMessage.includes("Email") ? errorMessage : undefined
           }
         />
 
-        {/* Input Password */}
+        {/* Password */}
         <InputField
           label="Password"
           icon={icons.password}
           placeholder="Enter your password"
-          secureTextEntry={true}
+          secureTextEntry
           value={password}
           onChangeText={(text) => {
             setPassword(text);
@@ -102,15 +110,15 @@ const SignUp: React.FC = () => {
           }}
         />
 
-        {/* Input Password Confirmation */}
+        {/* Confirm Password */}
         <InputField
           label="Confirm Password"
           icon={icons.password}
           placeholder="Confirm your password"
           secureTextEntry
-          value={passwordConfirmation}
+          value={confirmPassword}
           onChangeText={(text) => {
-            setPasswordConfirmation(text);
+            setConfirmPassword(text);
             setErrorMessage("");
           }}
           errorMessage={
@@ -118,11 +126,28 @@ const SignUp: React.FC = () => {
           }
         />
 
-        {/* Error Message */}
+        {/* Phone Number */}
+        <InputField
+          label="Phone Number"
+          icon={icons.phone}
+          placeholder="Enter your phone number"
+          keyboardType="phone-pad"
+          value={phone}
+          onChangeText={(text) => {
+            setPhone(text);
+            setErrorMessage("");
+          }}
+          errorMessage={
+            errorMessage.includes("Phone") ? errorMessage : undefined
+          }
+        />
+
+        {/* Error general */}
         {errorMessage && !errorMessage.includes("match") && (
           <Text className="text-red-500 mb-2">{errorMessage}</Text>
         )}
 
+        {/* Sign Up Button */}
         <CustomButton
           title="Sign Up"
           onPress={handleSignUp}
@@ -135,6 +160,7 @@ const SignUp: React.FC = () => {
               resizeMode="contain"
             />
           }
+          isLoading={isLoading}
         />
 
         {/* OR Divider */}

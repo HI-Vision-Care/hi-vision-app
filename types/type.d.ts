@@ -109,3 +109,132 @@ export interface MetricCardProps {
   unit: string;
   children: React.ReactNode;
 }
+
+export interface MenuItems {
+  key: string;
+  title: string;
+  icon: any;
+  bgColor: string;
+  duration: string;
+  price: string;
+  illustration: any;
+  iconBgColor: string;
+}
+
+export interface BookingData {
+  service: string;
+  doctor: string;
+  date: Date;
+  isAnonymous: boolean;
+  notes: string;
+}
+
+export interface MenuItem {
+  id: string;
+  title: string;
+  icon: string;
+  hasArrow?: boolean;
+  isToggle?: boolean;
+  toggleValue?: boolean;
+  isDanger?: boolean;
+  iconColor?: string;
+}
+
+export interface MenuSection {
+  title: string;
+  items: MenuItem[];
+}
+
+export interface FeatureCard {
+  id: string;
+  title: string;
+  icon: string;
+  hasBadge?: boolean;
+  badgeCount?: number;
+}
+
+export type Service = {
+  serviceID: number;
+  name: string;
+  description: string;
+  price: number;
+  isActive: boolean;
+  isRequireDoctor: boolean;
+  isOnline: boolean;
+  specialty: string;
+  img: string;
+  illustrationUri?: string;
+  iconBgColor?: string;
+};
+
+export interface Account {
+  id: string;
+  username: string;
+  email: string;
+  phone: string;
+  avatar: string;
+  role: string;
+  isDeleted: boolean;
+}
+
+export interface Patient {
+  patientID: string;
+  account: Account;
+  name: string;
+  dob: string;
+  gender: string;
+  medNo: string;
+  medDate: string;
+  medFac: string;
+}
+
+export interface Doctor {
+  doctorID: string;
+  account: Account;
+  name: string;
+  gender: string;
+  specialty: string;
+  degrees: string;
+  img: string | null;
+}
+
+export interface MedicalRecord {
+  appointmentID: string;
+  id?: string;
+  recordId?: string;
+  appointmentId?: string;
+  isAnnoymous?: boolean;
+  patient: Patient;
+  doctor: Doctor;
+  date?: string;
+  status?: string;
+  diagnosis?: string;
+  treatment?: string;
+  notes?: string;
+  note?: string;
+  createDate?: string;
+  medicalService: {
+    name: string;
+  };
+  appointmentDate?: date;
+}
+
+export interface LabResult {
+  recordId: string;
+  testType: string;
+  resultValue: string;
+  testDate: string;
+  resultText: string;
+  unit: string;
+  referenceRange: string;
+  testDate: string;
+  performedBy: string;
+}
+
+export interface ConsultationRequest {
+  phone: string;
+  name: string;
+  note: string;
+}
+
+export type NavState = { url: string };

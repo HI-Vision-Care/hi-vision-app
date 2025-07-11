@@ -1,7 +1,6 @@
 import { icons, images } from "@/constants";
 import { useSignIn } from "@/services/auth/hooks";
 import { CustomButton, InputField } from "@components";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -26,23 +25,15 @@ const SignIn: React.FC = () => {
 
   const handleSignIn = async () => {
     try {
-      const result = await login({ username: email, password });
-      console.log("➡️ login result:", result);
-      const token = result?.token;
-      if (!token) throw new Error("Server không trả về token");
-      // giờ mới destructure an toàn
-      const { username } = result;
-      await AsyncStorage.setItem("token", token);
+      await login({ email, password }); // token đã được lưu bởi hook!
       router.replace("/(root)/(tabs)/home");
     } catch (err: any) {
-      console.error("Login error:", err.message);
       Alert.alert(
-        "Đăng nhập thất bại",
-        err.message || "Vui lòng kiểm tra lại thông tin."
+        "Sign In Failed",
+        err.message || "Please check the information again."
       );
     }
   };
-
   return (
     <SafeAreaView edges={["bottom"]} className="flex-1 bg-white">
       <StatusBar
@@ -111,6 +102,7 @@ const SignIn: React.FC = () => {
           onPress={handleSignIn}
           variant="primary"
           className="mb-6 mx-0 shadow-lg"
+          isLoading={isLoading}
           rightIcon={
             <Image
               source={icons.arrow}

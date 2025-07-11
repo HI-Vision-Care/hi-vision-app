@@ -3,9 +3,13 @@ import { Dimensions, Image, ImageSourcePropType, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import { icons } from "@/constants";
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
-const TAB_HEIGHT = 70;
+const TAB_HEIGHT = 30;
 const NOTCH_WIDTH = 60;
 const NOTCH_DEPTH = 20; // deep hơn để nút Add chìm sâu
 const startX = (width - NOTCH_WIDTH) / 2;
@@ -75,17 +79,23 @@ const TabIcon = ({
     </View>
   );
 
-export default function Layout() {
+function LayoutInner() {
+  const insets = useSafeAreaInsets(); // đọc safe-area inset
+  const startX = (width - NOTCH_WIDTH) / 2;
+  const endX = startX + NOTCH_WIDTH;
+
   return (
     <Tabs
       screenOptions={{
         tabBarShowLabel: false,
+        // bù thêm paddingBottom = inset.bottom, tăng height cho đủ
         tabBarStyle: {
           position: "absolute",
           bottom: 0,
           left: 0,
           right: 0,
-          height: TAB_HEIGHT,
+          height: TAB_HEIGHT + NOTCH_DEPTH + insets.bottom,
+          paddingBottom: insets.bottom,
           backgroundColor: "transparent",
           borderTopWidth: 0,
           elevation: 0,
@@ -93,7 +103,7 @@ export default function Layout() {
         tabBarBackground: () => (
           <Svg
             width={width}
-            height={TAB_HEIGHT + NOTCH_DEPTH}
+            height={TAB_HEIGHT + NOTCH_DEPTH + insets.bottom}
             style={{ position: "absolute", bottom: 0 }}
           >
             <Path
@@ -105,8 +115,8 @@ export default function Layout() {
               },${NOTCH_DEPTH}
                 C${endX - 10},${NOTCH_DEPTH} ${endX - 5},0 ${endX + 10},0
                 L${width},0
-                L${width},${TAB_HEIGHT + NOTCH_DEPTH}
-                L0,${TAB_HEIGHT + NOTCH_DEPTH}Z
+                L${width},${TAB_HEIGHT + NOTCH_DEPTH + insets.bottom}
+                L0,${TAB_HEIGHT + NOTCH_DEPTH + insets.bottom}Z
               `}
               fill="#FFFFFF"
             />
@@ -128,7 +138,7 @@ export default function Layout() {
         options={{
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <TabIcon source={icons.stats} focused={focused} />
+            <TabIcon source={icons.browerHealth} focused={focused} />
           ),
         }}
       />
@@ -145,13 +155,14 @@ export default function Layout() {
         name="menu"
         options={{
           headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon source={icons.dinner} focused={focused} />
+          tabBarIcon: ({ focused, color, size }) => (
+            <TabIcon source={icons.browerService} focused={focused} />
           ),
         }}
       />
+
       <Tabs.Screen
-        name="profile"
+        name="setting"
         options={{
           headerShown: false,
           tabBarIcon: ({ focused }) => (
@@ -160,5 +171,13 @@ export default function Layout() {
         }}
       />
     </Tabs>
+  );
+}
+
+export default function Layout() {
+  return (
+    <SafeAreaProvider>
+      <LayoutInner />
+    </SafeAreaProvider>
   );
 }

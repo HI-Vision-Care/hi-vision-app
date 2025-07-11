@@ -1,21 +1,54 @@
-import { icons } from "@/constants";
+import { icons, images } from "@/constants";
+import { useGetPatientProfile } from "@/services/patient/hooks";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
-import React from "react";
-import { Image, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { jwtDecode } from "jwt-decode";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+interface JWTPayload {
+  sub: string; // sub là accountId
+  iat: number;
+  exp: number;
+}
+
 const HeaderHome = () => {
-  // Xử lý logout: xóa token và chuyển về màn Sign In
-  const handleLogout = async () => {
-    try {
-      await AsyncStorage.removeItem("token");
-      router.replace("/(auth)/sign-in");
-    } catch (e) {
-      console.error("Logout failed:", e);
-    }
-  };
+  const [accountId, setAccountId] = useState<string>();
+
+  useEffect(() => {
+    AsyncStorage.getItem("token").then((token) => {
+      if (token) {
+        try {
+          // decode sub thay cho accountId
+          const { sub } = jwtDecode<JWTPayload>(token);
+          setAccountId(sub);
+        } catch {
+          console.warn("Invalid token");
+        }
+      }
+    });
+  }, []);
+
+  const {
+    data: profile,
+    isLoading: profileLoading,
+    error: profileError,
+  } = useGetPatientProfile(accountId ?? "");
+
+  // 3. Lấy ra avatar + username (có fallback)
+  const avatarUri = profile?.account.avatar
+    ? profile.account.avatar
+    : images.avatarPlaceholder; // hoặc 1 placeholder trong constants
+  const name = profile?.name ?? "Guest";
 
   return (
     <SafeAreaView
@@ -32,7 +65,14 @@ const HeaderHome = () => {
             className="w-6 h-6"
             style={{ tintColor: "white" }}
           />
-          <Text className="text-gray-400 text-sm ml-2">Tue, 25 Jan 2025</Text>
+          <Text className="text-gray-400 text-sm ml-2">
+            {new Date().toLocaleDateString("en-US", {
+              weekday: "short", // Tue
+              day: "2-digit", // 25
+              month: "short", // Jan
+              year: "numeric", // 2025
+            })}
+          </Text>
         </View>
 
         {/* Notification and Logout icons */}
@@ -43,27 +83,40 @@ const HeaderHome = () => {
               <Text className="text-white text-xs font-bold">1</Text>
             </View>
           </View>
-          <TouchableOpacity
-            onPress={handleLogout}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Ionicons name="log-out-outline" size={24} color="white" />
-          </TouchableOpacity>
         </View>
       </View>
 
       {/* User profile */}
-      <TouchableOpacity className="flex-row items-center justify-between mb-4">
+      <TouchableOpacity
+        className="flex-row items-center justify-between mb-4"
+        onPress={() => {
+          // build các param cần truyền
+          router.replace({
+            pathname: "/(root)/(tabs)/setting",
+          });
+        }}
+      >
         <View className="flex-row items-center flex-1">
-          <Image
-            source={{
-              uri: "https://i.pinimg.com/736x/d6/4a/91/d64a91a7255ffb918d590592f711da94.jpg",
-            }}
-            className="w-12 h-12 rounded-xl"
-          />
+          {/* Avatar */}
+          {profileLoading ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <Image
+              source={
+                typeof avatarUri === "string" ? { uri: avatarUri } : avatarUri
+              }
+              style={{ width: 48, height: 48, borderRadius: 12 }}
+              resizeMode="cover"
+            />
+          )}
+
           <View className="ml-3 flex-1">
             <Text className="text-white text-lg font-bold">
-              Hi, Dkhoa-Happy! 👋
+              {profileLoading
+                ? "Loading..."
+                : profileError
+                ? "Error"
+                : `Hi, ${name}! 👋`}
             </Text>
             <View className="flex-row items-center mt-1">
               <View className="flex-row items-center">

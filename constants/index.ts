@@ -5,6 +5,7 @@ import {
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
 
+import virus103 from "@/assets/icons/103 virus.png";
 import activityWalking from "@/assets/icons/activityWalking.png";
 import add from "@/assets/icons/add.png";
 import apple from "@/assets/icons/apple.png";
@@ -12,6 +13,8 @@ import arrow from "@/assets/icons/arrow.png";
 import arrowBack from "@/assets/icons/arrowBack.png";
 import bed from "@/assets/icons/bed.png";
 import bell from "@/assets/icons/bell.png";
+import browerHealth from "@/assets/icons/browerHealth.png";
+import browerService from "@/assets/icons/browerService.png";
 import calendar from "@/assets/icons/calendar.png";
 import checkbox from "@/assets/icons/checkbox.png";
 import chevronLeft from "@/assets/icons/chevronleft.png";
@@ -46,7 +49,13 @@ import star from "@/assets/icons/star.png";
 import stats from "@/assets/icons/stats.png";
 import transgender from "@/assets/icons/transgender.png";
 import turing from "@/assets/icons/turing.png";
+import user from "@/assets/icons/user.png";
+import avatarPlaceholder from "@/assets/images/avatarPlaceholder.jpg";
+import chlamydia from "@/assets/images/chlamydia.jpg";
+import combo from "@/assets/images/combo.png";
 import femaleImage from "@/assets/images/femaleImage.png";
+import gonorrhea from "@/assets/images/gonorrhea .png";
+import hivtest from "@/assets/images/hivtest.png";
 import passwordSent from "@/assets/images/imagePasswordSent.png";
 import logo from "@/assets/images/logo.png";
 import maleImage from "@/assets/images/maleImage.png";
@@ -58,6 +67,7 @@ import onboarding5 from "@/assets/images/onboarding5.png";
 import otp from "@/assets/images/otp.png";
 import robot from "@/assets/images/robot.png";
 import symptoms from "@/assets/images/symptoms.png";
+import syphilis from "@/assets/images/syphilis.png";
 import transgenderImage from "@/assets/images/transgenderImage.png";
 import welcome from "@/assets/images/welcome.png";
 
@@ -72,10 +82,16 @@ export const images = {
   onboarding5,
   otp,
   robot,
+  hivtest,
+  chlamydia,
+  gonorrhea,
+  syphilis,
+  combo,
   maleImage,
   femaleImage,
   transgenderImage,
   symptoms,
+  avatarPlaceholder,
 };
 
 export const icons = {
@@ -111,6 +127,7 @@ export const icons = {
   gear,
   outline,
   dropletWater,
+  virus103,
   robotIcon,
   plus,
   turing,
@@ -120,6 +137,9 @@ export const icons = {
   male,
   female,
   transgender,
+  user,
+  browerHealth,
+  browerService,
 };
 
 export const onboarding = [
@@ -327,9 +347,320 @@ export const ALPHABET = Array.from({ length: 26 }, (_, i) =>
   String.fromCharCode(65 + i)
 );
 
+export const menuItems = [
+  {
+    key: "hiv-test",
+    title: "HIV Test",
+    icon: icons.virus103,
+    bgColor: "#F8FAFC",
+    iconBgColor: "#3B82F6",
+    duration: "15 minutes",
+    price: "300,000₫",
+    illustration: images.hivtest,
+  },
+  {
+    key: "chlamydia-test",
+    title: "Chlamydia Test",
+    icon: icons.virus103,
+    bgColor: "#F8FAFC",
+    iconBgColor: "#F59E0B",
+    duration: "15 minutes",
+    price: "350,000₫",
+    illustration: images.chlamydia,
+  },
+  {
+    key: "syphilis-test",
+    title: "Syphilis Test",
+    icon: icons.virus103,
+    bgColor: "#F8FAFC",
+    iconBgColor: "#10B981",
+    duration: "15 minutes",
+    price: "320,000₫",
+    illustration: images.syphilis,
+  },
+  {
+    key: "gonorrhea-test",
+    title: "Gonorrhea Test",
+    icon: icons.virus103,
+    bgColor: "#F8FAFC",
+    iconBgColor: "#EC4899",
+    duration: "15 minutes",
+    price: "330,000₫",
+    illustration: images.gonorrhea,
+  },
+  {
+    key: "std-consult",
+    title: "STD Test Combo",
+    icon: icons.virus103,
+    bgColor: "#F8FAFC",
+    iconBgColor: "#8B5CF6",
+    duration: "30 minutes",
+    price: "200,000₫",
+    illustration: images.combo,
+  },
+];
+
+export const featureCards = [
+  { id: "gold", title: "Gold", icon: "trophy-outline" }, // 👑
+  {
+    id: "activity-history",
+    title: "Activity history",
+    icon: "calendar-outline", // 📅
+    hasBadge: true,
+    badgeCount: 1,
+  },
+];
+
+export const menuSections = [
+  {
+    title: "General Settings",
+    items: [
+      {
+        id: "personal",
+        title: "Personal Info",
+        icon: "person-outline",
+        hasArrow: true,
+        iconColor: "#6366F1", // tím
+      },
+      {
+        id: "notification",
+        title: "Notification",
+        icon: "notifications-outline",
+        hasArrow: true,
+        iconColor: "#F59E42", // cam
+      },
+      {
+        id: "preferences",
+        title: "Preferences",
+        icon: "settings-outline",
+        hasArrow: true,
+        iconColor: "#10B981", // xanh lá
+      },
+      {
+        id: "security",
+        title: "Security",
+        icon: "lock-closed-outline",
+        hasArrow: true,
+        iconColor: "#3B82F6", // xanh dương
+      },
+    ],
+  },
+  {
+    title: "Accessibility",
+    items: [
+      {
+        id: "language",
+        title: "Language",
+        icon: "language-outline",
+        hasArrow: true,
+        iconColor: "#6D28D9", // tím đậm
+      },
+      {
+        id: "darkmode",
+        title: "Dark Mode",
+        icon: "moon-outline",
+        isToggle: true,
+        toggleValue: false,
+        iconColor: "#0F172A", // đen
+      },
+    ],
+  },
+  {
+    title: "Help & Support",
+    items: [
+      {
+        id: "about",
+        title: "About",
+        icon: "information-circle-outline",
+        hasArrow: true,
+        iconColor: "#14B8A6", // teal
+      },
+      {
+        id: "help",
+        title: "Help Center",
+        icon: "chatbubble-ellipses-outline",
+        hasArrow: true,
+        iconColor: "#F59E42", // cam
+      },
+      {
+        id: "contact",
+        title: "Contact Us",
+        icon: "call-outline",
+        hasArrow: true,
+        iconColor: "#3B82F6", // xanh dương
+      },
+    ],
+  },
+  {
+    title: "Sign Out",
+    items: [
+      {
+        id: "signout",
+        title: "Sign Out",
+        icon: "exit-outline",
+        hasArrow: true,
+        iconColor: "#F59E42", // cam vàng
+      },
+    ],
+  },
+  {
+    title: "Danger Zone",
+    items: [
+      {
+        id: "delete",
+        title: "Delete Account",
+        icon: "trash-outline",
+        hasArrow: true,
+        isDanger: true,
+        iconColor: "#EF4444", // đỏ
+      },
+    ],
+  },
+];
+
+// Mock data for services and availability
+export const services = [
+  { id: 1, name: "General Consultation", duration: 30, price: 80 },
+  { id: 2, name: "Specialist Consultation", duration: 45, price: 120 },
+  { id: 3, name: "Health Checkup", duration: 60, price: 150 },
+  { id: 4, name: "Follow-up Visit", duration: 20, price: 50 },
+];
+
+export const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+export const timeSlots = [
+  "09:00",
+  "09:30",
+  "10:00",
+  "10:30",
+  "11:00",
+  "11:30",
+  "14:00",
+  "14:30",
+  "15:00",
+  "15:30",
+  "16:00",
+  "16:30",
+  "17:00",
+];
+
+// Mock availability data (true = available, false = booked)
+export const mockAvailability = {
+  Mon: {
+    "09:00": true,
+    "09:30": false,
+    "10:00": true,
+    "10:30": true,
+    "11:00": false,
+    "11:30": true,
+    "14:00": true,
+    "14:30": true,
+    "15:00": false,
+    "15:30": true,
+    "16:00": true,
+    "16:30": true,
+    "17:00": false,
+  },
+  Tue: {
+    "09:00": true,
+    "09:30": true,
+    "10:00": false,
+    "10:30": true,
+    "11:00": true,
+    "11:30": false,
+    "14:00": true,
+    "14:30": false,
+    "15:00": true,
+    "15:30": true,
+    "16:00": false,
+    "16:30": true,
+    "17:00": true,
+  },
+  Wed: {
+    "09:00": false,
+    "09:30": true,
+    "10:00": true,
+    "10:30": false,
+    "11:00": true,
+    "11:30": true,
+    "14:00": false,
+    "14:30": true,
+    "15:00": true,
+    "15:30": false,
+    "16:00": true,
+    "16:30": true,
+    "17:00": true,
+  },
+  Thu: {
+    "09:00": true,
+    "09:30": true,
+    "10:00": true,
+    "10:30": true,
+    "11:00": false,
+    "11:30": true,
+    "14:00": true,
+    "14:30": true,
+    "15:00": true,
+    "15:30": true,
+    "16:00": false,
+    "16:30": true,
+    "17:00": true,
+  },
+  Fri: {
+    "09:00": true,
+    "09:30": false,
+    "10:00": true,
+    "10:30": true,
+    "11:00": true,
+    "11:30": false,
+    "14:00": true,
+    "14:30": true,
+    "15:00": true,
+    "15:30": false,
+    "16:00": true,
+    "16:30": true,
+    "17:00": true,
+  },
+  Sat: {
+    "09:00": true,
+    "09:30": true,
+    "10:00": false,
+    "10:30": true,
+    "11:00": true,
+    "11:30": true,
+    "14:00": false,
+    "14:30": false,
+    "15:00": true,
+    "15:30": true,
+    "16:00": true,
+    "16:30": false,
+    "17:00": false,
+  },
+  Sun: {
+    "09:00": false,
+    "09:30": false,
+    "10:00": false,
+    "10:30": false,
+    "11:00": false,
+    "11:30": false,
+    "14:00": false,
+    "14:30": false,
+    "15:00": false,
+    "15:30": false,
+    "16:00": false,
+    "16:30": false,
+    "17:00": false,
+  },
+};
+
+export const REFRESH_COLORS = {
+  tintColor: "#3B82F6",
+  colors: ["#3B82F6"],
+};
+
 export const data = {
   onboarding,
   resetOptions,
   goals,
   eatingOptions,
+  menuItems,
 };
