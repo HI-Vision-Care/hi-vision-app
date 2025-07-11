@@ -1,7 +1,6 @@
 import { icons, images } from "@/constants";
 import { useSignIn } from "@/services/auth/hooks";
 import { CustomButton, InputField } from "@components";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -26,9 +25,7 @@ const SignIn: React.FC = () => {
 
   const handleSignIn = async () => {
     try {
-      const result = await login({ email, password });
-      const { token, email: returnedEmail } = result;
-      await AsyncStorage.setItem("token", token);
+      await login({ email, password }); // token đã được lưu bởi hook!
       router.replace("/(root)/(tabs)/home");
     } catch (err: any) {
       Alert.alert(
@@ -37,7 +34,6 @@ const SignIn: React.FC = () => {
       );
     }
   };
-
   return (
     <SafeAreaView edges={["bottom"]} className="flex-1 bg-white">
       <StatusBar

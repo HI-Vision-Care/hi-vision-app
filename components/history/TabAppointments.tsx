@@ -36,8 +36,8 @@ const TabAppointments: React.FC<Props> = ({
         <Text className="text-gray-500">No upcoming appointments.</Text>
       </View>
     );
-  const upcoming = appointments.filter(
-    (a) => a.status?.toLowerCase?.() === "scheduled"
+  const upcoming = appointments.filter((a) =>
+    ["scheduled", "ongoing"].includes(a.status?.toLowerCase?.() || "")
   );
 
   if (upcoming.length === 0)
@@ -55,7 +55,6 @@ const TabAppointments: React.FC<Props> = ({
         new Date(b.appointmentDate).getTime() -
         new Date(a.appointmentDate).getTime()
     );
-  // Nếu muốn "lịch hẹn sớm nhất" lên đầu thì đổi b, a thành a, b
 
   return (
     <View>
@@ -64,7 +63,7 @@ const TabAppointments: React.FC<Props> = ({
           key={record.appointmentID}
           record={{
             ...record,
-            status: (record.status?.toLowerCase?.() as any) ?? "pending",
+            status: (record.status?.toLowerCase?.() as any) ?? "ongoing",
           }}
         />
       ))}

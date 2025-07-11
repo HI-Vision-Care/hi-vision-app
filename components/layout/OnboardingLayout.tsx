@@ -1,12 +1,12 @@
 import { icons } from "@/constants";
 import {
   Image,
-  SafeAreaView,
   Text,
   TouchableOpacity,
   View,
   type ImageSourcePropType,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { CustomButton } from "../common";
 
 interface OnboardingLayoutProps {
@@ -47,7 +47,12 @@ const OnboardingLayout: React.FC<OnboardingLayoutProps> = ({
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
-          <Text className="text-gray-700 text-lg font-medium">←</Text>
+          <Image
+            source={icons.arrowBack}
+            className="w-5 h-5"
+            style={{ tintColor: "#333333" }}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
 
         {/* Progress Bar */}
