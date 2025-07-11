@@ -1,6 +1,8 @@
+import { useCancelAppointment } from "@/services/appointment/hooks";
 import { useGetLabResultsByAppointmentId } from "@/services/lab-results/hooks";
 import { useGetMedicalRecordByAppointmentId } from "@/services/medical-record/hooks";
 import { useTransferToAppointment } from "@/services/transaction/hooks";
+import capitalize from "@/utils/capitalize";
 import { FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React from "react";
@@ -24,6 +26,9 @@ const AppointmentDetail = () => {
   const { data: labResults, isLoading: isLabLoading } =
     useGetLabResultsByAppointmentId(appointment?.appointmentID);
 
+  const { mutate: cancelAppointment, isLoading: isCancelling } =
+    useCancelAppointment();
+
   const { mutate: transferToAppointment, isLoading: isPaying } =
     useTransferToAppointment();
 
@@ -43,6 +48,27 @@ const AppointmentDetail = () => {
           Alert.alert(
             "Lỗi thanh toán",
             error?.message || "Có lỗi xảy ra, vui lòng thử lại"
+          );
+        },
+      }
+    );
+  };
+
+  const handleCancelAppointment = () => {
+    cancelAppointment(
+      {
+        appointmentId: appointment.appointmentID,
+        patientId: appointment.patient.patientID,
+      },
+      {
+        onSuccess: () => {
+          Alert.alert("Appointment cancelled successfully!");
+          router.back(); // hoặc refetch data, hoặc điều hướng lại
+        },
+        onError: (error) => {
+          Alert.alert(
+            "Cancel Failed",
+            error?.message || "An error occurred, please try again."
           );
         },
       }
@@ -127,7 +153,7 @@ const AppointmentDetail = () => {
                 )}`}
               >
                 <Text className="text-xs font-medium">
-                  {appointment.status}
+                  {capitalize(appointment.status)}
                 </Text>
               </View>
               {appointment.isAnonymous && (
@@ -158,18 +184,20 @@ const AppointmentDetail = () => {
             </View>
 
             {/* Payment Status */}
-            <View className="flex-row items-center">
-              <MaterialIcons name="payment" size={20} color="#6b7280" />
-              <View
-                className={`ml-3 px-2 py-1 rounded-full ${getPaymentStatusColor(
-                  appointment.paymentStatus
-                )}`}
-              >
-                <Text className="text-xs font-medium">
-                  {appointment.paymentStatus}
-                </Text>
+            {appointment.status !== "cancelled" && (
+              <View className="flex-row items-center">
+                <MaterialIcons name="payment" size={20} color="#6b7280" />
+                <View
+                  className={`ml-3 px-2 py-1 rounded-full ${getPaymentStatusColor(
+                    appointment.paymentStatus
+                  )}`}
+                >
+                  <Text className="text-xs font-medium">
+                    {appointment.paymentStatus}
+                  </Text>
+                </View>
               </View>
-            </View>
+            )}
 
             {/* Online Status */}
             <View className="flex-row items-center">
@@ -371,11 +399,15 @@ const AppointmentDetail = () => {
           {/* Cancel Appointment: chỉ cho phép nếu chưa cancelled */}
           {appointment.status?.toLowerCase?.() !== "cancelled" &&
             appointment.status?.toLowerCase?.() !== "completed" && (
-              <TouchableOpacity className="flex-1 bg-red-600 py-3 rounded-lg ml-3">
+              <TouchableOpacity
+                className="flex-1 bg-red-600 py-3 rounded-lg ml-3"
+                onPress={handleCancelAppointment}
+                disabled={isCancelling}
+              >
                 <View className="flex-row items-center justify-center">
                   <MaterialIcons name="cancel" size={20} color="white" />
                   <Text className="text-white font-semibold ml-2">
-                    Cancel Appointment
+                    {isCancelling ? "Cancelling..." : "Cancel Appointment"}
                   </Text>
                 </View>
               </TouchableOpacity>

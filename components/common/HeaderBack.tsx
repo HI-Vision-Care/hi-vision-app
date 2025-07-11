@@ -10,7 +10,7 @@ export default function DetailHeader({ title }: DetailHeaderProps) {
   const router = useRouter();
 
   return (
-    <View className="flex-row items-center justify-between bg-gradient-to-r from-white to-slate-50 border-b border-slate-200/60 px-6 pb-4 shadow-sm">
+    <View className="flex-row items-center justify-between bg-gradient-to-r from-white to-slate-50 border-b border-slate-200/60 px-6 pb-4 shadow-sm pt-2">
       {/* Back */}
       <TouchableOpacity
         onPress={() => router.back()}

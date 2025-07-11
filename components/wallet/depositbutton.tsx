@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -42,17 +43,17 @@ const DepositButton = ({
 
   useEffect(() => {
     if (isCallbackSuccess && callbackData) {
-      Alert.alert("Deposit successful", "Your balance has been updated!", [
-        { text: "Close", style: "default" },
+      Alert.alert("Nạp tiền thành công", "Số dư của bạn đã được cập nhật!", [
+        { text: "Đóng", style: "default" },
       ]);
       refetchWallet?.();
       setCallbackParams(null);
     }
     if (isCallbackError) {
       Alert.alert(
-        "Error Transaction",
-        callbackError?.message || "Please try again",
-        [{ text: "Close", style: "default" }]
+        "Giao dịch lỗi",
+        callbackError?.message || "Vui lòng thử lại",
+        [{ text: "Đóng", style: "default" }]
       );
       setCallbackParams(null);
     }
@@ -69,7 +70,7 @@ const DepositButton = ({
 
     const numAmount = Number(amount);
     if (numAmount < 10000) {
-      Alert.alert("Invalid amount", "Minimum deposit amount is 10,000 VND");
+      Alert.alert("Số tiền không hợp lệ", "Nạp tối thiểu 10,000 VNĐ");
       return;
     }
 
@@ -85,11 +86,11 @@ const DepositButton = ({
           if (data) {
             setWebviewUrl(data);
           } else {
-            Alert.alert("Error", "Can not connect to VNPay!");
+            Alert.alert("Lỗi", "Không thể kết nối VNPay!");
           }
         },
         onError: () => {
-          Alert.alert("Error", "Transaction cannot be performed!");
+          Alert.alert("Lỗi", "Không thể thực hiện giao dịch!");
         },
       }
     );
@@ -142,70 +143,89 @@ const DepositButton = ({
   ];
 
   return (
-    <View className="mx-4">
-      {showInput ? (
-        <View className="bg-white rounded-3xl p-6 shadow-lg border border-gray-100">
-          {/* Header */}
-          <View className="flex-row items-center justify-between mb-6">
-            <View className="flex-row items-center">
-              <View className="bg-blue-100 rounded-full p-2 mr-3">
-                <Ionicons name="wallet-outline" size={20} color="#3B82F6" />
-              </View>
-              <Text className="text-xl font-bold text-gray-900">Deposit</Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => setShowInput(false)}
-              className="bg-gray-100 rounded-full p-2"
-              activeOpacity={0.7}
-            >
-              <Ionicons name="close" size={20} color="#6B7280" />
-            </TouchableOpacity>
-          </View>
+    <View className="mx-2">
+      {/* Nút mở modal */}
+      <TouchableOpacity
+        onPress={() => setShowInput(true)}
+        className="bg-blue-600 flex-row items-center justify-center rounded-2xl  py-3 w-56"
+        activeOpacity={0.85}
+        style={{
+          shadowColor: "#3B82F6",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.16,
+          shadowRadius: 8,
+          elevation: 6,
+        }}
+      >
+        <View className="bg-white/20 rounded-full p-1 mr-2">
+          <Ionicons name="add" size={20} color="#fff" />
+        </View>
+        <Text className="text-white font-bold text-base">Nạp tiền</Text>
+      </TouchableOpacity>
 
-          {/* Amount Input Section */}
-          <View className="mb-6">
-            <Text className="text-sm font-medium text-gray-700 mb-3">
-              Enter the amount you want to deposit
-            </Text>
-            <View className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
+      {/* Modal nhập số tiền */}
+      <Modal visible={showInput} animationType="slide" transparent>
+        <View className="flex-1 bg-black/20 justify-center items-center px-4">
+          <View className="w-full bg-white rounded-3xl px-6 py-8">
+            {/* Header */}
+            <View className="flex-row items-center justify-between mb-6">
               <View className="flex-row items-center">
-                <Text className="text-2xl font-bold text-blue-600 mr-3">₫</Text>
-                <TextInput
-                  placeholder="0"
-                  value={formatCurrency(amount)}
-                  onChangeText={handleAmountChange}
-                  keyboardType="numeric"
-                  className="flex-1 text-2xl font-bold text-gray-900"
-                  placeholderTextColor="#9CA3AF"
-                />
-              </View>
-              {amount && (
-                <Text className="text-sm text-gray-500 mt-2">
-                  {formatCurrency(amount)} VNĐ
+                <View className="bg-blue-100 rounded-full p-2 mr-2">
+                  <Ionicons name="wallet-outline" size={20} color="#3B82F6" />
+                </View>
+                <Text className="text-xl font-bold text-gray-900">
+                  Nạp tiền
                 </Text>
-              )}
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowInput(false)}
+                className="bg-gray-100 rounded-full p-2"
+                activeOpacity={0.7}
+              >
+                <Ionicons name="close" size={20} color="#6B7280" />
+              </TouchableOpacity>
             </View>
-          </View>
 
-          {/* Quick Amount Buttons */}
-          <View className="mb-6">
-            <Text className="text-sm font-medium text-gray-700 mb-3">
-              Chọn nhanh
+            {/* Input tiền */}
+            <Text className="text-sm font-medium text-gray-700 mb-2">
+              Nhập số tiền muốn nạp
             </Text>
-            <View className="flex-row justify-between">
-              {quickAmounts.map((item, index) => (
+            <View className="bg-gray-50 rounded-2xl flex-row items-center border border-gray-200 px-4 py-3 mb-1">
+              <Text className="text-2xl font-bold text-blue-600 mr-1">₫</Text>
+              <TextInput
+                placeholder="0"
+                value={formatCurrency(amount)}
+                onChangeText={handleAmountChange}
+                keyboardType="numeric"
+                className="flex-1 text-2xl font-bold text-gray-900"
+                placeholderTextColor="#9CA3AF"
+              />
+            </View>
+            {amount ? (
+              <Text className="text-xs text-gray-500 mb-2 text-right">
+                {formatCurrency(amount)} VNĐ
+              </Text>
+            ) : null}
+
+            {/* Quick amounts: chip horizontal */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              className="flex-row mb-6"
+            >
+              {quickAmounts.map((item) => (
                 <TouchableOpacity
-                  key={index}
+                  key={item.value}
                   onPress={() => setAmount(item.value)}
-                  className={`flex-1 py-3 px-2 rounded-xl border-2 mx-1 ${
+                  className={`py-2 px-5 mr-2 rounded-xl border-2 ${
                     amount === item.value
-                      ? "bg-blue-50 border-blue-500"
+                      ? "bg-blue-100 border-blue-600"
                       : "bg-white border-gray-200"
                   }`}
-                  activeOpacity={0.7}
+                  activeOpacity={0.8}
                 >
                   <Text
-                    className={`text-center font-semibold ${
+                    className={`font-bold text-base ${
                       amount === item.value ? "text-blue-600" : "text-gray-700"
                     }`}
                   >
@@ -213,81 +233,54 @@ const DepositButton = ({
                   </Text>
                 </TouchableOpacity>
               ))}
-            </View>
-          </View>
+            </ScrollView>
 
-          {/* Deposit Button */}
-          <TouchableOpacity
-            onPress={handleDeposit}
-            disabled={isLoading || !amount || Number(amount) < 10000}
-            className={`py-4 px-6 rounded-2xl ${
-              isLoading || !amount || Number(amount) < 10000
-                ? "bg-gray-300"
-                : "bg-green-600"
-            }`}
-            activeOpacity={0.8}
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-              elevation: 3,
-            }}
-          >
-            <View className="flex-row items-center justify-center">
-              {isLoading ? (
-                <>
-                  <ActivityIndicator size="small" color="#fff" />
-                  <Text className="text-white font-bold ml-2 text-lg">
-                    Processing...
-                  </Text>
-                </>
-              ) : (
-                <>
-                  <Ionicons name="card-outline" size={22} color="#fff" />
-                  <Text className="text-white font-bold ml-2 text-lg">
-                    Thanh toán VNPay
-                  </Text>
-                </>
-              )}
-            </View>
-          </TouchableOpacity>
-
-          {/* Validation Message */}
-          {Number(amount) > 0 && Number(amount) < 10000 && (
-            <View className="bg-red-50 rounded-xl p-3 mt-4 border border-red-200">
-              <View className="flex-row items-center">
-                <Ionicons name="warning-outline" size={16} color="#DC2626" />
-                <Text className="text-red-600 text-sm font-medium ml-2">
-                  Minimum deposit amount is 10,000 VND
-                </Text>
+            {/* Button deposit */}
+            <TouchableOpacity
+              onPress={handleDeposit}
+              disabled={isLoading || !amount || Number(amount) < 10000}
+              className={`py-4 rounded-2xl w-full ${
+                isLoading || !amount || Number(amount) < 10000
+                  ? "bg-gray-300"
+                  : "bg-green-600"
+              }`}
+              activeOpacity={0.85}
+            >
+              <View className="flex-row items-center justify-center">
+                {isLoading ? (
+                  <>
+                    <ActivityIndicator size="small" color="#fff" />
+                    <Text className="text-white font-bold ml-2 text-base">
+                      Đang xử lý...
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <Ionicons name="card-outline" size={22} color="#fff" />
+                    <Text className="text-white font-bold ml-2 text-base">
+                      Thanh toán VNPay
+                    </Text>
+                  </>
+                )}
               </View>
-            </View>
-          )}
-        </View>
-      ) : (
-        <TouchableOpacity
-          onPress={() => setShowInput(true)}
-          className="bg-blue-600 rounded-2xl px-6 py-4"
-          activeOpacity={0.8}
-          style={{
-            shadowColor: "#3B82F6",
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.2,
-            shadowRadius: 8,
-            elevation: 6,
-          }}
-        >
-          <View className="flex-row items-center justify-center">
-            <View className="bg-white/20 rounded-full p-1 mr-3">
-              <Ionicons name="add" size={20} color="#fff" />
-            </View>
-            <Text className="text-white font-bold text-lg">Nạp tiền</Text>
-          </View>
-        </TouchableOpacity>
-      )}
+            </TouchableOpacity>
 
-      {/* VNPay Payment Modal */}
+            {/* Validation */}
+            {Number(amount) > 0 && Number(amount) < 10000 && (
+              <View className="bg-red-50 rounded-xl p-3 mt-4 border border-red-200">
+                <View className="flex-row items-center">
+                  <Ionicons name="warning-outline" size={16} color="#DC2626" />
+                  <Text className="text-red-600 text-xs font-medium ml-2">
+                    Số tiền tối thiểu là 10,000 VNĐ
+                  </Text>
+                </View>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* VNPay Payment Modal giữ nguyên */}
       <Modal visible={!!webviewUrl} animationType="slide">
         <View className="flex-1 bg-white">
           {/* Modal Header */}
@@ -331,10 +324,10 @@ const DepositButton = ({
                 <View className="bg-white rounded-2xl p-8 mx-8 items-center shadow-lg">
                   <ActivityIndicator size="large" color="#3B82F6" />
                   <Text className="text-gray-800 font-semibold mt-4 text-center">
-                    Loading payment page
+                    Đang tải trang thanh toán
                   </Text>
                   <Text className="text-gray-500 text-sm mt-2 text-center">
-                    Please wait a moment...
+                    Vui lòng chờ trong giây lát...
                   </Text>
                 </View>
               </View>

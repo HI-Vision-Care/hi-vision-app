@@ -594,7 +594,7 @@ const TabLabResults: React.FC<{
 
           return (
             <View key={recordId} style={styles.dateSection}>
-              Record header
+              <Text className="font-bold">Record header</Text>
               {/* Record info */}
               <View style={{ marginBottom: 12, paddingHorizontal: 4 }}>
                 <Text style={{ fontSize: 14, color: "#6b7280" }}>
