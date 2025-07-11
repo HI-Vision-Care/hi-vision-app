@@ -34,21 +34,18 @@ export const signIn = async (params: SignInParams): Promise<SignInResponse> => {
  */
 export const signUp = async (params: SignUpParams): Promise<SignUpResponse> => {
   try {
-    const { data } = await api.post<{
+    const response = await api.post<{
       code: number;
       message: string;
       data: SignUpResponse;
     }>("/account/register", {
-      username: params.username,
       password: params.password,
       email: params.email,
       phone: params.phone,
     });
-    return data.data;
+    return response.data.data ?? response.data;
   } catch (err: any) {
-    // err.response?.data là ErrorResponse từ backend
     const backendMsg = err.response?.data?.message;
-    // nếu có message thì throw lên, còn không thì throw error gốc
     throw new Error(backendMsg ?? err.message);
   }
 };

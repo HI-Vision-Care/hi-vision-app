@@ -1,4 +1,5 @@
 // ServiceSelection.tsx
+import { formatVND } from "@/utils/format";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
@@ -121,7 +122,7 @@ const ServiceSelection: React.FC<ServiceSelectionProps> = ({
                   selected ? "text-blue-700" : "text-gray-900"
                 }`}
               >
-                ${service.price}
+                {formatVND(service.price)}
               </Text>
             </TouchableOpacity>
           );

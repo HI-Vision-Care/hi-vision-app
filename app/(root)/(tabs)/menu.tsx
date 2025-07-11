@@ -64,8 +64,8 @@ const Menu = () => {
 
   if (isLoading) {
     return (
-      <SafeAreaView 
-        edges={["top", "left", "right", "bottom"]} 
+      <SafeAreaView
+        edges={["top", "left", "right", "bottom"]}
         className="flex-1 bg-white"
       >
         <View className="flex-1 justify-center items-center">
@@ -80,8 +80,8 @@ const Menu = () => {
 
   if (isError) {
     return (
-      <SafeAreaView 
-        edges={["top", "left", "right", "bottom"]} 
+      <SafeAreaView
+        edges={["top", "left", "right", "bottom"]}
         className="flex-1 bg-white"
       >
         <View className="flex-1 justify-center items-center px-6">
@@ -101,10 +101,7 @@ const Menu = () => {
   return (
     <View className="flex-1 bg-white">
       {/* SafeAreaView chỉ cho phần top để có cùng màu với header */}
-      <SafeAreaView 
-        edges={["top"]} 
-        className="bg-white"
-      >
+      <SafeAreaView edges={["top"]} className="bg-white">
         {/* Header */}
         <HeaderAllServices />
       </SafeAreaView>

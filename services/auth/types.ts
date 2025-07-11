@@ -17,7 +17,6 @@ export interface SignUpResponse {
 }
 
 export interface SignUpParams {
-  username: string;
   password: string;
   email: string;
   phone: string;
@@ -27,4 +26,5 @@ export interface ErrorResponse {
   code: number;
   message: string;
   data?: any;
+  response: string;
 }
