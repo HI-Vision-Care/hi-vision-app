@@ -1,4 +1,4 @@
-import { OnboardingLayout } from "@/components";
+import { ModalSuccess, OnboardingLayout } from "@/components";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
 import { usePatientProfile } from "@/hooks/usePatientId";
@@ -22,6 +22,8 @@ const PatientMedicalCard = () => {
   const [medDate, setMedDate] = useState(""); // DD/MM/YYYY hoặc ISO string
   const [medFac, setMedFac] = useState("");
   const [focusedField, setFocusedField] = useState<string | null>(null);
+
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const { data: profile } = usePatientProfile();
   const patientId = profile?.patientID;
@@ -91,8 +93,7 @@ const PatientMedicalCard = () => {
       },
       {
         onSuccess: () => {
-          Alert.alert("Cập nhật thành công", "Thông tin hồ sơ đã lưu.");
-          router.replace("/(root)/(tabs)/home");
+          setShowSuccess(true); // Mở modal thành công
           reset();
         },
         onError: (err: any) => {
@@ -294,6 +295,14 @@ const PatientMedicalCard = () => {
           </View>
         </View>
       </View>
+      <ModalSuccess
+        visible={showSuccess}
+        onClose={() => {
+          setShowSuccess(false);
+          router.replace("/(root)/(tabs)/home");
+        }}
+        // image={require("@/assets/success-activity.png")} // nếu có custom image
+      />
     </OnboardingLayout>
   );
 };
