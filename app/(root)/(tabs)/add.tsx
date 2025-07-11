@@ -13,11 +13,11 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { ConsultationRequest } from '@/types/type';
 import { usePatientProfile } from '@/hooks/usePatientId';
-import { bookConsultationGuest, bookConsultationWithAccount } from '@/services/consultant/consultant';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { bookConsultationGuest, bookConsultationWithAccount } from '@/services/consultant/api';
+import { ConsultationRequest } from '@/services/consultant/types';
 
 export default function ConsultationForm() {
   const [fullName, setFullName] = useState('');

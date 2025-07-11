@@ -16,6 +16,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { usePatientProfile } from '@/hooks/usePatientId';
+import ConsultantRequireModal from './consultant-require-model';
+import { useGetConsultationRequire } from '@/services/consultant/hooks';
 
 // Định nghĩa interface khớp với MessageDTO từ backend
 interface Message {
@@ -28,15 +31,34 @@ interface Message {
 // Kết nối SockJS tới endpoint '/ws' trên backend
 const WS_ENDPOINT = 'http://192.168.2.7:8080/HiVision/ws';
 
-const ChatBox: React.FC = () => {
+const ChatBox = () => {
   const [connected, setConnected] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const stompClient = useRef<Client | null>(null);
-  const chatID = 1;
+  const [requireModalVisible, setRequireModalVisible] = useState(false);
   // TODO: Lấy tên người gửi thực tế từ auth context hoặc props
-  const currentUserName = 'Anh Bạn';
 
+  const { data: profile } = usePatientProfile();
+  const chatID = profile?.account.id;
+  const currentUserName = profile?.name;
+  const { data, loading, error, fetch } = useGetConsultationRequire(chatID);
+
+useEffect(() => {
+  console.log('ChatBox mounted with chatID:', chatID);
+  if (chatID) fetch();
+  // Chỉ chạy khi chatID thay đổi, không đưa fetch vào dependency nếu fetch là một function bất biến
+}, [chatID]);
+
+  useEffect(() => {
+    if (loading) return; // tránh blink khi đang fetch
+    if (!data || data.status === "DEFAULT" || data.status === "COMPLETE"){
+      setRequireModalVisible(true);    // Hiện modal nếu chưa "REQUIRE"
+    } else {
+      setRequireModalVisible(false);   // Ẩn modal nếu đã "REQUIRE"
+    }
+  }, [data, loading]);
+  
   useEffect(() => {
     const client = new Client({
       webSocketFactory: () => new SockJS(WS_ENDPOINT),
@@ -77,7 +99,7 @@ const ChatBox: React.FC = () => {
     stompClient.current = client;
 
     return () => client.deactivate();
-  }, []);
+  }, [chatID]);
 
   const sendMessage = () => {
     if (!connected || !inputText.trim() || !stompClient.current) {
@@ -112,6 +134,14 @@ const ChatBox: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+
+      <ConsultantRequireModal
+        visible={requireModalVisible}
+        onClose={() => setRequireModalVisible(false)}
+        stompClient={stompClient.current}
+        chatID={chatID as string}
+        currentUserName={currentUserName as string}
+      />
       <FlatList
         data={messages}
         renderItem={renderItem}

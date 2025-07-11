@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import "./global.css";
 import * as Notifications from "expo-notifications";
 import { Alert, Platform } from "react-native";
-import { listenArvConfirm } from "@/services/notification/arv-notification";
+import { listenArvConfirm, registerArvNotificationActions } from "@/services/notification/arv-notification";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -38,13 +38,17 @@ export default function RootLayout() {
     "Jakarta-SemiBold": require("../assets/fonts/PlusJakartaSans-SemiBold.ttf"),
   });
 
-   useEffect(() => {
-    const subscription = listenArvConfirm((doseTime) => {
-      // Xử lý logic confirm, có thể gọi setState/toast hoặc reload data nếu muốn
-      console.log("Đã xác nhận ARV cho:", doseTime);
-    });
-    return () => subscription.remove();
-  }, []);
+useEffect(() => {
+  // Đăng ký category notification ARV khi app khởi động (CHẠY 1 LẦN DUY NHẤT)
+  registerArvNotificationActions();
+
+  // Lắng nghe action xác nhận
+  const subscription = listenArvConfirm((doseTime) => {
+    // Có thể hiện Toast hoặc reload calendar tại đây nếu muốn
+    console.log("Đã xác nhận ARV cho:", doseTime);
+  });
+  return () => subscription.remove();
+}, []);
 
 
   useEffect(() => {
