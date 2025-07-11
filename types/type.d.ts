@@ -222,8 +222,3 @@ export interface LabResult {
   testDate: string;
 }
 
-export interface ConsultationRequest {
-  phone: string;
-  name: string;
-  note: string;
-}

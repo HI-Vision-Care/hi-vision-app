@@ -1,6 +1,8 @@
 import { usePatientProfile } from "@/hooks/usePatientId";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useCallback } from 'react';
+
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,

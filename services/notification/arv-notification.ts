@@ -5,18 +5,33 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 // ARV notification identifiers
 export const ARV_CATEGORY = "ARV_REMINDER_CATEGORY";
 export const ARV_ACTION_CONFIRM = "CONFIRM";
+export const ARV_ACTION_SNOOZE = "SNOOZE";
 
 type MedicineDose = {
-  id: string;         // id notification hoặc tự tạo UUID
-  doseTime: string;   // giờ uống định sẵn (ISO string)
-  confirmed: boolean; // đã uống chưa
-  confirmedTime?: string; // thời gian confirm (ISO string)
+  id: string;
+  doseTime: string;
+  confirmed: boolean;
+  confirmedTime?: string;
+};
+
+// 1. Đăng ký actions khi khởi tạo app
+export async function registerArvNotificationActions() {
+  await Notifications.setNotificationCategoryAsync(ARV_CATEGORY, [
+    {
+      identifier: ARV_ACTION_CONFIRM,
+      buttonTitle: "Đã uống",
+      options: { isDestructive: false, opensAppToForeground: false },
+    },
+    {
+      identifier: ARV_ACTION_SNOOZE,
+      buttonTitle: "Báo lại 15 phút",
+      options: { isDestructive: false, opensAppToForeground: false },
+    },
+  ]);
 }
 
-
 /**
- * 3. Lên lịch ARV notifications: countdown 30min trước,
- *    warning 30min sau, và reminder đúng giờ với action Confirm
+ * 2. Lên lịch ARV notifications: countdown, warning, reminder với action Confirm & Snooze
  */
 export async function scheduleArvNotifications(
   doseTime: Date,
@@ -27,7 +42,7 @@ export async function scheduleArvNotifications(
   let warningId: string | undefined;
   let reminderId: string | undefined;
 
-  // 3.1 Warning: 30 phút sau doseTime
+  // Warning: 30 phút sau doseTime
   const warningTime = new Date(doseTime.getTime() + 1 * 60 * 1000);
   if (warningTime.getTime() > now) {
     warningId = await Notifications.scheduleNotificationAsync({
@@ -45,15 +60,15 @@ export async function scheduleArvNotifications(
     });
   }
 
-  // 3.2 Reminder at doseTime (với action Confirm và đính kèm warningId)
+  // Reminder: đúng giờ, có action Confirm & Snooze
   if (doseTime.getTime() > now) {
     reminderId = await Notifications.scheduleNotificationAsync({
       content: {
         title: "💊 ARV Reminder",
-        body: "Đến giờ uống ARV, vui lòng xác nhận",
+        body: "Đến giờ uống ARV, vui lòng xác nhận hoặc báo lại.",
         categoryIdentifier: ARV_CATEGORY,
         data: { doseTime: doseTime.toISOString(), warningId },
-        sound: "default",
+        sound: true,
         priority: Notifications.AndroidNotificationPriority.MAX,
       },
       trigger: {
@@ -64,7 +79,7 @@ export async function scheduleArvNotifications(
     });
   }
 
-  // 3.3 Countdown: 30 phút trước doseTime (đính kèm warningId và reminderId)
+  // Countdown: 30 phút trước
   const countdownTime = new Date(doseTime.getTime() - 1 * 60 * 1000);
   if (countdownTime.getTime() > now) {
     await Notifications.scheduleNotificationAsync({
@@ -86,63 +101,113 @@ export async function scheduleArvNotifications(
 }
 
 /**
- * 4. Lắng nghe Confirm action, hủy đúng warning & reminder và lưu kết quả vào AsyncStorage
+ * 3. Lắng nghe Confirm & Snooze, xử lý hành động tương ứng
  */
-
-
-export async function cancelAllArvNotifications(): Promise<void> {
-  try {
-    const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync()
-    const arvNotifications = scheduledNotifications.filter(
-      (notification) =>
-        notification.content.categoryIdentifier === ARV_CATEGORY || notification.content.title?.includes("ARV"),
-    )
-
-    for (const notification of arvNotifications) {
-      await Notifications.cancelScheduledNotificationAsync(notification.identifier)
-    }
-
-    console.log(`Canceled ${arvNotifications.length} ARV notifications`)
-  } catch (error) {
-    console.error("Error canceling ARV notifications:", error)
-  }
-}
-
 export function listenArvConfirm(onConfirm: (doseTime: string) => void): {
   remove: () => void;
 } {
   const subscription = Notifications.addNotificationResponseReceivedListener(
     async (response) => {
+      if (
+        response.notification.request.content.categoryIdentifier !==
+        ARV_CATEGORY
+      )
+        return;
+      // 1. Hủy notification vừa thao tác, cả scheduled và delivered!
+      await Notifications.cancelScheduledNotificationAsync(
+        response.notification.request.identifier
+      );
+      await Notifications.dismissNotificationAsync(
+        response.notification.request.identifier
+      );
+      const { doseTime, warningId, reminderId } = response.notification.request
+        .content.data as {
+        doseTime: string;
+        warningId?: string;
+        reminderId?: string;
+      };
+
       if (response.actionIdentifier === ARV_ACTION_CONFIRM) {
-        const { doseTime, warningId, reminderId } = response.notification
-          .request.content.data as {
-          doseTime: string;
-          warningId?: string;
-          reminderId?: string;
-        };
-        // Hủy các notification liên quan
+        // Hủy warning nếu có
         if (warningId) {
           await Notifications.cancelScheduledNotificationAsync(warningId);
         }
         if (reminderId) {
           await Notifications.cancelScheduledNotificationAsync(reminderId);
         }
-        // Lưu thông tin confirm vào AsyncStorage
+        // Lưu thông tin confirm vào AsyncStorage, chỉ khi chưa có
         try {
           const stored = await AsyncStorage.getItem("confirmedDoses");
           const arr: string[] = stored ? JSON.parse(stored) : [];
-          arr.push(doseTime);
-          await AsyncStorage.setItem("confirmedDoses", JSON.stringify(arr));
-          console.log("Confirmed doses saved:", arr);
+          if (!arr.includes(doseTime)) {
+            arr.push(doseTime);
+            await AsyncStorage.setItem("confirmedDoses", JSON.stringify(arr));
+            console.log("Confirmed doses saved:", arr);
+          }
         } catch (e) {
           console.error("Error saving confirm:", e);
         }
         // Callback cho UI
         onConfirm(doseTime);
       }
+      // ==== BỔ SUNG SNOOZE ====
+      else if (response.actionIdentifier === ARV_ACTION_SNOOZE) {
+        // Lập lại notification reminder sau 15 phút
+        const snoozeDate = new Date(Date.now() + 1 * 60 * 1000);
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: "💊 Nhắc lại: Uống thuốc ARV!",
+            body: "Đừng quên xác nhận khi đã uống nhé.",
+            categoryIdentifier: ARV_CATEGORY,
+            data: { doseTime },
+            sound: true,
+            priority: Notifications.AndroidNotificationPriority.MAX,
+          },
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.DATE,
+            date: snoozeDate,
+            channelId: "default",
+          },
+        });
+        if (Platform.OS === "android") {
+          Alert.alert("Nhắc lại sau 15 phút!");
+        }
+      }
     }
   );
   return subscription;
 }
 
+/**
+ * Xóa hết notification ARV
+ */
+export async function cancelAllArvNotifications(): Promise<void> {
+  try {
+    const scheduledNotifications =
+      await Notifications.getAllScheduledNotificationsAsync();
+    const arvNotifications = scheduledNotifications.filter(
+      (notification) =>
+        notification.content.categoryIdentifier === ARV_CATEGORY ||
+        notification.content.title?.includes("ARV")
+    );
 
+    for (const notification of arvNotifications) {
+      await Notifications.cancelScheduledNotificationAsync(
+        notification.identifier
+      );
+    }
+
+    console.log(`Canceled ${arvNotifications.length} ARV notifications`);
+  } catch (error) {
+    console.error("Error canceling ARV notifications:", error);
+  }
+}
+
+export async function clearAllConfirmedDoses() {
+  try {
+    await AsyncStorage.removeItem("confirmedDoses");
+    Alert.alert("Đã xóa tất cả xác nhận đã uống!");
+  } catch (e) {
+    Alert.alert("Lỗi", "Không thể xóa xác nhận!");
+  }
+}
