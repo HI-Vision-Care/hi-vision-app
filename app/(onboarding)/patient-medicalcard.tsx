@@ -1,34 +1,17 @@
-import { ModalSuccess, OnboardingLayout } from "@/components";
+import { OnboardingLayout } from "@/components";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
-import { usePatientProfile } from "@/hooks/usePatientId";
-import { useUpdatePatientProfile } from "@/services/patient/hooks";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Text, TextInput, TouchableOpacity, View } from "react-native";
 
 const PatientMedicalCard = () => {
-  const { handleBack } = useOnboardingNavigation();
-  const { setData, data, reset } = useOnboarding();
+  const { handleBack, progress, handleContinue } = useOnboardingNavigation();
+  const { setData } = useOnboarding();
   const [medNo, setMedNo] = useState("");
   const [medDate, setMedDate] = useState(""); // DD/MM/YYYY hoặc ISO string
   const [medFac, setMedFac] = useState("");
   const [focusedField, setFocusedField] = useState<string | null>(null);
-
-  const [showSuccess, setShowSuccess] = useState(false);
-
-  const { data: profile } = usePatientProfile();
-  const patientId = profile?.patientID;
-
-  const { mutate: updateProfile, isLoading } = useUpdatePatientProfile();
 
   const formatDateInput = (text: string) => {
     // Remove all non-numeric characters
@@ -72,49 +55,24 @@ const PatientMedicalCard = () => {
     setMedNo(formatted);
   };
 
-  const handleFinish = () => {
-    if (!patientId) {
-      Alert.alert("Vui lòng chờ", "Đang tải mã bệnh nhân...");
-      return;
-    }
-    setData({ medNo, medDate, medFac });
-
-    updateProfile(
-      {
-        patientId,
-        payload: {
-          name: data.name ?? "",
-          dob: data.dob ?? "",
-          gender: data.gender ?? "",
-          medNo,
-          medDate,
-          medFac,
-        },
-      },
-      {
-        onSuccess: () => {
-          setShowSuccess(true); // Mở modal thành công
-          reset();
-        },
-        onError: (err: any) => {
-          Alert.alert(
-            "Có lỗi khi lưu hồ sơ!",
-            err?.message || "Vui lòng thử lại."
-          );
-        },
-      }
-    );
-  };
-
   const isFormValid =
     medNo.length >= 10 && medDate.length === 10 && medFac.trim().length > 0;
+
+  const handleContinueAndSave = () => {
+    setData({
+      medNo,
+      medDate,
+      medFac,
+    });
+    handleContinue();
+  };
 
   return (
     <OnboardingLayout
       question="Thông tin thẻ BHYT"
-      progress={1} // hoặc truyền progress chuẩn từ hook
-      onContinue={handleFinish}
-      disabled={!isFormValid || isLoading}
+      progress={progress} // hoặc truyền progress chuẩn từ hook
+      onContinue={handleContinueAndSave}
+      disabled={!isFormValid}
       onBack={handleBack}
       childrenWrapperClassName="flex-1 px-6 pt-8"
     >
@@ -258,22 +216,6 @@ const PatientMedicalCard = () => {
           </View>
         </View>
 
-        {/* Loading State */}
-        {isLoading && (
-          <View className="mt-8 bg-blue-50 rounded-xl p-4 border border-blue-200">
-            <View className="flex-row items-center justify-center">
-              <ActivityIndicator
-                size="small"
-                color="#3B82F6"
-                style={{ marginRight: 12 }}
-              />
-              <Text className="text-blue-800 font-medium">
-                Đang lưu thông tin hồ sơ...
-              </Text>
-            </View>
-          </View>
-        )}
-
         {/* Benefits Info */}
         <View className="mt-8 bg-green-50 rounded-xl p-4 border border-green-200">
           <View className="flex-row items-start">
@@ -295,14 +237,6 @@ const PatientMedicalCard = () => {
           </View>
         </View>
       </View>
-      <ModalSuccess
-        visible={showSuccess}
-        onClose={() => {
-          setShowSuccess(false);
-          router.replace("/(root)/(tabs)/home");
-        }}
-        // image={require("@/assets/success-activity.png")} // nếu có custom image
-      />
     </OnboardingLayout>
   );
 };

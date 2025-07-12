@@ -7,7 +7,7 @@ interface OnboardingData {
   medNo?: string;
   medDate?: string;
   medFac?: string;
-  // bổ sung field nếu có bước khác
+  underlyingDiseases?: string[];
 }
 
 interface OnboardingContextType {

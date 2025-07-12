@@ -1,16 +1,33 @@
-import { OnboardingLayout } from "@/components";
+import { ModalSuccess, OnboardingLayout } from "@/components";
 import { images } from "@/constants";
+import { useOnboarding } from "@/contexts/OnboardingContext";
 import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
+import { usePatientProfile } from "@/hooks/usePatientId";
+import { useUpdatePatientProfile } from "@/services/patient/hooks";
+import { router } from "expo-router";
 import React, { useState } from "react";
-import { Image, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  Image,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 const MAX_TAGS = 10;
 
 const PatientSymptoms: React.FC = () => {
-  const { handleContinue, handleBack, handleSkip, progress } =
-    useOnboardingNavigation();
+  const { handleBack, handleSkip } = useOnboardingNavigation();
+  const { setData, data, reset } = useOnboarding();
   const [tags, setTags] = useState<string[]>(["Headache", "Muscle Fatigue"]);
   const [text, setText] = useState<string>("");
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const { data: profile } = usePatientProfile();
+  const patientId = profile?.patientID;
+
+  const { mutate: updateProfile, isLoading } = useUpdatePatientProfile();
 
   const addTag = () => {
     const trimmed = text.trim();
@@ -24,13 +41,56 @@ const PatientSymptoms: React.FC = () => {
     setTags(tags.filter((t) => t !== tag));
   };
 
+  const handleFinish = () => {
+    if (!patientId) {
+      Alert.alert("Vui lòng chờ", "Đang tải mã bệnh nhân...");
+      return;
+    }
+    // Lưu lại underlyingDiseases vào context
+    setData({ underlyingDiseases: tags });
+
+    // Tạo biến data sẽ gửi
+    const payload = {
+      name: data.name ?? "",
+      dob: data.dob ?? "",
+      gender: data.gender ?? "",
+      medNo: data.medNo ?? "",
+      medDate: data.medDate ?? "",
+      medFac: data.medFac ?? "",
+      underlyingDiseases: tags,
+    };
+
+    // Log dữ liệu gửi lên backend
+    console.log("DEBUG UPDATE PROFILE PAYLOAD:", { patientId, payload });
+
+    updateProfile(
+      {
+        patientId,
+        payload,
+      },
+      {
+        onSuccess: () => {
+          setShowSuccess(true);
+          reset();
+        },
+        onError: (err: any) => {
+          Alert.alert(
+            "Có lỗi khi lưu hồ sơ!",
+            err?.message || "Vui lòng thử lại."
+          );
+        },
+      }
+    );
+  };
+
   return (
     <OnboardingLayout
-      question="Do you have any symptoms/allergy?"
-      progress={progress}
-      onContinue={handleContinue}
+      question="Do you have any underlyingDiseases"
+      progress={1}
+      onContinue={handleFinish}
       onBack={handleBack}
       onSkip={handleSkip}
+      disabled={isLoading}
       childrenWrapperClassName="flex-1 px-6 pt-4"
     >
       {/* Illustration */}
@@ -87,6 +147,14 @@ const PatientSymptoms: React.FC = () => {
           {tags.length}/{MAX_TAGS}
         </Text>
       </View>
+      <ModalSuccess
+        visible={showSuccess}
+        onClose={() => {
+          setShowSuccess(false);
+          router.replace("/(root)/(tabs)/home");
+        }}
+        // image={require("@/assets/success-activity.png")} // nếu có custom image
+      />
     </OnboardingLayout>
   );
 };
