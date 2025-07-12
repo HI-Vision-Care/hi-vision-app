@@ -1,5 +1,10 @@
 import { icons, images } from "@/constants";
 import { useSignUp } from "@/services/auth/hooks";
+import {
+  isValidEmail,
+  isValidPassword,
+  isValidPhone,
+} from "@/utils/validate-auth";
 import { CustomButton, InputField } from "@components";
 import { router } from "expo-router";
 import React, { useState } from "react";
@@ -30,18 +35,22 @@ const SignUp: React.FC = () => {
   const { mutateAsync: signUp, isLoading } = useSignUp();
 
   const handleSignUp = async () => {
-    // 2. Validate các trường bắt buộc
-
-    if (!email.trim()) {
-      setErrorMessage("Email is required");
+    if (!isValidEmail(email)) {
+      setErrorMessage("Invalid email address.");
+      return;
+    }
+    if (!isValidPassword(password)) {
+      setErrorMessage(
+        "Password must be at least 8 characters and contain no spaces."
+      );
       return;
     }
     if (password !== confirmPassword) {
-      setErrorMessage("Passwords do not match");
+      setErrorMessage("Passwords do not match.");
       return;
     }
-    if (!phone.trim()) {
-      setErrorMessage("Phone number is required");
+    if (!isValidPhone(phone)) {
+      setErrorMessage("Invalid phone number. Only digits, 9 to 11 characters.");
       return;
     }
     setErrorMessage("");
@@ -96,6 +105,11 @@ const SignUp: React.FC = () => {
             errorMessage.includes("Email") ? errorMessage : undefined
           }
         />
+        {email.length > 0 && !isValidEmail(email) && (
+          <Text className="text-red-500 text-lg mt-1">
+            Invalid email address.
+          </Text>
+        )}
 
         {/* Password */}
         <InputField
@@ -109,6 +123,11 @@ const SignUp: React.FC = () => {
             setErrorMessage("");
           }}
         />
+        {password.length > 0 && !isValidPassword(password) && (
+          <Text className="text-red-500 text-lg mt-1">
+            Password must be at least 8 characters, no spaces.
+          </Text>
+        )}
 
         {/* Confirm Password */}
         <InputField
@@ -125,6 +144,11 @@ const SignUp: React.FC = () => {
             errorMessage.includes("match") ? errorMessage : undefined
           }
         />
+        {confirmPassword.length > 0 && password !== confirmPassword && (
+          <Text className="text-red-500 text-lg mt-1">
+            Passwords do not match.
+          </Text>
+        )}
 
         {/* Phone Number */}
         <InputField
@@ -141,6 +165,11 @@ const SignUp: React.FC = () => {
             errorMessage.includes("Phone") ? errorMessage : undefined
           }
         />
+        {phone.length > 0 && !isValidPhone(phone) && (
+          <Text className="text-red-500 text-lg mt-1">
+            Invalid phone number.
+          </Text>
+        )}
 
         {/* Error general */}
         {errorMessage && !errorMessage.includes("match") && (
