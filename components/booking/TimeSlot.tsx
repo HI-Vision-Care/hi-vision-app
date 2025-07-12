@@ -26,7 +26,7 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
   return (
     <View className="bg-white rounded-xl p-4 shadow-sm mx-4">
       <Text className="font-semibold text-gray-900 mb-3">Available Times</Text>
-      <View className="flex-row flex-wrap gap-3">
+      <View className="flex-row flex-wrap -mx-1 gap-1">
         {allUnavailable ? (
           <View className="w-full items-center py-4">
             <Text className="text-gray-400 italic">No available slots</Text>

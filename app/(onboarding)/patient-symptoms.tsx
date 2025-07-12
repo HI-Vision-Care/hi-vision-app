@@ -60,9 +60,6 @@ const PatientSymptoms: React.FC = () => {
       underlyingDiseases: tags,
     };
 
-    // Log dữ liệu gửi lên backend
-    console.log("DEBUG UPDATE PROFILE PAYLOAD:", { patientId, payload });
-
     updateProfile(
       {
         patientId,

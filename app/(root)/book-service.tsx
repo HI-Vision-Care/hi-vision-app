@@ -155,43 +155,78 @@ export default function BookingScreen() {
 
   // Đặt lịch
   const handleBooking = () => {
-    if (selectedService && selectedDay && selectedTime && selectedDoctor) {
-      const [startTime] = selectedTime.split(" - "); // "09:00"
-      const [hours, minutes] = startTime.split(":");
-      const localDate = new Date(selectedDate); // Clone để không ảnh hưởng state
-      localDate.setHours(Number(hours), Number(minutes), 0, 0);
-
-      // Cộng thêm phần offset chênh lệch múi giờ (UTC+7 thành 0)
-      const offsetMs = localDate.getTimezoneOffset() * 60 * 1000;
-      const utcDate = new Date(localDate.getTime() - offsetMs);
-      const appointmentDate = utcDate.toISOString(); // Chuẩn Z
-
-      // Hoặc chỉ cần:
-
-      bookAppointmentMutation.mutate(
-        {
-          serviceID: selectedService.serviceID,
-          doctorID: selectedDoctor.doctorID,
-          appointmentDate: appointmentDate,
-          isAnonymous: isAnonymous,
-          note: note,
-        },
-        {
-          onSuccess: () => {
-            Alert.alert("Scheduled successfully!");
-            router.replace("/(personal-info)/history");
-          },
-          onError: (error: any) => {
-            Alert.alert(
-              "Schedule failed",
-              error.message || "Error occurred while scheduling."
-            );
-          },
-        }
-      );
-    } else {
-      Alert.alert("Vui lòng chọn đầy đủ service, bác sĩ, ngày và khung giờ.");
+    // Check patientId (nếu cần)
+    if (!patientId) {
+      Alert.alert("You must be logged in to book an appointment.");
+      return;
     }
+    // Check Service
+    if (!selectedService || !selectedService.isActive) {
+      Alert.alert(
+        "Selected service is no longer available. Please choose another service."
+      );
+      return;
+    }
+    // Check Doctor
+    if (!selectedDoctor) {
+      Alert.alert("Please select a doctor.");
+      return;
+    }
+    // (Optional) Check doctor still exists in doctor list
+    // if (!doctors?.find(d => d.doctorID === selectedDoctor.doctorID)) {
+    //   Alert.alert("Selected doctor is unavailable. Please choose another doctor.");
+    //   return;
+    // }
+    // Check Date & Time
+    if (!selectedDay || !selectedTime) {
+      Alert.alert("Please select a date and time slot.");
+      return;
+    }
+    // Validate appointment time not in the past
+    const [startTime] = selectedTime.split(" - "); // "09:00"
+    const [hours, minutes] = startTime.split(":");
+    const localDate = new Date(selectedDate); // Clone so you don't mutate state
+    localDate.setHours(Number(hours), Number(minutes), 0, 0);
+
+    // Compare with now
+    if (localDate < new Date()) {
+      Alert.alert("You cannot book an appointment in the past.");
+      return;
+    }
+
+    // Timezone handling for ISO string
+    const offsetMs = localDate.getTimezoneOffset() * 60 * 1000;
+    const utcDate = new Date(localDate.getTime() - offsetMs);
+    const appointmentDate = utcDate.toISOString();
+
+    // Note length validation
+    if (note.length > 255) {
+      Alert.alert("Note is too long (max 255 characters).");
+      return;
+    }
+
+    // Everything valid, proceed with booking
+    bookAppointmentMutation.mutate(
+      {
+        serviceID: selectedService.serviceID,
+        doctorID: selectedDoctor.doctorID,
+        appointmentDate: appointmentDate,
+        isAnonymous: isAnonymous,
+        note: note,
+      },
+      {
+        onSuccess: () => {
+          Alert.alert("Scheduled successfully!");
+          router.replace("/(personal-info)/history");
+        },
+        onError: (error: any) => {
+          Alert.alert(
+            "Schedule failed",
+            error.message || "An error occurred while scheduling."
+          );
+        },
+      }
+    );
   };
 
   return (

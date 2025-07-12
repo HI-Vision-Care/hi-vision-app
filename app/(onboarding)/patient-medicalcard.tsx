@@ -1,6 +1,11 @@
 import { OnboardingLayout } from "@/components";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
+import {
+  isValidMedDate,
+  isValidMedFac,
+  isValidMedNo,
+} from "@/utils/validation-setup";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -56,7 +61,7 @@ const PatientMedicalCard = () => {
   };
 
   const isFormValid =
-    medNo.length >= 10 && medDate.length === 10 && medFac.trim().length > 0;
+    isValidMedNo(medNo) && isValidMedDate(medDate) && isValidMedFac(medFac);
 
   const handleContinueAndSave = () => {
     setData({
@@ -132,6 +137,11 @@ const PatientMedicalCard = () => {
                 </TouchableOpacity>
               )}
             </View>
+            {medNo.length > 0 && !isValidMedNo(medNo) && (
+              <Text className="text-red-500 text-lg mt-1 ml-1">
+                Mã thẻ không hợp lệ (2 chữ cái đầu, 13 số).
+              </Text>
+            )}
             <Text className="text-gray-500 text-sm ml-1">
               15 ký tự: 2 chữ cái + 13 số
             </Text>
@@ -172,6 +182,11 @@ const PatientMedicalCard = () => {
                 </TouchableOpacity>
               )}
             </View>
+            {medDate.length === 10 && !isValidMedDate(medDate) && (
+              <Text className="text-red-500 text-lg mt-1 ml-1">
+                Ngày cấp không hợp lệ
+              </Text>
+            )}
             <Text className="text-gray-500 text-sm ml-1">
               Ví dụ: 15/01/2024
             </Text>
@@ -210,6 +225,11 @@ const PatientMedicalCard = () => {
                 </TouchableOpacity>
               )}
             </View>
+            {medFac.length > 0 && !isValidMedFac(medFac) && (
+              <Text className="text-red-500 text-xs mt-1 ml-1">
+                Nơi cấp phải có ít nhất 4 ký tự
+              </Text>
+            )}
             <Text className="text-gray-500 text-sm ml-1">
               Ví dụ: BHXH Thành phố Hồ Chí Minh
             </Text>
