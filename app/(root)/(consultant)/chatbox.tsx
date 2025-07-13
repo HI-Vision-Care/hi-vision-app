@@ -9,14 +9,15 @@ import {
   ListRenderItem,
   Platform,
   StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+  ListRenderItem,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { usePatientProfile } from '@/hooks/usePatientId';
+import ConsultantRequireModal from './consultant-require-model';
+import { useGetConsultationRequire } from '@/services/consultant/hooks';
+import { getConsultationMessages } from '@/services/consultant/api';
 import SockJS from "sockjs-client";
-import ConsultantRequireModal from "./consultant-require-model";
 
 // Định nghĩa interface khớp với MessageDTO từ backend
 interface Message {
@@ -42,11 +43,26 @@ const ChatBox = () => {
   const currentUserName = profile?.name;
   const { data, loading, error, fetch } = useGetConsultationRequire(chatID);
 
-  useEffect(() => {
-    console.log("ChatBox mounted with chatID:", chatID);
-    if (chatID) fetch();
-    // Chỉ chạy khi chatID thay đổi, không đưa fetch vào dependency nếu fetch là một function bất biến
-  }, [chatID]);
+
+useEffect(() => {
+  if (!chatID) return;
+  // Lấy tin nhắn cũ từ API khi vừa vào màn hình/chatID đổi
+  getConsultationMessages(chatID)
+    .then((oldMessages) => {
+      // Nếu API trả về đúng định dạng [{...}]
+      setMessages(oldMessages);
+    })
+    .catch((err) => {
+      console.error("Lỗi lấy tin nhắn cũ:", err);
+    });
+}, [chatID]);
+
+useEffect(() => {
+  console.log('ChatBox mounted with chatID:', chatID);
+  if (chatID) fetch();
+  // Chỉ chạy khi chatID thay đổi, không đưa fetch vào dependency nếu fetch là một function bất biến
+}, [chatID]);
+
 
   useEffect(() => {
     if (loading) return; // tránh blink khi đang fetch
@@ -107,7 +123,9 @@ const ChatBox = () => {
     const outgoing = {
       senderName: currentUserName,
       message: inputText.trim(),
-      status: "SENT",
+      accountID:chatID,
+      status: 'SENT',
+
       date: new Date().toISOString(),
     };
 

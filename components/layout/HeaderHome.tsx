@@ -115,8 +115,8 @@ const HeaderHome = () => {
               {profileLoading
                 ? "Loading..."
                 : profileError
-                ? "Error"
-                : `Hi, ${name}! 👋`}
+                  ? "Error"
+                  : `Hi, ${name}! 👋`}
             </Text>
             <View className="flex-row items-center mt-1">
               <View className="flex-row items-center">

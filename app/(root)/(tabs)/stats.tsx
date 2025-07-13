@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,8 +15,20 @@ import { router } from 'expo-router';
 import { useGetBlogPosts } from '@/services/blog/hooks';
 import { BlogPost } from '@/services/blog/types';
 
-const Stats: React.FC = () => {
-  const { data: posts, isLoading, isError, error } = useGetBlogPosts();
+const Stats = () => {
+  const { data: posts, isLoading, isError, error, refetch } = useGetBlogPosts();
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Đảm bảo newest blog lên đầu (nếu backend không sort sẵn)
+  const orderedPosts = posts?.slice().sort(
+    (a, b) => new Date(b.createAt).getTime() - new Date(a.createAt).getTime()
+  ) || [];
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refetch?.(); // nếu hook trả về refetch
+    setRefreshing(false);
+  }, [refetch]);
 
   if (isLoading) {
     return (
@@ -33,8 +46,8 @@ const Stats: React.FC = () => {
     );
   }
 
-  const featured = posts && posts.length > 0 ? posts[0] : null;
-  const list = posts && posts.length > 1 ? posts.slice(1) : [];
+  const featured = orderedPosts.length > 0 ? orderedPosts[0] : null;
+  const list = orderedPosts.length > 1 ? orderedPosts.slice(1) : [];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -55,7 +68,16 @@ const Stats: React.FC = () => {
       </View>
 
       <View style={styles.contentWrapper}>
-        <ScrollView style={styles.content}>
+        <ScrollView
+          style={styles.content}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#4285f4"]}
+            />
+          }
+        >
           {/* Category Tabs */}
           <View style={styles.tabContainer}>
             <TouchableOpacity style={[styles.tab, styles.activeTab]}>

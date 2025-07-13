@@ -18,3 +18,10 @@ export interface ConsultationRequire {
   note?: string;
   createdAt?: string;
 }
+
+export interface ConsultationMessage {
+  status: string;
+  date: string;
+  senderName: string;
+  message: string;
+}
