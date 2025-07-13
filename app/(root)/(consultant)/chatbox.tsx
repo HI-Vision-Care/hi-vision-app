@@ -19,6 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { usePatientProfile } from '@/hooks/usePatientId';
 import ConsultantRequireModal from './consultant-require-model';
 import { useGetConsultationRequire } from '@/services/consultant/hooks';
+import { getConsultationMessages } from '@/services/consultant/api';
 
 // Định nghĩa interface khớp với MessageDTO từ backend
 interface Message {
@@ -43,6 +44,19 @@ const ChatBox = () => {
   const chatID = profile?.account.id;
   const currentUserName = profile?.name;
   const { data, loading, error, fetch } = useGetConsultationRequire(chatID);
+
+useEffect(() => {
+  if (!chatID) return;
+  // Lấy tin nhắn cũ từ API khi vừa vào màn hình/chatID đổi
+  getConsultationMessages(chatID)
+    .then((oldMessages) => {
+      // Nếu API trả về đúng định dạng [{...}]
+      setMessages(oldMessages);
+    })
+    .catch((err) => {
+      console.error("Lỗi lấy tin nhắn cũ:", err);
+    });
+}, [chatID]);
 
 useEffect(() => {
   console.log('ChatBox mounted with chatID:', chatID);
@@ -109,6 +123,7 @@ useEffect(() => {
     const outgoing = {
       senderName: currentUserName,
       message: inputText.trim(),
+      accountID:chatID,
       status: 'SENT',
       date: new Date().toISOString(),
     };

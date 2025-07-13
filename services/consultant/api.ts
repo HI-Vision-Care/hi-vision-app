@@ -1,6 +1,6 @@
 // api.ts
 import axios from "@/config/axios";
-import { ConsultationRequest, ConsultationRequire } from "./types";
+import { ConsultationMessage, ConsultationRequest, ConsultationRequire } from "./types";
 
 // Đặt các hàm gọi API ở đây
 
@@ -31,4 +31,9 @@ export async function getConsultationRequire(
   const response = await axios.get<ConsultationRequire>(`/consultation/require/${patientID}`);
   console.log("axios response:", response.data);
   return response.data;
+}
+
+export async function getConsultationMessages(patientID: string): Promise<ConsultationMessage[]> {
+  const res = await axios.get(`/consultation/message-patient/${patientID}`);
+  return res.data;
 }
