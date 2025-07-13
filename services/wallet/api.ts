@@ -19,7 +19,7 @@ export const createWallet = async (
   payload: DepositPayload
 ): Promise<string> => {
   const res = await axios.post(`/wallet/${accountId}`, payload);
-  return res.data; // res.data là string (URL)
+  return res.data;
 };
 
 export const vnpayCallback = async (
