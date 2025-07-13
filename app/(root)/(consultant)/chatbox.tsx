@@ -11,6 +11,8 @@ import {
   Platform,
   StyleSheet,
   Text,
+  TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -26,7 +28,7 @@ interface Message {
 }
 
 // Kết nối SockJS tới endpoint '/ws' trên backend
-const WS_ENDPOINT = "http://192.168.2.7:8080/HiVision/ws";
+const WS_ENDPOINT = "http://192.168.100.21:8080/HiVision/ws";
 
 const ChatBox = () => {
   const [connected, setConnected] = useState(false);
@@ -39,7 +41,7 @@ const ChatBox = () => {
   const { data: profile } = usePatientProfile();
   const chatID = profile?.account.id;
   const currentUserName = profile?.name;
-  const { data, loading, error, fetch } = useGetConsultationRequire(chatID);
+  const { data, loading, fetch } = useGetConsultationRequire(chatID);
 
   useEffect(() => {
     if (!chatID) return;

@@ -3,12 +3,13 @@
 import { cancelAllArvNotifications, clearAllConfirmedDoses } from "@/services/notification/arv-notification"
 import { cancelAll } from "@/services/notification/prep-notification"
 import AsyncStorage from "@react-native-async-storage/async-storage"
-import * as Notifications from "expo-notifications"
 import { useFocusEffect } from "@react-navigation/native"
-import { useCallback } from "react"
+import * as Notifications from "expo-notifications"
 import { navigate } from "expo-router/build/global-state/routing"
-import { useEffect, useState } from "react"
-import { useMemo } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+
+
+import { router } from "expo-router"
 import { Alert, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 
@@ -224,7 +225,7 @@ const MedicineCalendar = () => {
   }
 
   const handleHomePress = () => {
-    Alert.alert("Trang chủ", "Quay về trang chủ")
+    router.push("/(root)/(tabs)/home")
   }
 
   const getSelectedDayData = () => {

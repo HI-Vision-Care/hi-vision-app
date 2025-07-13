@@ -41,14 +41,11 @@ const AppointmentDetail = () => {
       {
         onSuccess: () => {
           Alert.alert("Thanh toán thành công!");
-          // có thể refetch lại thông tin appointment nếu muốn
         },
         onError: (error) => {
-          // error.message sẽ lấy message trả về từ backend (nếu có)
-          Alert.alert(
-            "Lỗi thanh toán",
-            error?.message || "Có lỗi xảy ra, vui lòng thử lại"
-          );
+          const errorMsg =
+            error?.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại";
+          Alert.alert(errorMsg);
         },
       }
     );
