@@ -1,8 +1,10 @@
-import { HeaderBack } from "@/components";
+import { DepositButton } from "@/components";
 import { featureCards, images, menuSections } from "@/constants";
 import { usePatientProfile } from "@/hooks/usePatientId";
 import { useDeleteAccount } from "@/services/patient/hooks";
-import { FeatureCard, MenuItem, MenuSection } from "@/types/type";
+import { useCreateWallet, useWalletByAccountId } from "@/services/wallet/hooks";
+import { Account, FeatureCard, MenuItem, MenuSection } from "@/types/type";
+import { formatVND } from "@/utils/format";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
@@ -18,26 +20,24 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-type Account = {
-  accountId?: string;
-  avatar?: string;
-  username?: string;
-  name?: string;
-  email?: string;
-  [key: string]: any;
-};
-
-const Setting: React.FC = () => {
+const Setting = () => {
   const { data: profile } = usePatientProfile();
 
-  const account: Account = profile?.account ?? {};
+  const account = profile?.account as Account | undefined;
   const accountId = profile?.account?.id;
-  const imageSource = account.avatar
+  const imageSource = account?.avatar
     ? { uri: account.avatar }
     : images.avatarPlaceholder;
-  const username = account.username ?? "Guest";
-  const email = account.email ?? "";
+  const email = account?.email ?? "";
   const name = profile?.name ?? "User";
+
+  const {
+    data: wallet,
+    isLoading: isWalletLoading,
+    refetch: refetchWallet,
+  } = useWalletByAccountId(accountId ?? "");
+
+  const { mutate: createWallet, isLoading: isCreating } = useCreateWallet();
 
   const handleLogout = async () => {
     try {
@@ -98,7 +98,7 @@ const Setting: React.FC = () => {
 
   const renderFeatureCard = (card: FeatureCard) => {
     const cardStyle = getFeatureCardStyle(card);
-    
+
     return (
       <TouchableOpacity
         key={card.id}
@@ -120,9 +120,9 @@ const Setting: React.FC = () => {
             </Text>
           </View>
         )}
-        <View 
+        <View
           className="rounded-full p-3 mb-3"
-          style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+          style={{ backgroundColor: "rgba(255, 255, 255, 0.2)" }}
         >
           <Ionicons
             name={card.icon as React.ComponentProps<typeof Ionicons>["name"]}
@@ -130,10 +130,13 @@ const Setting: React.FC = () => {
             color={getFeatureIconColor(card)}
           />
         </View>
-        <Text 
+        <Text
           className="text-sm font-bold text-center leading-5"
-          style={{ 
-            color: card.id === 'gold' || card.id === 'activity-history' ? '#FFFFFF' : '#374151' 
+          style={{
+            color:
+              card.id === "gold" || card.id === "activity-history"
+                ? "#FFFFFF"
+                : "#374151",
           }}
         >
           {card.title}
@@ -214,16 +217,14 @@ const Setting: React.FC = () => {
     <View key={index} className="mb-6">
       {/* Section Header */}
       <View className="flex-row justify-between items-center px-6 mb-3">
-        <Text className="text-lg font-bold text-gray-800">
-          {section.title}
-        </Text>
+        <Text className="text-lg font-bold text-gray-800">{section.title}</Text>
         <TouchableOpacity className="bg-gray-100 rounded-full p-2">
           <Ionicons name="ellipsis-horizontal" size={20} color="#64748B" />
         </TouchableOpacity>
       </View>
-      
+
       {/* Section Items */}
-      <View 
+      <View
         className="bg-white rounded-2xl mx-4 overflow-hidden"
         style={{
           shadowColor: "#000",
@@ -248,7 +249,7 @@ const Setting: React.FC = () => {
   // Custom Header Component để match với background
   const CustomHeader = () => (
     <View className="flex-row items-center justify-between px-4 py-3 bg-[#FAFBFC]">
-      <TouchableOpacity 
+      <TouchableOpacity
         onPress={() => router.back()}
         className="w-10 h-10 rounded-full bg-white justify-center items-center"
         style={{
@@ -261,10 +262,10 @@ const Setting: React.FC = () => {
       >
         <Ionicons name="chevron-back" size={20} color="#374151" />
       </TouchableOpacity>
-      
+
       <Text className="text-xl font-bold text-gray-900">Settings</Text>
-      
-      <TouchableOpacity 
+
+      <TouchableOpacity
         className="w-10 h-10 rounded-full bg-white justify-center items-center"
         style={{
           shadowColor: "#000",
@@ -302,10 +303,10 @@ const Setting: React.FC = () => {
             >
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center flex-1">
-                  <View 
+                  <View
                     className="w-16 h-16 rounded-2xl p-1 mr-4"
                     style={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      backgroundColor: "rgba(255, 255, 255, 0.2)",
                       shadowColor: "#000",
                       shadowOffset: { width: 0, height: 4 },
                       shadowOpacity: 0.2,
@@ -321,24 +322,87 @@ const Setting: React.FC = () => {
                     <Text className="text-xl font-bold text-white mb-1">
                       {name}
                     </Text>
-                    <Text className="text-sm font-medium" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                    <Text
+                      className="text-sm font-medium"
+                      style={{ color: "rgba(255, 255, 255, 0.8)" }}
+                    >
                       {email}
                     </Text>
                     <View className="flex-row items-center mt-2">
                       <View className="bg-green-400 w-2 h-2 rounded-full mr-2" />
-                      <Text className="text-xs" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                      <Text
+                        className="text-xs"
+                        style={{ color: "rgba(255, 255, 255, 0.7)" }}
+                      >
                         Active now
                       </Text>
                     </View>
                   </View>
                 </View>
-                <TouchableOpacity 
+                <TouchableOpacity
                   className="w-12 h-12 rounded-xl justify-center items-center"
-                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+                  style={{ backgroundColor: "rgba(255, 255, 255, 0.2)" }}
                 >
                   <Ionicons name="pencil-outline" size={22} color="#fff" />
                 </TouchableOpacity>
               </View>
+            </View>
+          </View>
+
+          {/* Wallet Card */}
+          <View className="px-4 mb-6">
+            <View
+              className="rounded-3xl p-6 flex-row items-center justify-between"
+              style={{
+                backgroundColor: "#fff",
+                shadowColor: "#667EEA",
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.12,
+                shadowRadius: 10,
+                elevation: 6,
+              }}
+            >
+              <View className="flex-1">
+                <Text className="text-lg font-bold text-gray-900 mb-2">
+                  Wallet balance
+                </Text>
+                <Text className="text-2xl font-extrabold text-green-600">
+                  {isWalletLoading
+                    ? "Loading..."
+                    : wallet
+                    ? `${formatVND(wallet.balance)} `
+                    : "No Wallet"}
+                </Text>
+              </View>
+              {!wallet && !isWalletLoading ? (
+                <TouchableOpacity
+                  onPress={() => {
+                    if (!accountId) return;
+                    createWallet({ accountId, payload: { balance: 0 } });
+                  }}
+                  disabled={isCreating}
+                  className="bg-blue-600 rounded-xl px-4 py-3"
+                  style={{
+                    shadowColor: "#3B82F6",
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.18,
+                    shadowRadius: 6,
+                    elevation: 4,
+                  }}
+                >
+                  <View className="flex-row items-center">
+                    <Ionicons name="wallet" size={22} color="#fff" />
+                    <Text className="text-white font-bold ml-2">
+                      {isCreating ? "Đang tạo ví..." : "Tạo ví"}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ) : (
+                <DepositButton
+                  accountId={accountId}
+                  refetchWallet={refetchWallet}
+                />
+              )}
             </View>
           </View>
 

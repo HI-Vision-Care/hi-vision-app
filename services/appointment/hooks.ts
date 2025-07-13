@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { getAppointmentByPatientId } from "./api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { cancelAppointment, getAppointmentByPatientId } from "./api";
 import { AppointmentDetail } from "./types";
 
 // API trả về mảng: AppointmentDetail[]
@@ -26,3 +26,20 @@ export const useGetAppointmentByPatientId = (
       },
     }
   );
+
+export const useCancelAppointment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      appointmentId,
+      patientId,
+    }: {
+      appointmentId: string;
+      patientId: string;
+    }) => cancelAppointment(appointmentId, patientId),
+    onSuccess: () => {
+      // Có thể refetch lại danh sách lịch hẹn nếu cần
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+    },
+  });
+};

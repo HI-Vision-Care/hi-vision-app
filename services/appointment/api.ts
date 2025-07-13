@@ -8,3 +8,13 @@ export const getAppointmentByPatientId = async (
   const res = await axios.get(`/appointment/get-appointment/${patientId}`);
   return res.data;
 };
+
+export const cancelAppointment = async (
+  appointmentId: string,
+  patientId: string
+): Promise<any> => {
+  const res = await axios.put(
+    `/patient/cancel-appointment/${appointmentId}?patientId=${patientId}`
+  );
+  return res.data;
+};

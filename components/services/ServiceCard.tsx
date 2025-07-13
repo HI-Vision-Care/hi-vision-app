@@ -1,12 +1,12 @@
 import { icons, images } from "@/constants";
 import { Service } from "@/types/type";
+import { formatVND } from "@/utils/format";
 import { useRouter } from "expo-router";
 import {
-  DollarSign,
   Stethoscope,
   User,
   Wifi,
-  WifiOff,
+  WifiOff
 } from "lucide-react-native";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 
@@ -127,9 +127,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                 <View className="flex-row flex-wrap gap-2 mb-2">
                   {/* Price */}
                   <View className="flex-row items-center bg-emerald-50 px-3 py-2 rounded-full border border-emerald-100">
-                    <DollarSign size={14} color="#059669" />
                     <Text className="text-emerald-700 text-xs font-bold ml-1">
-                      {item.price}
+                      {formatVND(item.price)}
                     </Text>
                   </View>
 

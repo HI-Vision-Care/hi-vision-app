@@ -66,6 +66,7 @@ import onboarding4 from "@/assets/images/onboarding4.png";
 import onboarding5 from "@/assets/images/onboarding5.png";
 import otp from "@/assets/images/otp.png";
 import robot from "@/assets/images/robot.png";
+import success from "@/assets/images/success.png";
 import symptoms from "@/assets/images/symptoms.png";
 import syphilis from "@/assets/images/syphilis.png";
 import transgenderImage from "@/assets/images/transgenderImage.png";
@@ -92,6 +93,7 @@ export const images = {
   transgenderImage,
   symptoms,
   avatarPlaceholder,
+  success,
 };
 
 export const icons = {

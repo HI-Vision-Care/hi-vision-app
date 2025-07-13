@@ -1,10 +1,8 @@
 import { weekDays } from "@/constants";
 import { Service } from "@/types/type";
+import { formatVND } from "@/utils/format";
 import React from "react";
 import { Text, View } from "react-native";
-
-// Nếu bạn có kiểu Service chung ở đâu đó, import thay vì khai báo lại:
-// import type { Service } from "@/components/types";
 
 interface BookingSummaryProps {
   service: Service;
@@ -19,7 +17,6 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
   selectedTime,
   weekDates,
 }) => {
-  // Lấy ngày thực tế từ tuần
   const date = weekDates[weekDays.indexOf(selectedDay)];
 
   return (
@@ -33,7 +30,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         <Text className="text-blue-800">Time: {selectedTime}</Text>
 
         <Text className="font-bold text-blue-900 mt-2">
-          Total: ${service.price}
+          Total: {formatVND(service.price)}
         </Text>
       </View>
     </View>

@@ -36,3 +36,13 @@ export interface LabResult {
   resultValue: string;
   testDate: string; // ISO date string
 }
+
+export interface UpdatePatientProfilePayload {
+  name: string;
+  dob: string; // ISO string
+  gender: string;
+  medNo: string;
+  medDate: string; // ISO string
+  medFac: string;
+  underlyingDiseases: string;
+}

@@ -4,6 +4,7 @@ import {
   PreparationInstructions,
   WhatToExpect,
 } from "@/components";
+import { formatVND } from "@/utils/format";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
@@ -76,7 +77,7 @@ export default function ServiceDetail() {
               <View>
                 <Text className="text-gray-600 text-sm">Price</Text>
                 <Text className="text-gray-800 font-semibold">
-                  {service.price.toLocaleString()}₫
+                  {formatVND(service.price)}
                 </Text>
               </View>
             </View>

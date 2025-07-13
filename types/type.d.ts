@@ -201,6 +201,8 @@ export interface Doctor {
 export interface MedicalRecord {
   appointmentID: string;
   id?: string;
+  recordId?: string;
+  appointmentId?: string;
   isAnnoymous?: boolean;
   patient: Patient;
   doctor: Doctor;
@@ -209,6 +211,8 @@ export interface MedicalRecord {
   diagnosis?: string;
   treatment?: string;
   notes?: string;
+  note?: string;
+  createDate?: string;
   medicalService: {
     name: string;
   };
@@ -220,5 +224,17 @@ export interface LabResult {
   testType: string;
   resultValue: string;
   testDate: string;
+  resultText: string;
+  unit: string;
+  referenceRange: string;
+  testDate: string;
+  performedBy: string;
 }
 
+export interface ConsultationRequest {
+  phone: string;
+  name: string;
+  note: string;
+}
+
+export type NavState = { url: string };

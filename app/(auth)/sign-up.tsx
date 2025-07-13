@@ -1,5 +1,10 @@
 import { icons, images } from "@/constants";
 import { useSignUp } from "@/services/auth/hooks";
+import {
+  isValidEmail,
+  isValidPassword,
+  isValidPhone,
+} from "@/utils/validate-auth";
 import { CustomButton, InputField } from "@components";
 import { router } from "expo-router";
 import React, { useState } from "react";
@@ -18,8 +23,6 @@ import {
 
 const SignUp: React.FC = () => {
   const insets = useSafeAreaInsets();
-  // 1. States cho các trường input
-  const [username, setUsername] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
@@ -32,40 +35,29 @@ const SignUp: React.FC = () => {
   const { mutateAsync: signUp, isLoading } = useSignUp();
 
   const handleSignUp = async () => {
-    // 2. Validate các trường bắt buộc
-    if (!username.trim()) {
-      setErrorMessage("Username is required");
+    if (!isValidEmail(email)) {
+      setErrorMessage("Invalid email address.");
       return;
     }
-    if (!email.trim()) {
-      setErrorMessage("Email is required");
+    if (!isValidPassword(password)) {
+      setErrorMessage(
+        "Password must be at least 8 characters and contain no spaces."
+      );
       return;
     }
     if (password !== confirmPassword) {
-      setErrorMessage("Passwords do not match");
+      setErrorMessage("Passwords do not match.");
       return;
     }
-    if (!phone.trim()) {
-      setErrorMessage("Phone number is required");
+    if (!isValidPhone(phone)) {
+      setErrorMessage("Invalid phone number. Only digits, 9 to 11 characters.");
       return;
     }
     setErrorMessage("");
 
     try {
-      // 3. Gọi API qua hook với full payload
-      await signUp({ username, email, password, phone });
-
-      // 4. Hiển thị thông báo và điều hướng về Sign In
-      Alert.alert(
-        "Registration Successful",
-        "Your account has been created. Please log in to continue.",
-        [
-          {
-            text: "OK",
-            onPress: () => router.replace("/(auth)/sign-in"),
-          },
-        ]
-      );
+      await signUp({ email, password, phone });
+      router.replace("/(onboarding)/patient-name");
     } catch (error: any) {
       Alert.alert("Error", error.message);
     }
@@ -97,22 +89,6 @@ const SignUp: React.FC = () => {
 
       {/* Content */}
       <View className="flex-1 px-6 py-8">
-        {/* Username */}
-        <InputField
-          label="Username"
-          icon={icons.user}
-          placeholder="Enter your username"
-          autoCapitalize="none"
-          value={username}
-          onChangeText={(text) => {
-            setUsername(text);
-            setErrorMessage("");
-          }}
-          errorMessage={
-            errorMessage.includes("Username") ? errorMessage : undefined
-          }
-        />
-
         {/* Email */}
         <InputField
           label="Email Address"
@@ -129,6 +105,11 @@ const SignUp: React.FC = () => {
             errorMessage.includes("Email") ? errorMessage : undefined
           }
         />
+        {email.length > 0 && !isValidEmail(email) && (
+          <Text className="text-red-500 text-lg mt-1">
+            Invalid email address.
+          </Text>
+        )}
 
         {/* Password */}
         <InputField
@@ -142,6 +123,11 @@ const SignUp: React.FC = () => {
             setErrorMessage("");
           }}
         />
+        {password.length > 0 && !isValidPassword(password) && (
+          <Text className="text-red-500 text-lg mt-1">
+            Password must be at least 8 characters, no spaces.
+          </Text>
+        )}
 
         {/* Confirm Password */}
         <InputField
@@ -158,6 +144,11 @@ const SignUp: React.FC = () => {
             errorMessage.includes("match") ? errorMessage : undefined
           }
         />
+        {confirmPassword.length > 0 && password !== confirmPassword && (
+          <Text className="text-red-500 text-lg mt-1">
+            Passwords do not match.
+          </Text>
+        )}
 
         {/* Phone Number */}
         <InputField
@@ -174,6 +165,11 @@ const SignUp: React.FC = () => {
             errorMessage.includes("Phone") ? errorMessage : undefined
           }
         />
+        {phone.length > 0 && !isValidPhone(phone) && (
+          <Text className="text-red-500 text-lg mt-1">
+            Invalid phone number.
+          </Text>
+        )}
 
         {/* Error general */}
         {errorMessage && !errorMessage.includes("match") && (

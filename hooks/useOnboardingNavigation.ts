@@ -3,19 +3,15 @@ import { usePathname, useRouter } from "expo-router";
 import React from "react";
 
 const ONBOARDING_ROUTES = [
-  "/patient-goal",
+  "/patient-name",
   "/patient-gender",
-  "/patient-weight",
-  "/patient-age",
-  "/patient-blood",
-  "/patient-eating",
-  "/patient-medication",
+  "/patient-medicalcard",
   "/patient-symptoms",
 ];
 
 export const useOnboardingNavigation = () => {
   const router = useRouter();
-  const pathname = usePathname(); // e.g. "/patient-goal"
+  const pathname = usePathname();
   const currentIndex = ONBOARDING_ROUTES.indexOf(pathname);
   const totalSteps = ONBOARDING_ROUTES.length;
 
@@ -35,8 +31,6 @@ export const useOnboardingNavigation = () => {
     if (prev >= 0) {
       router.replace(ONBOARDING_ROUTES[prev] as any);
     } else {
-      // Nếu không có màn hình trước, bạn có thể bỏ qua hoặc chuyển hướng đến home
-      // router.replace("/(root)/(tabs)/home");
       console.warn("No previous onboarding screen to go back to.");
     }
   }, [currentIndex, router]);
