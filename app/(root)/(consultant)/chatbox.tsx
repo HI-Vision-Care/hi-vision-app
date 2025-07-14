@@ -27,8 +27,7 @@ interface Message {
   date: string;
 }
 
-// Kết nối SockJS tới endpoint '/ws' trên backend
-const WS_ENDPOINT = "http://192.168.100.21:8080/HiVision/ws";
+const WS_ENDPOINT = process.env.EXPO_PUBLIC_WS_ENDPOINT;
 
 const ChatBox = () => {
   const [connected, setConnected] = useState(false);
@@ -73,7 +72,7 @@ const ChatBox = () => {
 
   useEffect(() => {
     const client = new Client({
-      webSocketFactory: () => new SockJS(WS_ENDPOINT),
+      webSocketFactory: () => new SockJS(WS_ENDPOINT || ""),
       reconnectDelay: 5000,
       debug: (msg) => console.log("[STOMP]", msg),
     });

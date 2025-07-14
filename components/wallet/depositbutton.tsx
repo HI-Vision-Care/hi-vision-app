@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import { WebView } from "react-native-webview";
 
-const VNPAY_CALLBACK_URL = "http://192.168.100.21:8081/success";
+const VNPAY_CALLBACK_URL = "http://192.168.222.57:8081/success";
 
 const DepositButton = ({
   accountId,
