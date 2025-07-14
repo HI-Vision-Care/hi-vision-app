@@ -1,45 +1,60 @@
 // types.ts
 
-export interface ARVDrug {
-  arvId: string;
-  genericName: string;
-  drugClass: string;
-  dosageStrength: string;
-  admRoute: string;
-  rcmDosage: string;
-  shelfLife: string;
-  fundingSource: string;
-  regimenLevel: string;
-  lastUpdated: string;
+export interface Account {
+  id: string
+  username: string
+  email: string
+  phone: string
+  avatar: string
+  role: string
+  isDeleted: boolean
+}
+
+export interface Disease {
+  diseaseID: number
+  name: string
+}
+
+export interface PatientDisease {
+  patientDiseaseID: number
+  patient: string
+  disease: Disease
+}
+
+export interface Patient {
+  patientID: string
+  account: Account
+  name: string
+  dob: string
+  gender: string
+  medNo: string
+  medDate: string
+  medFac: string
+  patientDiseases: PatientDisease[]
 }
 
 export interface Prescription {
-  prescriptionID: string;
-  patient: any; // (đúng kiểu patient bạn đã khai báo)
-  date: string;
-  prescribeBy: string;
-  status: string;
+  prescriptionID: string
+  patient: Patient
+  date: string
+  prescribeBy: string
+  status: string
 }
 
-export interface ARVPrescription {
-  id: number;
-  dosage: string;
-  duration: string;
-  prescription: Prescription;
-  arv: ARVDrug;
+export interface ArvDrug {
+  arvId: string
+  genericName: string
+  drugClass: string
+  dosageStrength: string
+  admRoute: string
+  rcmDosage: string
+  shelfLife: string
+  fundingSource: string
+  regimenLevel: string
+  lastUpdated: string
 }
 
-export interface ARVRequest {
-  arvID: string;
-  dosage: string;
-  duration: string;
-}
-
-export interface PrescriptionRequest {
-  prescribeBy: string;
-}
-
-export interface CreateArvPrescriptionPayload {
-  prescriptionRequest: PrescriptionRequest;
-  arvRequests: ARVRequest[];
+export interface PrescriptionARVResponse {
+  prescription: Prescription
+  arvList: ArvDrug[]
 }
