@@ -13,6 +13,13 @@ export const getArvPrescription = async (
   }
 };
 
+export const getPreARVPrescription = async (
+  appointmentID: string
+): Promise<PrescriptionARVResponse> => {
+  const response = await axios.get(`/prescription/pre-arv/${appointmentID}`);
+  return response.data;
+};
+
 // export const createArvPrescription = async (
 //   patientId: string,
 //   payload: CreateArvPrescriptionPayload

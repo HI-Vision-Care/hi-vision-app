@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getArvPrescription } from "./api";
+import { getArvPrescription, getPreARVPrescription } from "./api";
 import { PrescriptionARVResponse } from "./types";
 
 export function useGetArvPrescription(patientId: string) {
@@ -7,8 +7,16 @@ export function useGetArvPrescription(patientId: string) {
     queryKey: ["arv-prescription", patientId],
     queryFn: () => getArvPrescription(patientId),
     enabled: !!patientId,
-  })
+  });
 }
+
+export const usePreARVPrescription = (appointmentID: string) => {
+  return useQuery<PrescriptionARVResponse>({
+    queryKey: ["pre-arv-prescription", appointmentID],
+    queryFn: () => getPreARVPrescription(appointmentID),
+    enabled: !!appointmentID,
+  });
+};
 
 // export const useCreateArvPrescription = () =>
 //   useMutation(
