@@ -1,5 +1,14 @@
-
-import { ActivityList, ChatbotCard, ChatbotSectionHeader, HeaderHome, HealthServicesSwiper, MedicationSection, MetricCarousel } from "@components";
+import { usePatientProfile } from "@/hooks/usePatientId";
+import { useGetAppointmentByPatientId } from "@/services/appointment/hooks";
+import {
+  ActivityList,
+  ChatbotCard,
+  ChatbotSectionHeader,
+  HeaderHome,
+  HealthServicesSwiper,
+  MedicationSection,
+  MetricCarousel,
+} from "@components";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
@@ -12,6 +21,17 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Home = () => {
+  const { data: profile } = usePatientProfile();
+  const patientId = profile?.patientID;
+
+  const { data: appointments = [], isLoading } = useGetAppointmentByPatientId(
+    patientId || ""
+  );
+
+  const latestAppointment = appointments.length
+    ? appointments[appointments.length - 1]
+    : null;
+
   return (
     <>
       {/* Cho StatusBar xuyên thấu nền */}
@@ -33,7 +53,12 @@ const Home = () => {
           {/* Health Score */}
           <HealthServicesSwiper />
 
+          <ChatbotSectionHeader
+            title="Appointment Scheduled For You"
+            onHelpPress={() => console.log("Help tapped")}
+          />
 
+          {latestAppointment && <ChatbotCard appointment={latestAppointment} />}
 
           {/* Smart Health Metrics */}
           <View className="flex-row justify-between items-center mb-4">
@@ -48,6 +73,9 @@ const Home = () => {
           {/* Metrics Cards */}
           <MetricCarousel />
 
+          {/* Nút cập nhật Widget */}
+          {/* <UpdateWidgetButton /> */}
+
           {/* Fitness & Activity Tracker Section */}
           <View className="flex-row justify-between items-center mb-4">
             <Text className="text-gray-900 text-lg font-semibold">
@@ -56,16 +84,6 @@ const Home = () => {
             <Ionicons name="ellipsis-horizontal" size={20} color="#9CA3AF" />
           </View>
           <ActivityList />
-
-          <ChatbotSectionHeader
-            title="Wellness AI Chatbot"
-            onHelpPress={() => console.log("Help tapped")}
-          />
-          <ChatbotCard
-            plan="BASIC"
-            count={1922}
-            onAddPress={() => console.log("Add tapped")}
-          />
 
           {/* Medication Management Section */}
           <MedicationSection />

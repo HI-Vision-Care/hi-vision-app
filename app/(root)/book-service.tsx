@@ -3,6 +3,7 @@ import {
   BookingSummary,
   ChooseDoctor,
   HeaderBack,
+  PaymentOption,
   ServiceSelection,
   WeekNavigation,
 } from "@/components";
@@ -35,6 +36,10 @@ export type AvailabilityMap = Record<string, Record<string, string>>;
 export default function BookingScreen() {
   const { data: profile } = usePatientProfile();
   const patientId = profile?.patientID;
+
+  const [paymentOption, setPaymentOption] = useState<"PAY_NOW" | "PAY_LATER">(
+    "PAY_LATER"
+  );
 
   const { data } = useLocalSearchParams<{ data: string }>();
   const [isAnonymous, setIsAnonymous] = useState(false);
@@ -298,6 +303,11 @@ export default function BookingScreen() {
             style={{ minHeight: 60 }}
           />
         </View>
+
+        <PaymentOption
+          selectedOption={paymentOption}
+          onSelectOption={setPaymentOption}
+        />
 
         {selectedService && selectedDay && selectedTime ? (
           <>

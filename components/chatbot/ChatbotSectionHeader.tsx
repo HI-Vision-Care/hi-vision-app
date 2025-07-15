@@ -1,7 +1,6 @@
 // components/ChatbotSectionHeader.tsx
-import { icons } from "@/constants";
 import React from "react";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import { Text, View } from "react-native";
 
 interface ChatbotSectionHeaderProps {
   title: string;
@@ -14,7 +13,7 @@ const ChatbotSectionHeader: React.FC<ChatbotSectionHeaderProps> = ({
 }) => (
   <View className="flex-row justify-between items-center mb-4">
     <Text className="text-gray-900 text-lg font-semibold">{title}</Text>
-    <TouchableOpacity onPress={onHelpPress}>
+    {/* <TouchableOpacity onPress={onHelpPress}>
       <View className="bg-gray-400 rounded-md p-2 flex items-center justify-center">
         <Image
           source={icons.question}
@@ -23,7 +22,7 @@ const ChatbotSectionHeader: React.FC<ChatbotSectionHeaderProps> = ({
           style={{ tintColor: "white" }}
         />
       </View>
-    </TouchableOpacity>
+    </TouchableOpacity> */}
   </View>
 );
 
