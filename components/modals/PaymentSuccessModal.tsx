@@ -13,11 +13,15 @@ import {
 interface PaymentSuccessModalProps {
   visible: boolean;
   onClose: () => void;
+  title?: string;
+  subtitle?: string;
 }
 
 const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
   visible,
   onClose,
+  title = "Thanh toán thành công!",
+  subtitle = "Bạn đã đặt lịch và thanh toán thành công.",
 }) => {
   const scaleValue = React.useRef(new Animated.Value(0)).current;
   const opacityValue = React.useRef(new Animated.Value(0)).current;
@@ -87,41 +91,13 @@ const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
                 <Ionicons name="checkmark" size={32} color="#10b981" />
               </View>
             </View>
-            <Text className="text-white text-2xl font-bold mb-2">
-              Payment Successful!
-            </Text>
+            <Text className="text-white text-2xl font-bold mb-2">{title}</Text>
             <Text className="text-white/90 text-center text-base">
-              Your payment has been processed successfully
+              {subtitle}
             </Text>
           </LinearGradient>
 
-          {/* Payment Details */}
           <View className="px-6 py-6">
-            {/* <View className="bg-gray-50 rounded-2xl p-4 mb-6">
-              <View className="flex-row justify-between items-center mb-3">
-                <Text className="text-gray-600 font-medium">Amount Paid</Text>
-                <Text className="text-gray-900 text-xl font-bold">
-                  {amount}
-                </Text>
-              </View>
-              <View className="flex-row justify-between items-center mb-3">
-                <Text className="text-gray-600 font-medium">
-                  Payment Method
-                </Text>
-                <Text className="text-gray-900 font-semibold">
-                  {paymentMethod}
-                </Text>
-              </View>
-              <View className="flex-row justify-between items-center">
-                <Text className="text-gray-600 font-medium">
-                  Transaction ID
-                </Text>
-                <Text className="text-gray-900 font-mono text-sm">
-                  {transactionId}
-                </Text>
-              </View>
-            </View> */}
-
             <TouchableOpacity
               onPress={onClose}
               className="bg-green-600 rounded-2xl py-4 px-6 flex-row items-center justify-center"
@@ -134,7 +110,7 @@ const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
               }}
             >
               <Ionicons name="checkmark-circle" size={20} color="white" />
-              <Text className="text-white font-bold text-lg ml-2">Done</Text>
+              <Text className="text-white font-bold text-lg ml-2">Đã hiểu</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>

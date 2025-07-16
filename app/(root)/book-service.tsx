@@ -3,13 +3,13 @@ import {
   BookingSummary,
   ChooseDoctor,
   HeaderBack,
+  PaymenFailureModal,
   PaymentOption,
   PaymentSuccessModal,
   ServiceSelection,
   WeekNavigation,
 } from "@/components";
 import TimeSlots from "@/components/booking/TimeSlot";
-import PaymentFailureModal from "@/components/modals/PaymentFailureModal";
 import { weekDays } from "@/constants";
 import { usePatientProfile } from "@/hooks/usePatientId";
 import {
@@ -43,6 +43,9 @@ export default function BookingScreen() {
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showFailureModal, setShowFailureModal] = useState(false);
+  const [successType, setSuccessType] = useState<"booking" | "payment">(
+    "booking"
+  );
 
   const [paymentOption, setPaymentOption] = useState<"PAY_NOW" | "PAY_LATER">(
     "PAY_LATER"
@@ -238,6 +241,7 @@ export default function BookingScreen() {
               { appointmentId, accountId: accountId },
               {
                 onSuccess: () => {
+                  setSuccessType("payment"); // thành công thanh toán
                   setShowSuccessModal(true);
                 },
                 onError: () => {
@@ -246,6 +250,7 @@ export default function BookingScreen() {
               }
             );
           } else {
+            setSuccessType("booking"); // thành công đặt lịch, chưa thanh toán
             setShowSuccessModal(true);
           }
         },
@@ -363,16 +368,26 @@ export default function BookingScreen() {
         )}
       </ScrollView>
 
+      <PaymenFailureModal
+        visible={showFailureModal}
+        onClose={() => setShowFailureModal(false)}
+      />
       <PaymentSuccessModal
         visible={showSuccessModal}
         onClose={() => {
           setShowSuccessModal(false);
           router.replace("/(personal-info)/history");
         }}
-      />
-      <PaymentFailureModal
-        visible={showFailureModal}
-        onClose={() => setShowFailureModal(false)}
+        title={
+          successType === "payment"
+            ? "Thanh toán thành công!"
+            : "Đặt lịch thành công!"
+        }
+        subtitle={
+          successType === "payment"
+            ? "Bạn đã đặt lịch và thanh toán thành công."
+            : "Lịch hẹn của bạn đã được ghi nhận. Vui lòng thanh toán trước khi đến khám."
+        }
       />
     </SafeAreaView>
   );

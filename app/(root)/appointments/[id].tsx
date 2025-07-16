@@ -377,22 +377,6 @@ const AppointmentDetail = () => {
       {/* Footer with Action Buttons */}
       <View className="bg-white border-t border-gray-200 px-4 py-3 ">
         <View className="flex-row space-x-3">
-          {/* Make Payment: Chỉ ẩn khi đã thanh toán hoặc đã hủy */}
-          {appointment.paymentStatus !== "PAID" &&
-            appointment.status?.toLowerCase?.() !== "cancelled" && (
-              <TouchableOpacity
-                className="flex-1 bg-blue-600 py-3 rounded-lg"
-                onPress={handlePayment}
-                disabled={isPaying}
-              >
-                <View className="flex-row items-center justify-center">
-                  <MaterialIcons name="payment" size={20} color="white" />
-                  <Text className="text-white font-semibold ml-2">
-                    {isPaying ? "Đang thanh toán..." : "Make Payment"}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            )}
           {/* Cancel Appointment: chỉ cho phép nếu chưa cancelled */}
           {appointment.status?.toLowerCase?.() !== "cancelled" &&
             appointment.status?.toLowerCase?.() !== "completed" && (

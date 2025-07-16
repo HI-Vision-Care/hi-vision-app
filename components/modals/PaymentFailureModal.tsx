@@ -130,7 +130,7 @@ const PaymentFailureModal: React.FC<PaymentFailureModalProps> = ({
 
           {/* Error Details */}
           <View className="px-6 py-6">
-            <View className="bg-red-50 rounded-2xl p-4 mb-6 border border-red-100">
+            {/* <View className="bg-red-50 rounded-2xl p-4 mb-6 border border-red-100">
               <View className="flex-row items-center mb-4">
                 <Ionicons name="information-circle" size={20} color="#ef4444" />
                 <Text className="text-red-700 font-semibold ml-2">
@@ -138,7 +138,7 @@ const PaymentFailureModal: React.FC<PaymentFailureModalProps> = ({
                 </Text>
               </View>
 
-              {/* <View className="space-y-3">
+              <View className="space-y-3">
                 <View className="flex-row justify-between items-center">
                   <Text className="text-gray-600 font-medium">
                     Attempted Amount
@@ -164,8 +164,8 @@ const PaymentFailureModal: React.FC<PaymentFailureModalProps> = ({
                     {requiredAmount}
                   </Text>
                 </View>
-              </View> */}
-            </View>
+              </View>
+            </View> */}
 
             {/* Action Buttons */}
             <View className="space-y-3">
