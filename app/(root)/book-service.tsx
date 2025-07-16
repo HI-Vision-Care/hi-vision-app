@@ -9,13 +9,16 @@ import {
 } from "@/components";
 import TimeSlots from "@/components/booking/TimeSlot";
 import { weekDays } from "@/constants";
-import { usePatientProfile } from "@/hooks/usePatientId";
+import {
+  usePatientProfile,
+} from "@/hooks/usePatientId";
 import {
   useBookAppointment,
   useGetWorkShiftsWeek,
 } from "@/services/booking-services/hooks";
 import { Doctor } from "@/services/doctor/types";
 import { useDoctorsBySpecialty } from "@/services/medical-services/hooks";
+import { useTransferToAppointment } from "@/services/transaction/hooks";
 import { Service } from "@/types/type";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -69,8 +72,7 @@ export default function BookingScreen() {
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
 
   const bookAppointmentMutation = useBookAppointment(patientId ?? ""); // fallback to empty string if undefined
-
-  // const bookAppointmentMutation = useBookAppointment(patientId);
+  const transferToAppointmentMutation = useTransferToAppointment(); // Initialize the new mutation hook
 
   // Tuần hiện tại (thứ Hai)
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => {
@@ -177,11 +179,6 @@ export default function BookingScreen() {
       Alert.alert("Please select a doctor.");
       return;
     }
-    // (Optional) Check doctor still exists in doctor list
-    // if (!doctors?.find(d => d.doctorID === selectedDoctor.doctorID)) {
-    //   Alert.alert("Selected doctor is unavailable. Please choose another doctor.");
-    //   return;
-    // }
     // Check Date & Time
     if (!selectedDay || !selectedTime) {
       Alert.alert("Please select a date and time slot.");
@@ -220,9 +217,37 @@ export default function BookingScreen() {
         note: note,
       },
       {
-        onSuccess: () => {
+        onSuccess: (response: any) => {
+          // Assume response contains appointmentId
           Alert.alert("Scheduled successfully!");
-          router.replace("/(personal-info)/history");
+          // If payment option is "PAY_NOW", proceed with payment
+          if (paymentOption === "PAY_NOW" && patientId) {
+            const appointmentId = response?.appointmentID; // Get appointmentId from the booking response
+            if (appointmentId) {
+              transferToAppointmentMutation.mutate(
+                { appointmentId, accountId: patientId }, // Pass appointmentId and accountId
+                {
+                  onSuccess: () => {
+                    Alert.alert("Payment successful!");
+                    router.replace("/(personal-info)/history");
+                  },
+                  onError: (paymentError: any) => {
+                    Alert.alert(
+                      "Payment failed",
+                      paymentError.message ||
+                        "An error occurred during payment."
+                    );
+                  },
+                }
+              );
+            } else {
+              Alert.alert("Error: Appointment ID not returned for payment.");
+              router.replace("/(personal-info)/history"); // Still navigate even if payment ID is missing
+            }
+          } else {
+            // If "PAY_LATER" or no patientId, just navigate to history
+            router.replace("/(personal-info)/history");
+          }
         },
         onError: (error: any) => {
           Alert.alert(
