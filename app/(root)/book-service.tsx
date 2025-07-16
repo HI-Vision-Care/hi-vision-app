@@ -4,14 +4,14 @@ import {
   ChooseDoctor,
   HeaderBack,
   PaymentOption,
+  PaymentSuccessModal,
   ServiceSelection,
   WeekNavigation,
 } from "@/components";
 import TimeSlots from "@/components/booking/TimeSlot";
+import PaymentFailureModal from "@/components/modals/PaymentFailureModal";
 import { weekDays } from "@/constants";
-import {
-  usePatientProfile,
-} from "@/hooks/usePatientId";
+import { usePatientProfile } from "@/hooks/usePatientId";
 import {
   useBookAppointment,
   useGetWorkShiftsWeek,
@@ -39,6 +39,10 @@ export type AvailabilityMap = Record<string, Record<string, string>>;
 export default function BookingScreen() {
   const { data: profile } = usePatientProfile();
   const patientId = profile?.patientID;
+  const accountId = profile?.account?.id;
+
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showFailureModal, setShowFailureModal] = useState(false);
 
   const [paymentOption, setPaymentOption] = useState<"PAY_NOW" | "PAY_LATER">(
     "PAY_LATER"
@@ -218,42 +222,43 @@ export default function BookingScreen() {
       },
       {
         onSuccess: (response: any) => {
-          // Assume response contains appointmentId
-          Alert.alert("Scheduled successfully!");
-          // If payment option is "PAY_NOW", proceed with payment
-          if (paymentOption === "PAY_NOW" && patientId) {
-            const appointmentId = response?.appointmentID; // Get appointmentId from the booking response
-            if (appointmentId) {
-              transferToAppointmentMutation.mutate(
-                { appointmentId, accountId: patientId }, // Pass appointmentId and accountId
-                {
-                  onSuccess: () => {
-                    Alert.alert("Payment successful!");
-                    router.replace("/(personal-info)/history");
-                  },
-                  onError: (paymentError: any) => {
-                    Alert.alert(
-                      "Payment failed",
-                      paymentError.message ||
-                        "An error occurred during payment."
-                    );
-                  },
-                }
-              );
-            } else {
-              Alert.alert("Error: Appointment ID not returned for payment.");
-              router.replace("/(personal-info)/history"); // Still navigate even if payment ID is missing
-            }
+          const appointmentId =
+            response?.appointmentId ||
+            response?.appointmentID ||
+            response?.id ||
+            response?.appointment?.appointmentId;
+
+          if (!appointmentId && paymentOption === "PAY_NOW") {
+            setShowFailureModal(true);
+            return;
+          }
+
+          if (paymentOption === "PAY_NOW" && accountId) {
+            transferToAppointmentMutation.mutate(
+              { appointmentId, accountId: accountId },
+              {
+                onSuccess: () => {
+                  setShowSuccessModal(true);
+                },
+                onError: () => {
+                  setShowFailureModal(true);
+                },
+              }
+            );
           } else {
-            // If "PAY_LATER" or no patientId, just navigate to history
-            router.replace("/(personal-info)/history");
+            setShowSuccessModal(true);
           }
         },
+
         onError: (error: any) => {
-          Alert.alert(
-            "Schedule failed",
-            error.message || "An error occurred while scheduling."
-          );
+          // Ưu tiên lấy message gốc trả về từ backend
+          const backendMessage =
+            error?.response?.data?.message ||
+            error?.response?.data?.error ||
+            error?.message ||
+            "An error occurred while scheduling.";
+
+          Alert.alert("Schedule failed", backendMessage);
         },
       }
     );
@@ -345,9 +350,30 @@ export default function BookingScreen() {
             <BookButton onBook={handleBooking} disabled={false} />
           </>
         ) : (
-          <BookButton onBook={handleBooking} disabled />
+          <BookButton
+            onBook={handleBooking}
+            disabled={
+              !selectedService ||
+              !selectedDay ||
+              !selectedTime ||
+              bookAppointmentMutation.isLoading ||
+              transferToAppointmentMutation.isLoading
+            }
+          />
         )}
       </ScrollView>
+
+      <PaymentSuccessModal
+        visible={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          router.replace("/(personal-info)/history");
+        }}
+      />
+      <PaymentFailureModal
+        visible={showFailureModal}
+        onClose={() => setShowFailureModal(false)}
+      />
     </SafeAreaView>
   );
 }
