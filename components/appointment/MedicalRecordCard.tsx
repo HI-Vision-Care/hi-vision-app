@@ -26,6 +26,7 @@ interface MedicalRecord {
       phone: string;
     };
   };
+  slot?: string;
 }
 
 const getPaymentConfig = (status: string) => {
@@ -110,8 +111,6 @@ const MedicalRecordCard: React.FC<{
 
   const statusConfig = getStatusConfig(record.status);
   const paymentConfig = getPaymentConfig(record.paymentStatus ?? "");
-
-  console.log(utcDateString);
 
   return (
     <View className="bg-white mx-4 mt-3 rounded-xl shadow-sm border border-gray-100">
@@ -246,6 +245,14 @@ const MedicalRecordCard: React.FC<{
                 {utcDateString ? formatted : "N/A"}
               </Text>
             </View>
+            {record.slot && (
+              <View className="flex-row items-center mb-1">
+                <Ionicons name="time" size={14} color="#666" />
+                <Text className="text-sm text-gray-600 ml-1">
+                  {record.slot}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 

@@ -414,7 +414,10 @@ export default function BookingScreen() {
         visible={showSuccessModal}
         onClose={() => {
           setShowSuccessModal(false);
-          router.replace("/(personal-info)/history");
+          router.replace({
+            pathname: "/(personal-info)/history",
+            params: { fromBooking: "1" },
+          });
         }}
         title={
           successType === "payment"

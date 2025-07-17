@@ -8,12 +8,16 @@ import {
 import { usePatientProfile } from "@/hooks/usePatientId";
 import { useGetAppointmentByPatientId } from "@/services/appointment/hooks";
 import { useGetLabResults } from "@/services/patient/hooks";
+import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { ScrollView, StatusBar, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Main Component
 const MedicalHistory = () => {
+  const params = useLocalSearchParams();
+  const fromBooking = params.fromBooking === "1";
+
   const [activeTab, setActiveTab] = useState("appointments");
   const { data: profile } = usePatientProfile();
   const patientId = profile?.patientID;
@@ -91,7 +95,7 @@ const MedicalHistory = () => {
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <SafeAreaView className="flex-1 bg-gray-50">
-        <HeaderBack title="Medical History" />
+        <HeaderBack title="Medical History" hideBack={fromBooking} />
 
         {/* Tabs */}
         <View className="flex-row bg-white border-b border-gray-100">
