@@ -134,24 +134,37 @@ export default function BookingScreen() {
   const timeSlotsList = useMemo(
     () =>
       shifts
-        .filter(
-          (s) => new Date(s.date).toISOString().slice(0, 10) === selectedISO
-        )
+        .filter((s) => {
+          const dateStr = s.date
+            ? s.date
+            : s.startTime
+            ? s.startTime.slice(0, 10)
+            : null;
+          return dateStr === selectedISO;
+        })
         .map((s) => s.slot),
     [shifts, selectedISO]
   );
+
   // Bản đồ availability status
   const availability = useMemo(() => {
     const map: Record<string, Record<string, string>> = {};
     weekDates.forEach((date) => {
-      const iso = date.toISOString().slice(0, 10); // yyyy-mm-dd
+      const iso = date.toISOString().slice(0, 10);
       map[iso] = {};
     });
     shifts.forEach((s) => {
-      const iso = new Date(s.date).toISOString().slice(0, 10);
-      map[iso] = map[iso] || {};
-      map[iso][s.slot] = s.status;
+      const iso = s.date
+        ? s.date
+        : s.startTime
+        ? s.startTime.slice(0, 10)
+        : null;
+      if (iso) {
+        map[iso] = map[iso] || {};
+        map[iso][s.slot] = s.status;
+      }
     });
+
     return map;
   }, [shifts, weekDates]);
 
@@ -167,7 +180,7 @@ export default function BookingScreen() {
 
   const handleSelectDay = (day: string, idx: number) => {
     setSelectedDay(day);
-    setSelectedTime(null);
+    setSelectedTime(null); // <- reset đúng rồi!
     setSelectedDate(weekDates[idx]);
   };
 
@@ -208,9 +221,9 @@ export default function BookingScreen() {
     }
 
     // Timezone handling for ISO string
-    const offsetMs = localDate.getTimezoneOffset() * 60 * 1000;
-    const utcDate = new Date(localDate.getTime() - offsetMs);
-    const appointmentDate = utcDate.toISOString();
+    // const offsetMs = localDate.getTimezoneOffset() * 60 * 1000;
+    // const utcDate = new Date(localDate.getTime() - offsetMs);
+    const appointmentDate = selectedDate.toISOString().slice(0, 10);
 
     // Note length validation
     if (note.length > 255) {
@@ -218,69 +231,70 @@ export default function BookingScreen() {
       return;
     }
 
-    // Everything valid, proceed with booking
-    bookAppointmentMutation.mutate(
-      {
-        serviceID: selectedService.serviceID,
-        doctorID: selectedDoctor.doctorID,
-        appointmentDate: appointmentDate,
-        isAnonymous: isAnonymous,
-        note: note,
-      },
-      {
-        onSuccess: (response: any) => {
-          const appointmentId =
-            response?.appointmentId ||
-            response?.appointmentID ||
-            response?.id ||
-            response?.appointment?.appointmentId;
+    const payload = {
+      serviceID: selectedService.serviceID,
+      doctorID: selectedDoctor.doctorID,
+      appointmentDate: appointmentDate,
+      isAnonymous: isAnonymous,
+      note: note,
+      slot: selectedTime,
+    };
+    console.log("Booking payload gửi lên backend:", payload);
 
-          if (!appointmentId && paymentOption === "PAY_NOW") {
-            setShowFailureModal(true);
+    // Everything valid, proceed with booking
+    bookAppointmentMutation.mutate(payload, {
+      onSuccess: (response: any) => {
+        const appointmentId =
+          response?.appointmentId ||
+          response?.appointmentID ||
+          response?.id ||
+          response?.appointment?.appointmentId;
+
+        if (!appointmentId && paymentOption === "PAY_NOW") {
+          setShowFailureModal(true);
+          return;
+        }
+
+        // Trước khi gọi mutate cho transferToAppointment:
+        if (paymentOption === "PAY_NOW" && accountId) {
+          if ((selectedService?.price ?? 0) > balance) {
+            // Báo lỗi số dư không đủ
+            Alert.alert(
+              "Số dư không đủ",
+              "Vui lòng nạp thêm tiền để thanh toán dịch vụ này!"
+            );
             return;
           }
-
-          // Trước khi gọi mutate cho transferToAppointment:
-          if (paymentOption === "PAY_NOW" && accountId) {
-            if ((selectedService?.price ?? 0) > balance) {
-              // Báo lỗi số dư không đủ
-              Alert.alert(
-                "Số dư không đủ",
-                "Vui lòng nạp thêm tiền để thanh toán dịch vụ này!"
-              );
-              return;
+          // Nếu đủ tiền mới chuyển tiếp thanh toán
+          transferToAppointmentMutation.mutate(
+            { appointmentId, accountId: accountId },
+            {
+              onSuccess: () => {
+                setSuccessType("payment"); // thành công thanh toán
+                setShowSuccessModal(true);
+              },
+              onError: () => {
+                setShowFailureModal(true);
+              },
             }
-            // Nếu đủ tiền mới chuyển tiếp thanh toán
-            transferToAppointmentMutation.mutate(
-              { appointmentId, accountId: accountId },
-              {
-                onSuccess: () => {
-                  setSuccessType("payment"); // thành công thanh toán
-                  setShowSuccessModal(true);
-                },
-                onError: () => {
-                  setShowFailureModal(true);
-                },
-              }
-            );
-          } else {
-            setSuccessType("booking");
-            setShowSuccessModal(true);
-          }
-        },
+          );
+        } else {
+          setSuccessType("booking");
+          setShowSuccessModal(true);
+        }
+      },
 
-        onError: (error: any) => {
-          // Ưu tiên lấy message gốc trả về từ backend
-          const backendMessage =
-            error?.response?.data?.message ||
-            error?.response?.data?.error ||
-            error?.message ||
-            "An error occurred while scheduling.";
+      onError: (error: any) => {
+        // Ưu tiên lấy message gốc trả về từ backend
+        const backendMessage =
+          error?.response?.data?.message ||
+          error?.response?.data?.error ||
+          error?.message ||
+          "An error occurred while scheduling.";
 
-          Alert.alert("Schedule failed", backendMessage);
-        },
-      }
-    );
+        Alert.alert("Schedule failed", backendMessage);
+      },
+    });
   };
 
   return (
@@ -335,7 +349,7 @@ export default function BookingScreen() {
         <TimeSlots
           timeSlots={timeSlotsList}
           availability={availability}
-          selectedDay={selectedDate.toISOString().slice(0, 10)} // dùng ISO
+          selectedDay={selectedDate.toISOString().slice(0, 10)}
           selectedTime={selectedTime}
           onSelectTime={setSelectedTime}
         />

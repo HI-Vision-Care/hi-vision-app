@@ -20,7 +20,7 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
     timeSlots.length === 0 ||
     timeSlots.every((time) => {
       const status = availability[selectedDay]?.[time] ?? "";
-      return status !== "Available";
+      return status?.toUpperCase() !== "AVAILABLE";
     });
 
   return (
@@ -34,7 +34,7 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
         ) : (
           timeSlots.map((time) => {
             const status = availability[selectedDay]?.[time] ?? "";
-            const isAvailable = status === "Available";
+            const isAvailable = status?.toUpperCase() === "AVAILABLE";
             const isSelected = time === selectedTime;
             return (
               <TouchableOpacity
