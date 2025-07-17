@@ -1,4 +1,5 @@
 import { AppointmentDetail } from "@/services/appointment/types";
+import { formatVietnameseDate } from "@/utils/format";
 import React from "react";
 import { Text, View } from "react-native";
 
@@ -58,12 +59,13 @@ const ChatbotCard: React.FC<Props> = ({ appointment }) => {
 
       {/* Date */}
       <Text className="text-white text-xl font-bold mb-4">
-        {new Date(appointmentDate).toLocaleString("en-US", {
-          dateStyle: "medium",
-          timeStyle: "short",
-          timeZone: "UTC",
-        })}
+        {formatVietnameseDate(appointment.appointmentDate)}
       </Text>
+      {appointment.slot && (
+        <Text className="text-white text-base font-medium mb-3">
+          {appointment.slot}
+        </Text>
+      )}
 
       {/* Progress status bar */}
       <View className="mt-2 mb-1">

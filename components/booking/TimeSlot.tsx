@@ -23,6 +23,10 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
       return status?.toUpperCase() !== "AVAILABLE";
     });
 
+  console.log("TimeSlot nhận selectedDay:", selectedDay);
+  console.log("availability[selectedDay]:", availability[selectedDay]);
+  console.log("Toàn bộ availability:", availability);
+
   return (
     <View className="bg-white rounded-xl p-4 shadow-sm mx-4">
       <Text className="font-semibold text-gray-900 mb-3">Available Times</Text>

@@ -48,7 +48,6 @@ const getSpecialtyColor = (specialty: string) => {
 const Menu = () => {
   const { data: services, isLoading, isError, refetch } = useMedicalServices();
   // State để điều khiển spinner khi refresh
-  console.log("services", services);
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
 
@@ -64,7 +63,7 @@ const Menu = () => {
   }, [refetch]);
 
   if (isLoading) {
-    return ( 
+    return (
       <SafeAreaView
         edges={["top", "left", "right", "bottom"]}
         className="flex-1 bg-white"

@@ -21,6 +21,7 @@ import { useDoctorsBySpecialty } from "@/services/medical-services/hooks";
 import { useTransferToAppointment } from "@/services/transaction/hooks";
 import { useWalletByAccountId } from "@/services/wallet/hooks";
 import { Service } from "@/types/type";
+import { toLocalISODate, toLocalISODatee } from "@/utils/format";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -129,7 +130,7 @@ export default function BookingScreen() {
   const balance = wallet?.balance ?? 0;
 
   // Các slot cho ngày đang chọn
-  const selectedISO = selectedDate.toISOString().slice(0, 10);
+  const selectedISO = toLocalISODatee(selectedDate);
 
   const timeSlotsList = useMemo(
     () =>
@@ -178,15 +179,21 @@ export default function BookingScreen() {
     setSelectedTime(null);
   };
 
-  const handleSelectDay = (day: string, idx: number) => {
-    setSelectedDay(day);
-    setSelectedTime(null); // <- reset đúng rồi!
-    setSelectedDate(weekDates[idx]);
+  const handleSelectDay = (date: Date, idx: number) => {
+    setSelectedDate(date);
+    setSelectedTime(null);
   };
+
+  useEffect(() => {
+    // Nếu selectedTime không còn trong slot hợp lệ, reset nó
+    if (selectedTime && !timeSlotsList.includes(selectedTime)) {
+      setSelectedTime(null);
+    }
+  }, [selectedTime, timeSlotsList]);
 
   // Đặt lịch
   const handleBooking = () => {
-    // Check patientId (nếu cần)
+    // Check patientId
     if (!patientId) {
       Alert.alert("You must be logged in to book an appointment.");
       return;
@@ -211,35 +218,37 @@ export default function BookingScreen() {
     // Validate appointment time not in the past
     const [startTime] = selectedTime.split(" - "); // "09:00"
     const [hours, minutes] = startTime.split(":");
-    const localDate = new Date(selectedDate); // Clone so you don't mutate state
+    const localDate = new Date(selectedDate);
     localDate.setHours(Number(hours), Number(minutes), 0, 0);
-
-    // Compare with now
     if (localDate < new Date()) {
       Alert.alert("You cannot book an appointment in the past.");
       return;
     }
-
-    // Timezone handling for ISO string
-    // const offsetMs = localDate.getTimezoneOffset() * 60 * 1000;
-    // const utcDate = new Date(localDate.getTime() - offsetMs);
-    const appointmentDate = selectedDate.toISOString().slice(0, 10);
-
     // Note length validation
     if (note.length > 255) {
       Alert.alert("Note is too long (max 255 characters).");
       return;
     }
-
+    // ---- CHECK SỐ DƯ TRƯỚC ----
+    if (paymentOption === "PAY_NOW") {
+      if ((selectedService?.price ?? 0) > balance) {
+        Alert.alert(
+          "Số dư không đủ",
+          "Vui lòng nạp thêm tiền để thanh toán dịch vụ này!"
+        );
+        return;
+      }
+    }
+    // ---- CHỈ KHI ĐỦ TIỀN MỚI TẠO BOOKING ----
     const payload = {
       serviceID: selectedService.serviceID,
       doctorID: selectedDoctor.doctorID,
-      appointmentDate: appointmentDate,
+      appointmentDate: toLocalISODate(selectedDate),
       isAnonymous: isAnonymous,
       note: note,
       slot: selectedTime,
     };
-    console.log("Booking payload gửi lên backend:", payload);
+    console.log("PayLoad:", payload);
 
     // Everything valid, proceed with booking
     bookAppointmentMutation.mutate(payload, {
@@ -323,7 +332,7 @@ export default function BookingScreen() {
 
         <WeekNavigation
           weekDates={weekDates}
-          selectedDay={selectedDay}
+          selectedDate={selectedDate}
           onSelectDay={handleSelectDay}
           onPrevWeek={() => navigateWeek(-1)}
           onNextWeek={() => navigateWeek(1)}
@@ -349,7 +358,7 @@ export default function BookingScreen() {
         <TimeSlots
           timeSlots={timeSlotsList}
           availability={availability}
-          selectedDay={selectedDate.toISOString().slice(0, 10)}
+          selectedDay={selectedISO}
           selectedTime={selectedTime}
           onSelectTime={setSelectedTime}
         />
@@ -376,10 +385,11 @@ export default function BookingScreen() {
           <>
             <BookingSummary
               service={selectedService}
-              selectedDay={selectedDay}
+              selectedDate={selectedDate} // <-- Truyền luôn Date object
               selectedTime={selectedTime}
               weekDates={weekDates}
             />
+
             <BookButton onBook={handleBooking} disabled={false} />
           </>
         ) : (
@@ -404,7 +414,10 @@ export default function BookingScreen() {
         visible={showSuccessModal}
         onClose={() => {
           setShowSuccessModal(false);
-          router.replace("/(personal-info)/history");
+          router.replace({
+            pathname: "/(personal-info)/history",
+            params: { fromBooking: "1" },
+          });
         }}
         title={
           successType === "payment"

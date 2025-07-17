@@ -4,21 +4,24 @@ import { Text, TouchableOpacity, View } from "react-native";
 
 interface DetailHeaderProps {
   title: string;
+  hideBack?: boolean;
 }
 
-export default function DetailHeader({ title }: DetailHeaderProps) {
+export default function DetailHeader({ title, hideBack }: DetailHeaderProps) {
   const router = useRouter();
 
   return (
     <View className="flex-row items-center justify-between bg-gradient-to-r from-white to-slate-50 border-b border-slate-200/60 px-6 pb-4 shadow-sm pt-2">
       {/* Back */}
-      <TouchableOpacity
-        onPress={() => router.back()}
-        className="p-3 bg-white/90 rounded-xl border border-slate-200/80 shadow-lg shadow-slate-200/50 active:scale-95 active:bg-slate-50"
-        activeOpacity={0.7}
-      >
-        <Ionicons name="chevron-back" size={22} color="#334155" />
-      </TouchableOpacity>
+      {!hideBack && (
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="p-3 bg-white/90 rounded-xl border border-slate-200/80 shadow-lg shadow-slate-200/50 active:scale-95 active:bg-slate-50"
+          activeOpacity={0.7}
+        >
+          <Ionicons name="chevron-back" size={22} color="#334155" />
+        </TouchableOpacity>
+      )}
 
       <View className="flex-1 mx-4">
         <Text

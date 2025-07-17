@@ -217,6 +217,7 @@ export interface MedicalRecord {
     name: string;
   };
   appointmentDate?: date;
+  slot: string;
 }
 
 export interface LabResult {
