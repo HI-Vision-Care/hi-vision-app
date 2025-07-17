@@ -19,6 +19,7 @@ import {
 import { Doctor } from "@/services/doctor/types";
 import { useDoctorsBySpecialty } from "@/services/medical-services/hooks";
 import { useTransferToAppointment } from "@/services/transaction/hooks";
+import { useWalletByAccountId } from "@/services/wallet/hooks";
 import { Service } from "@/types/type";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -123,6 +124,9 @@ export default function BookingScreen() {
     isLoading: shiftsLoading,
     error: shiftsError,
   } = useGetWorkShiftsWeek(selectedDateParam, selectedDoctor?.doctorID);
+
+  const { data: wallet } = useWalletByAccountId(accountId || "");
+  const balance = wallet?.balance ?? 0;
 
   // Các slot cho ngày đang chọn
   const selectedISO = selectedDate.toISOString().slice(0, 10);
@@ -236,7 +240,17 @@ export default function BookingScreen() {
             return;
           }
 
+          // Trước khi gọi mutate cho transferToAppointment:
           if (paymentOption === "PAY_NOW" && accountId) {
+            if ((selectedService?.price ?? 0) > balance) {
+              // Báo lỗi số dư không đủ
+              Alert.alert(
+                "Số dư không đủ",
+                "Vui lòng nạp thêm tiền để thanh toán dịch vụ này!"
+              );
+              return;
+            }
+            // Nếu đủ tiền mới chuyển tiếp thanh toán
             transferToAppointmentMutation.mutate(
               { appointmentId, accountId: accountId },
               {
@@ -250,7 +264,7 @@ export default function BookingScreen() {
               }
             );
           } else {
-            setSuccessType("booking"); // thành công đặt lịch, chưa thanh toán
+            setSuccessType("booking");
             setShowSuccessModal(true);
           }
         },
