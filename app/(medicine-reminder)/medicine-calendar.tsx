@@ -705,7 +705,7 @@ const MedicineCalendar = () => {
               <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>➕ Thêm lịch nhắc mới</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={{
                 backgroundColor: "#FF5722",
                 borderRadius: 12,
@@ -721,7 +721,7 @@ const MedicineCalendar = () => {
               onPress={cancelAllArvNotifications}
             >
               <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>🗑️ Xóa lịch ARV</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
             <TouchableOpacity
               style={{
@@ -741,7 +741,7 @@ const MedicineCalendar = () => {
               <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>🗑️ Xóa hết lịch</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={{
                 backgroundColor: "#2196F3",
                 borderRadius: 12,
@@ -757,9 +757,9 @@ const MedicineCalendar = () => {
               onPress={logAllArvSchedules}
             >
               <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>📋 Log ra ARV</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={{
                 backgroundColor: "#f44336",
                 borderRadius: 12,
@@ -777,7 +777,7 @@ const MedicineCalendar = () => {
               <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>
                 🗑️ Xóa tất cả xác nhận đã uống
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </ScrollView>
         )}
       </View>
