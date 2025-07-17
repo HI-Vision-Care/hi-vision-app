@@ -85,6 +85,11 @@ const ChatBox = () => {
         try {
           const msg: Message = JSON.parse(message.body);
           setMessages((prev) => [...prev, msg]);
+          if (
+            msg.message === "Tư vấn kết thúc"
+          ) {
+            setRequireModalVisible(true);
+          }
         } catch (e) {
           console.error("Invalid msg format", e);
         }
