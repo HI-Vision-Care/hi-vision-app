@@ -14,7 +14,11 @@ export const useMedicalServices = () =>
         iconUri: icons.virus103,
         iconBgColor: item.isOnline ? "#10B981" : "#3B82F6",
         illustrationUri: images.hivtest,
-        specialty: item.specialty ?? "", // Ensure specialty is present
+        // Đảm bảo giữ lại testItems, type và mọi trường mới từ BE:
+        testItems: item.testItems,
+        type: item.type,
+        // specialty vẫn optional, backend mới trả thì lấy, không có thì bỏ
+        specialty: item.specialty,
       }));
     },
     { staleTime: 1000 * 60 * 5 }

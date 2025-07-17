@@ -9,6 +9,8 @@ export * from "./history";
 export * from "./home";
 export * from "./layout";
 export * from "./metrics";
+export * from "./modals";
 export * from "./onboarding";
 export * from "./services";
 export * from "./wallet";
+export * from "./widget";

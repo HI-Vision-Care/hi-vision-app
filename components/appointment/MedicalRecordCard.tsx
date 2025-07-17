@@ -17,6 +17,7 @@ interface MedicalRecord {
   paymentStatus?: "PAID" | "UNPAID" | "ongoing" | string;
   medicalService?: {
     name: string;
+    price?: number;
   };
   doctor: {
     name: string;
@@ -130,12 +131,23 @@ const MedicalRecordCard: React.FC<{
             {/* Header with Service Name and Status & Payment */}
             <View className="flex-row items-center justify-between mb-2">
               <View className="flex-1 mr-2">
-                <Text
-                  className="text-base font-semibold text-gray-900"
-                  numberOfLines={1}
-                >
-                  {record.medicalService?.name ?? "Unknown service"}
-                </Text>
+                <View className="flex- items-start">
+                  <Text
+                    className="text-base font-semibold text-gray-900"
+                    numberOfLines={1}
+                  >
+                    {record.medicalService?.name ?? "Unknown service"}
+                  </Text>
+                  {typeof record.medicalService?.price === "number" && (
+                    <View className="flex-row items-center ml-2 px-2 py-0.5 bg-blue-50 rounded-full">
+                      <Ionicons name="pricetag" size={13} color="#2563EB" />
+                      <Text className="ml-1 text-blue-700 font-semibold text-xs">
+                        {record.medicalService.price.toLocaleString()}₫
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
                 {record.urlLink && (
                   <Ionicons
                     name="videocam"

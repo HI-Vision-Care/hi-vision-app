@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 import { WebView } from "react-native-webview";
+import { TopUpSuccessModal } from "../modals";
 
 const VNPAY_CALLBACK_URL = "http://192.168.100.21:8081/success";
 
@@ -29,6 +30,8 @@ const DepositButton = ({
   const [webviewUrl, setWebviewUrl] = useState<string | null>(null);
   const { mutate: createWallet, isLoading } = useCreateWallet();
 
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
   const [callbackParams, setCallbackParams] =
     useState<VNPayCallbackParams | null>(null);
   const {
@@ -43,9 +46,7 @@ const DepositButton = ({
 
   useEffect(() => {
     if (isCallbackSuccess && callbackData) {
-      Alert.alert("Nạp tiền thành công", "Số dư của bạn đã được cập nhật!", [
-        { text: "Đóng", style: "default" },
-      ]);
+      setShowSuccessModal(true); // show modal thành công
       refetchWallet?.();
       setCallbackParams(null);
     }
@@ -335,6 +336,11 @@ const DepositButton = ({
           />
         </View>
       </Modal>
+
+      <TopUpSuccessModal
+        visible={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+      />
     </View>
   );
 };

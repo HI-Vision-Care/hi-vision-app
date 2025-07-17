@@ -3,6 +3,9 @@ import {
   BookingSummary,
   ChooseDoctor,
   HeaderBack,
+  PaymenFailureModal,
+  PaymentOption,
+  PaymentSuccessModal,
   ServiceSelection,
   WeekNavigation,
 } from "@/components";
@@ -15,6 +18,7 @@ import {
 } from "@/services/booking-services/hooks";
 import { Doctor } from "@/services/doctor/types";
 import { useDoctorsBySpecialty } from "@/services/medical-services/hooks";
+import { useTransferToAppointment } from "@/services/transaction/hooks";
 import { Service } from "@/types/type";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -35,6 +39,17 @@ export type AvailabilityMap = Record<string, Record<string, string>>;
 export default function BookingScreen() {
   const { data: profile } = usePatientProfile();
   const patientId = profile?.patientID;
+  const accountId = profile?.account?.id;
+
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showFailureModal, setShowFailureModal] = useState(false);
+  const [successType, setSuccessType] = useState<"booking" | "payment">(
+    "booking"
+  );
+
+  const [paymentOption, setPaymentOption] = useState<"PAY_NOW" | "PAY_LATER">(
+    "PAY_LATER"
+  );
 
   const { data } = useLocalSearchParams<{ data: string }>();
   const [isAnonymous, setIsAnonymous] = useState(false);
@@ -64,8 +79,7 @@ export default function BookingScreen() {
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
 
   const bookAppointmentMutation = useBookAppointment(patientId ?? ""); // fallback to empty string if undefined
-
-  // const bookAppointmentMutation = useBookAppointment(patientId);
+  const transferToAppointmentMutation = useTransferToAppointment(); // Initialize the new mutation hook
 
   // Tuần hiện tại (thứ Hai)
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => {
@@ -172,11 +186,6 @@ export default function BookingScreen() {
       Alert.alert("Please select a doctor.");
       return;
     }
-    // (Optional) Check doctor still exists in doctor list
-    // if (!doctors?.find(d => d.doctorID === selectedDoctor.doctorID)) {
-    //   Alert.alert("Selected doctor is unavailable. Please choose another doctor.");
-    //   return;
-    // }
     // Check Date & Time
     if (!selectedDay || !selectedTime) {
       Alert.alert("Please select a date and time slot.");
@@ -215,15 +224,46 @@ export default function BookingScreen() {
         note: note,
       },
       {
-        onSuccess: () => {
-          Alert.alert("Scheduled successfully!");
-          router.replace("/(personal-info)/history");
+        onSuccess: (response: any) => {
+          const appointmentId =
+            response?.appointmentId ||
+            response?.appointmentID ||
+            response?.id ||
+            response?.appointment?.appointmentId;
+
+          if (!appointmentId && paymentOption === "PAY_NOW") {
+            setShowFailureModal(true);
+            return;
+          }
+
+          if (paymentOption === "PAY_NOW" && accountId) {
+            transferToAppointmentMutation.mutate(
+              { appointmentId, accountId: accountId },
+              {
+                onSuccess: () => {
+                  setSuccessType("payment"); // thành công thanh toán
+                  setShowSuccessModal(true);
+                },
+                onError: () => {
+                  setShowFailureModal(true);
+                },
+              }
+            );
+          } else {
+            setSuccessType("booking"); // thành công đặt lịch, chưa thanh toán
+            setShowSuccessModal(true);
+          }
         },
+
         onError: (error: any) => {
-          Alert.alert(
-            "Schedule failed",
-            error.message || "An error occurred while scheduling."
-          );
+          // Ưu tiên lấy message gốc trả về từ backend
+          const backendMessage =
+            error?.response?.data?.message ||
+            error?.response?.data?.error ||
+            error?.message ||
+            "An error occurred while scheduling.";
+
+          Alert.alert("Schedule failed", backendMessage);
         },
       }
     );
@@ -299,6 +339,11 @@ export default function BookingScreen() {
           />
         </View>
 
+        <PaymentOption
+          selectedOption={paymentOption}
+          onSelectOption={setPaymentOption}
+        />
+
         {selectedService && selectedDay && selectedTime ? (
           <>
             <BookingSummary
@@ -310,9 +355,40 @@ export default function BookingScreen() {
             <BookButton onBook={handleBooking} disabled={false} />
           </>
         ) : (
-          <BookButton onBook={handleBooking} disabled />
+          <BookButton
+            onBook={handleBooking}
+            disabled={
+              !selectedService ||
+              !selectedDay ||
+              !selectedTime ||
+              bookAppointmentMutation.isLoading ||
+              transferToAppointmentMutation.isLoading
+            }
+          />
         )}
       </ScrollView>
+
+      <PaymenFailureModal
+        visible={showFailureModal}
+        onClose={() => setShowFailureModal(false)}
+      />
+      <PaymentSuccessModal
+        visible={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          router.replace("/(personal-info)/history");
+        }}
+        title={
+          successType === "payment"
+            ? "Thanh toán thành công!"
+            : "Đặt lịch thành công!"
+        }
+        subtitle={
+          successType === "payment"
+            ? "Bạn đã đặt lịch và thanh toán thành công."
+            : "Lịch hẹn của bạn đã được ghi nhận. Vui lòng thanh toán trước khi đến khám."
+        }
+      />
     </SafeAreaView>
   );
 }
