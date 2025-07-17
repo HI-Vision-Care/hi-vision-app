@@ -5,15 +5,15 @@ import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 interface WeekNavigationProps {
   weekDates: Date[];
-  selectedDay: string;
-  onSelectDay: (day: string, idx: number) => void; // cập nhật prop
+  selectedDate: Date;
+  onSelectDay: (date: Date, idx: number) => void;
   onPrevWeek: () => void;
   onNextWeek: () => void;
 }
 
 const WeekNavigation: React.FC<WeekNavigationProps> = ({
   weekDates,
-  selectedDay,
+  selectedDate,
   onSelectDay,
   onPrevWeek,
   onNextWeek,
@@ -49,11 +49,12 @@ const WeekNavigation: React.FC<WeekNavigationProps> = ({
           {weekDays.map((day, idx) => {
             const date = weekDates[idx];
             const isToday = date.toDateString() === new Date().toDateString();
-            const isSelected = day === selectedDay;
+            const isSelected =
+              date.toDateString() === selectedDate.toDateString();
             return (
               <TouchableOpacity
                 key={idx}
-                onPress={() => onSelectDay(day, idx)}
+                onPress={() => onSelectDay(date, idx)}
                 className={`items-center p-3 rounded-xl min-w-[70px] ${
                   isSelected
                     ? "bg-blue-500"

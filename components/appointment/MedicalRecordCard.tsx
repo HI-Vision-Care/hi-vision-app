@@ -62,7 +62,7 @@ const getPaymentConfig = (status: string) => {
 
 const MedicalRecordCard: React.FC<{
   record: MedicalRecord;
-  onViewDetails?: (record: MedicalRecord) => void; // Optional: callback when user presses "View Details"
+  onViewDetails?: (record: MedicalRecord) => void;
 }> = ({ record, onViewDetails }) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -110,6 +110,8 @@ const MedicalRecordCard: React.FC<{
 
   const statusConfig = getStatusConfig(record.status);
   const paymentConfig = getPaymentConfig(record.paymentStatus ?? "");
+
+  console.log(utcDateString);
 
   return (
     <View className="bg-white mx-4 mt-3 rounded-xl shadow-sm border border-gray-100">
