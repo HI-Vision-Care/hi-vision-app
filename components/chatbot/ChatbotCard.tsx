@@ -1,7 +1,8 @@
 import { AppointmentDetail } from "@/services/appointment/types";
 import { formatVietnameseDate } from "@/utils/format";
+import { router } from "expo-router";
 import React from "react";
-import { Text, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 type Props = {
   appointment: AppointmentDetail;
@@ -41,85 +42,100 @@ const ChatbotCard: React.FC<Props> = ({ appointment }) => {
     return "bg-gray-300";
   };
 
+  // Khi bấm vào card thì chuyển trang:
+  const handlePress = () => {
+    // appointmentID dùng cho url động [id]
+    // truyền data qua param (bắt buộc stringify vì param chỉ nhận string)
+    router.push({
+      pathname: "/appointments/[id]",
+      params: {
+        id: appointment.appointmentID,
+        data: JSON.stringify(appointment),
+      },
+    });
+  };
+
   return (
-    <View className="bg-slate-800 rounded-2xl p-6 mb-6 overflow-hidden relative">
-      {/* Doctor & service info */}
-      <View className="flex-row items-center mb-3">
-        <View className="flex-1">
-          {appointment.medicalService?.name && (
-            <Text className="text-white font-semibold text-base mb-1">
-              {appointment.medicalService.name}
-            </Text>
-          )}
-          <Text className="text-white font-semibold text-lg">
-            By: {doctor?.name}
-          </Text>
-        </View>
-      </View>
-
-      {/* Date */}
-      <Text className="text-white text-xl font-bold mb-4">
-        {formatVietnameseDate(appointment.appointmentDate)}
-      </Text>
-      {appointment.slot && (
-        <Text className="text-white text-base font-medium mb-3">
-          {appointment.slot}
-        </Text>
-      )}
-
-      {/* Progress status bar */}
-      <View className="mt-2 mb-1">
-        {appointmentStatus === "CANCELLED" ? (
-          <View className="flex-1 items-center py-2">
-            <View className="flex-row items-center">
-              <View className="w-6 h-6 rounded-full bg-red-500 items-center justify-center">
-                <Text className="text-white text-xs font-bold">!</Text>
-              </View>
-              <Text className="text-red-500 font-bold ml-2 text-base">
-                Cancelled
+    <TouchableOpacity onPress={handlePress} activeOpacity={0.85}>
+      <View className="bg-slate-800 rounded-2xl p-6 mb-6 overflow-hidden relative">
+        {/* Doctor & service info */}
+        <View className="flex-row items-center mb-3">
+          <View className="flex-1">
+            {appointment.medicalService?.name && (
+              <Text className="text-white font-semibold text-base mb-1">
+                {appointment.medicalService.name}
               </Text>
-            </View>
+            )}
+            <Text className="text-white font-semibold text-lg">
+              By: {doctor?.name}
+            </Text>
           </View>
-        ) : (
-          <View className="flex-row items-center justify-between">
-            {steps.map((step, idx) => (
-              <React.Fragment key={step.key}>
-                {/* Step indicator */}
-                <View className="items-center flex-1">
-                  <View
-                    className={`w-6 h-6 rounded-full items-center justify-center ${getStepCircleStyle(
-                      idx
-                    )}`}
-                  >
-                    <Text className="text-white text-xs font-bold">
-                      {idx + 1}
+        </View>
+
+        {/* Date */}
+        <Text className="text-white text-xl font-bold mb-4">
+          {formatVietnameseDate(appointment.appointmentDate)}
+        </Text>
+        {appointment.slot && (
+          <Text className="text-white text-base font-medium mb-3">
+            {appointment.slot}
+          </Text>
+        )}
+
+        {/* Progress status bar */}
+        <View className="mt-2 mb-1">
+          {appointmentStatus === "CANCELLED" ? (
+            <View className="flex-1 items-center py-2">
+              <View className="flex-row items-center">
+                <View className="w-6 h-6 rounded-full bg-red-500 items-center justify-center">
+                  <Text className="text-white text-xs font-bold">!</Text>
+                </View>
+                <Text className="text-red-500 font-bold ml-2 text-base">
+                  Cancelled
+                </Text>
+              </View>
+            </View>
+          ) : (
+            <View className="flex-row items-center justify-between">
+              {steps.map((step, idx) => (
+                <React.Fragment key={step.key}>
+                  {/* Step indicator */}
+                  <View className="items-center flex-1">
+                    <View
+                      className={`w-6 h-6 rounded-full items-center justify-center ${getStepCircleStyle(
+                        idx
+                      )}`}
+                    >
+                      <Text className="text-white text-xs font-bold">
+                        {idx + 1}
+                      </Text>
+                    </View>
+                    <Text
+                      className={`text-xs mt-1 text-center ${getStepTextStyle(
+                        idx
+                      )}`}
+                      style={{ width: 68 }}
+                      numberOfLines={2}
+                    >
+                      {step.label}
                     </Text>
                   </View>
-                  <Text
-                    className={`text-xs mt-1 text-center ${getStepTextStyle(
-                      idx
-                    )}`}
-                    style={{ width: 68 }}
-                    numberOfLines={2}
-                  >
-                    {step.label}
-                  </Text>
-                </View>
 
-                {/* Connector line */}
-                {idx < steps.length - 1 && (
-                  <View
-                    className={`h-1 flex-1 mx-1 rounded ${getConnectorStyle(
-                      idx
-                    )}`}
-                  />
-                )}
-              </React.Fragment>
-            ))}
-          </View>
-        )}
+                  {/* Connector line */}
+                  {idx < steps.length - 1 && (
+                    <View
+                      className={`h-1 flex-1 mx-1 rounded ${getConnectorStyle(
+                        idx
+                      )}`}
+                    />
+                  )}
+                </React.Fragment>
+              ))}
+            </View>
+          )}
+        </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 

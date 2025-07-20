@@ -10,9 +10,7 @@ type Props = {
 const PaymentOption = ({ selectedOption, onSelectOption }: Props) => {
   return (
     <View className="mx-4 mt-4">
-      <Text className="text-base font-bold mb-2">
-        Chọn hình thức thanh toán
-      </Text>
+      <Text className="text-base font-bold mb-2">Select payment method</Text>
       <View className="flex-row space-x-4">
         <TouchableOpacity
           className={`flex-1 p-4 rounded-xl border-2 ${
@@ -22,9 +20,9 @@ const PaymentOption = ({ selectedOption, onSelectOption }: Props) => {
           }`}
           onPress={() => onSelectOption("PAY_NOW")}
         >
-          <Text className="font-semibold text-center mb-2">Trả tiền trước</Text>
+          <Text className="font-semibold text-center mb-2">Pay in advance</Text>
           <Text className="text-gray-500 text-center text-xs">
-            Thanh toán ngay sau khi đặt lịch
+            Pay immediately after booking
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -35,9 +33,9 @@ const PaymentOption = ({ selectedOption, onSelectOption }: Props) => {
           }`}
           onPress={() => onSelectOption("PAY_LATER")}
         >
-          <Text className="font-semibold text-center mb-2">Trả tiền sau</Text>
+          <Text className="font-semibold text-center mb-2">Pay later</Text>
           <Text className="text-gray-500 text-center text-xs">
-            Thanh toán tại quầy/sau khi khám
+            Payment at counter/after examination
           </Text>
         </TouchableOpacity>
       </View>

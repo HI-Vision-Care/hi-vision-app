@@ -95,7 +95,6 @@ const AppointmentDetail = () => {
         return "bg-gray-100 text-gray-800";
     }
   };
-  console.log(appointment);
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -316,7 +315,7 @@ const AppointmentDetail = () => {
             <View className="p-4">
               {labResults.map((result, index) => (
                 <View
-                  key={result.recordId}
+                  key={`${result.recordId}_${index}`}
                   className={`${
                     index > 0 ? "mt-4 pt-4 border-t border-gray-100" : ""
                   }`}
