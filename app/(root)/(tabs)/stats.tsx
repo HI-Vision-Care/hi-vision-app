@@ -14,9 +14,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useGetBlogPosts } from '@/services/blog/hooks';
 import { BlogPost } from '@/services/blog/types';
+import { usePatientProfile } from '@/hooks/usePatientId';
+
+
 
 const Stats = () => {
-  const { data: posts, isLoading, isError, error, refetch } = useGetBlogPosts();
+  const { data: profile } = usePatientProfile();
+  const patientAccountId = profile?.account.id;
+  const { data: posts, isLoading, isError, error, refetch } = useGetBlogPosts(patientAccountId);        
   const [refreshing, setRefreshing] = useState(false);
 
   // Đảm bảo newest blog lên đầu (nếu backend không sort sẵn)
