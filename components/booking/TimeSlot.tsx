@@ -20,13 +20,17 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
     timeSlots.length === 0 ||
     timeSlots.every((time) => {
       const status = availability[selectedDay]?.[time] ?? "";
-      return status !== "Available";
+      return status?.toUpperCase() !== "AVAILABLE";
     });
+
+  console.log("TimeSlot nhận selectedDay:", selectedDay);
+  console.log("availability[selectedDay]:", availability[selectedDay]);
+  console.log("Toàn bộ availability:", availability);
 
   return (
     <View className="bg-white rounded-xl p-4 shadow-sm mx-4">
       <Text className="font-semibold text-gray-900 mb-3">Available Times</Text>
-      <View className="flex-row flex-wrap gap-3">
+      <View className="flex-row flex-wrap gap-1 -mx-2">
         {allUnavailable ? (
           <View className="w-full items-center py-4">
             <Text className="text-gray-400 italic">No available slots</Text>
@@ -34,7 +38,7 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
         ) : (
           timeSlots.map((time) => {
             const status = availability[selectedDay]?.[time] ?? "";
-            const isAvailable = status === "Available";
+            const isAvailable = status?.toUpperCase() === "AVAILABLE";
             const isSelected = time === selectedTime;
             return (
               <TouchableOpacity

@@ -217,6 +217,7 @@ export interface MedicalRecord {
     name: string;
   };
   appointmentDate?: date;
+  slot: string;
 }
 
 export interface LabResult {
@@ -238,3 +239,22 @@ export interface ConsultationRequest {
 }
 
 export type NavState = { url: string };
+
+export interface DetailItemProps {
+  icon: any; // hoặc string nếu bạn chắc icon luôn là tên chuỗi Ionicons, ví dụ: "card-outline"
+  iconColor: string;
+  iconBg: string;
+  label: string;
+  value: string;
+  valueColor?: string;
+}
+
+export interface TestItemProps {
+  item: {
+    testName: string;
+    testDescription: string;
+    unit: string;
+    referenceRange: string;
+  };
+  index: number;
+}

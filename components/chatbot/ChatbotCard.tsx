@@ -1,69 +1,142 @@
-// components/ChatbotCard.tsx
-import { icons, images } from "@/constants";
+import { AppointmentDetail } from "@/services/appointment/types";
+import { formatVietnameseDate } from "@/utils/format";
+import { router } from "expo-router";
 import React from "react";
-import {
-  Image,
-  StyleProp,
-  Text,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-} from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
-interface ChatbotCardProps {
-  plan: string;
-  count: number;
-  onAddPress?: () => void;
-}
+type Props = {
+  appointment: AppointmentDetail;
+};
 
-const ChatbotCard: React.FC<ChatbotCardProps> = ({
-  plan,
-  count,
-  onAddPress,
-}) => (
-  <View className="bg-slate-800 rounded-2xl p-6 mb-6 overflow-hidden relative">
-    {/* Pill + Add */}
-    <View className="flex-row items-center justify-between">
-      <View className="px-3 py-1 rounded bg-blue-600">
-        <Text className="text-white text-xs font-semibold">{plan}</Text>
+const steps = [
+  { key: "SCHEDULED", label: "Scheduled" },
+  { key: "ONGOING", label: "Ongoing" },
+  { key: "COMPLETED", label: "Completed" },
+];
+
+const ChatbotCard: React.FC<Props> = ({ appointment }) => {
+  const { doctor, appointmentDate, status } = appointment;
+  const appointmentStatus = (status as string) || "SCHEDULED";
+
+  // Find current step index
+  const currentStepIdx =
+    appointmentStatus === "CANCELLED"
+      ? -1
+      : steps.findIndex((s) => s.key === appointmentStatus);
+
+  const getStepCircleStyle = (idx: number) => {
+    if (idx < currentStepIdx) return "bg-green-500";
+    if (idx === currentStepIdx) return "bg-blue-500";
+    return "bg-gray-300";
+  };
+
+  const getStepTextStyle = (idx: number) => {
+    if (idx < currentStepIdx) return "text-green-400";
+    if (idx === currentStepIdx) return "text-blue-400";
+    return "text-gray-400";
+  };
+
+  const getConnectorStyle = (idx: number) => {
+    if (idx < currentStepIdx) return "bg-green-500";
+    if (idx === currentStepIdx) return "bg-blue-500";
+    return "bg-gray-300";
+  };
+
+  // Khi bấm vào card thì chuyển trang:
+  const handlePress = () => {
+    // appointmentID dùng cho url động [id]
+    // truyền data qua param (bắt buộc stringify vì param chỉ nhận string)
+    router.push({
+      pathname: "/appointments/[id]",
+      params: {
+        id: appointment.appointmentID,
+        data: JSON.stringify(appointment),
+      },
+    });
+  };
+
+  return (
+    <TouchableOpacity onPress={handlePress} activeOpacity={0.85}>
+      <View className="bg-slate-800 rounded-2xl p-6 mb-6 overflow-hidden relative">
+        {/* Doctor & service info */}
+        <View className="flex-row items-center mb-3">
+          <View className="flex-1">
+            {appointment.medicalService?.name && (
+              <Text className="text-white font-semibold text-base mb-1">
+                {appointment.medicalService.name}
+              </Text>
+            )}
+            <Text className="text-white font-semibold text-lg">
+              By: {doctor?.name}
+            </Text>
+          </View>
+        </View>
+
+        {/* Date */}
+        <Text className="text-white text-xl font-bold mb-4">
+          {formatVietnameseDate(appointment.appointmentDate)}
+        </Text>
+        {appointment.slot && (
+          <Text className="text-white text-base font-medium mb-3">
+            {appointment.slot}
+          </Text>
+        )}
+
+        {/* Progress status bar */}
+        <View className="mt-2 mb-1">
+          {appointmentStatus === "CANCELLED" ? (
+            <View className="flex-1 items-center py-2">
+              <View className="flex-row items-center">
+                <View className="w-6 h-6 rounded-full bg-red-500 items-center justify-center">
+                  <Text className="text-white text-xs font-bold">!</Text>
+                </View>
+                <Text className="text-red-500 font-bold ml-2 text-base">
+                  Cancelled
+                </Text>
+              </View>
+            </View>
+          ) : (
+            <View className="flex-row items-center justify-between">
+              {steps.map((step, idx) => (
+                <React.Fragment key={step.key}>
+                  {/* Step indicator */}
+                  <View className="items-center flex-1">
+                    <View
+                      className={`w-6 h-6 rounded-full items-center justify-center ${getStepCircleStyle(
+                        idx
+                      )}`}
+                    >
+                      <Text className="text-white text-xs font-bold">
+                        {idx + 1}
+                      </Text>
+                    </View>
+                    <Text
+                      className={`text-xs mt-1 text-center ${getStepTextStyle(
+                        idx
+                      )}`}
+                      style={{ width: 68 }}
+                      numberOfLines={2}
+                    >
+                      {step.label}
+                    </Text>
+                  </View>
+
+                  {/* Connector line */}
+                  {idx < steps.length - 1 && (
+                    <View
+                      className={`h-1 flex-1 mx-1 rounded ${getConnectorStyle(
+                        idx
+                      )}`}
+                    />
+                  )}
+                </React.Fragment>
+              ))}
+            </View>
+          )}
+        </View>
       </View>
-      <TouchableOpacity
-        className="w-10 h-10 bg-blue-500 rounded-md items-center justify-center"
-        onPress={onAddPress}
-      >
-        <Image
-          source={icons.add}
-          resizeMode="contain"
-          className="w-5 h-5"
-          style={{ tintColor: "white" }}
-        />
-      </TouchableOpacity>
-    </View>
-
-    {/* Stats */}
-    <Text className="text-white text-4xl font-bold mt-4">
-      {count.toLocaleString()}
-    </Text>
-    <Text className="text-gray-300 text-sm">Total</Text>
-    <Text className="text-gray-300 text-sm">AI Health Chatbot</Text>
-    <Text className="text-gray-300 text-sm">Conversations</Text>
-
-    {/* Background illustration (thay bằng asset thật của bạn) */}
-    <Image
-      source={images.robot}
-      style={
-        {
-          position: "absolute",
-          right: -30,
-          bottom: -20,
-          width: 250,
-          height: 200,
-          opacity: 0.5,
-        } as StyleProp<ViewStyle>
-      }
-      resizeMode="contain"
-    />
-  </View>
-);
+    </TouchableOpacity>
+  );
+};
 
 export default ChatbotCard;

@@ -1,6 +1,7 @@
 import { OnboardingLayout } from "@/components";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
+import { isValidDob, isValidName } from "@/utils/validation-setup";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -9,7 +10,7 @@ const PatientName = () => {
   const { handleContinue, handleBack, handleSkip, progress } =
     useOnboardingNavigation();
   const [name, setName] = useState("");
-  const [dob, setDob] = useState(""); // Ngày sinh định dạng DD/MM/YYYY hoặc dùng datepicker
+  const [dob, setDob] = useState("");
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const { setData } = useOnboarding();
@@ -50,7 +51,7 @@ const PatientName = () => {
       onContinue={handleContinueAndSave}
       onBack={handleBack}
       onSkip={handleSkip}
-      disabled={!name || !dob}
+      disabled={!isValidName(name) || !isValidDob(dob)}
       childrenWrapperClassName="flex-1 px-6 pt-8"
     >
       <View className="flex-1">
@@ -83,7 +84,7 @@ const PatientName = () => {
                 style={{ marginRight: 12 }}
               />
               <TextInput
-                placeholder="Nhập họ và tên của bạn"
+                placeholder="Nhập tên của bạn"
                 placeholderTextColor="#9CA3AF"
                 value={name}
                 onChangeText={setName}
@@ -93,12 +94,18 @@ const PatientName = () => {
                 autoCapitalize="words"
                 autoCorrect={false}
               />
+
               {name.length > 0 && (
                 <TouchableOpacity onPress={() => setName("")}>
                   <Ionicons name="close-circle" size={20} color="#9CA3AF" />
                 </TouchableOpacity>
               )}
             </View>
+            {name.length > 0 && !isValidName(name) && (
+              <Text className="text-red-500 text-lg mt-1 ml-1">
+                Tên không hợp lệ
+              </Text>
+            )}
           </View>
 
           {/* Date of Birth Input */}
@@ -130,12 +137,18 @@ const PatientName = () => {
                 keyboardType="numeric"
                 maxLength={10}
               />
+
               {dob.length > 0 && (
                 <TouchableOpacity onPress={() => setDob("")}>
                   <Ionicons name="close-circle" size={20} color="#9CA3AF" />
                 </TouchableOpacity>
               )}
             </View>
+            {dob.length === 10 && !isValidDob(dob) && (
+              <Text className="text-red-500 text-lg mt-1 ml-1">
+                Ngày sinh không hợp lệ
+              </Text>
+            )}
             <Text className="text-gray-500 text-sm ml-1">
               Ví dụ: 15/08/1990
             </Text>

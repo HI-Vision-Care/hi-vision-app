@@ -45,9 +45,9 @@ const HeaderHome = () => {
   } = useGetPatientProfile(accountId ?? "");
 
   // 3. Lấy ra avatar + username (có fallback)
-  const avatarUri = profile?.account.avatar
+  const avatarUri = profile?.account?.avatar
     ? profile.account.avatar
-    : images.avatarPlaceholder; // hoặc 1 placeholder trong constants
+    : images.avatarPlaceholder;
   const name = profile?.name ?? "Guest";
 
   return (
@@ -115,8 +115,8 @@ const HeaderHome = () => {
               {profileLoading
                 ? "Loading..."
                 : profileError
-                ? "Error"
-                : `Hi, ${name}! 👋`}
+                  ? "Error"
+                  : `Hi, ${name}! 👋`}
             </Text>
             <View className="flex-row items-center mt-1">
               <View className="flex-row items-center">

@@ -44,4 +44,5 @@ export interface UpdatePatientProfilePayload {
   medNo: string;
   medDate: string; // ISO string
   medFac: string;
+  underlyingDiseases: string;
 }

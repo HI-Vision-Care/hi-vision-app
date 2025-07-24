@@ -17,6 +17,7 @@ interface MedicalRecord {
   paymentStatus?: "PAID" | "UNPAID" | "ongoing" | string;
   medicalService?: {
     name: string;
+    price?: number;
   };
   doctor: {
     name: string;
@@ -25,6 +26,7 @@ interface MedicalRecord {
       phone: string;
     };
   };
+  slot?: string;
 }
 
 const getPaymentConfig = (status: string) => {
@@ -61,7 +63,7 @@ const getPaymentConfig = (status: string) => {
 
 const MedicalRecordCard: React.FC<{
   record: MedicalRecord;
-  onViewDetails?: (record: MedicalRecord) => void; // Optional: callback when user presses "View Details"
+  onViewDetails?: (record: MedicalRecord) => void;
 }> = ({ record, onViewDetails }) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -130,12 +132,23 @@ const MedicalRecordCard: React.FC<{
             {/* Header with Service Name and Status & Payment */}
             <View className="flex-row items-center justify-between mb-2">
               <View className="flex-1 mr-2">
-                <Text
-                  className="text-base font-semibold text-gray-900"
-                  numberOfLines={1}
-                >
-                  {record.medicalService?.name ?? "Unknown service"}
-                </Text>
+                <View className="flex- items-start">
+                  <Text
+                    className="text-base font-semibold text-gray-900"
+                    numberOfLines={1}
+                  >
+                    {record.medicalService?.name ?? "Unknown service"}
+                  </Text>
+                  {typeof record.medicalService?.price === "number" && (
+                    <View className="flex-row items-center ml-2 px-2 py-0.5 bg-blue-50 rounded-full">
+                      <Ionicons name="pricetag" size={13} color="#2563EB" />
+                      <Text className="ml-1 text-blue-700 font-semibold text-xs">
+                        {record.medicalService.price.toLocaleString()}₫
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
                 {record.urlLink && (
                   <Ionicons
                     name="videocam"
@@ -232,6 +245,14 @@ const MedicalRecordCard: React.FC<{
                 {utcDateString ? formatted : "N/A"}
               </Text>
             </View>
+            {record.slot && (
+              <View className="flex-row items-center mb-1">
+                <Ionicons name="time" size={14} color="#666" />
+                <Text className="text-sm text-gray-600 ml-1">
+                  {record.slot}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 

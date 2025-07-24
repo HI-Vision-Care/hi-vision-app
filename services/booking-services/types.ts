@@ -27,6 +27,7 @@ export interface AppointmentForm {
   doctorID: string;
   appointmentDate: string;
   isAnonymous: boolean;
+  slot: string;
   note: string;
 }
 

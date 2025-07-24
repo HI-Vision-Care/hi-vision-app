@@ -1,4 +1,5 @@
 import { usePatientProfile } from "@/hooks/usePatientId";
+import { getConsultationMessages } from "@/services/consultant/api";
 import { useGetConsultationRequire } from "@/services/consultant/hooks";
 import { Ionicons } from "@expo/vector-icons";
 import { Client, Frame, IMessage } from "@stomp/stompjs";
@@ -26,8 +27,7 @@ interface Message {
   date: string;
 }
 
-// Kết nối SockJS tới endpoint '/ws' trên backend
-const WS_ENDPOINT = "http://192.168.2.7:8080/HiVision/ws";
+const WS_ENDPOINT = process.env.EXPO_PUBLIC_WS_ENDPOINT;
 
 const ChatBox = () => {
   const [connected, setConnected] = useState(false);
@@ -40,7 +40,20 @@ const ChatBox = () => {
   const { data: profile } = usePatientProfile();
   const chatID = profile?.account.id;
   const currentUserName = profile?.name;
-  const { data, loading, error, fetch } = useGetConsultationRequire(chatID);
+  const { data, loading, fetch } = useGetConsultationRequire(chatID);
+
+  useEffect(() => {
+    if (!chatID) return;
+    // Lấy tin nhắn cũ từ API khi vừa vào màn hình/chatID đổi
+    getConsultationMessages(chatID)
+      .then((oldMessages) => {
+        // Nếu API trả về đúng định dạng [{...}]
+        setMessages(oldMessages);
+      })
+      .catch((err) => {
+        console.error("Lỗi lấy tin nhắn cũ:", err);
+      });
+  }, [chatID]);
 
   useEffect(() => {
     console.log("ChatBox mounted with chatID:", chatID);
@@ -59,7 +72,7 @@ const ChatBox = () => {
 
   useEffect(() => {
     const client = new Client({
-      webSocketFactory: () => new SockJS(WS_ENDPOINT),
+      webSocketFactory: () => new SockJS(WS_ENDPOINT || ""),
       reconnectDelay: 5000,
       debug: (msg) => console.log("[STOMP]", msg),
     });
@@ -72,6 +85,11 @@ const ChatBox = () => {
         try {
           const msg: Message = JSON.parse(message.body);
           setMessages((prev) => [...prev, msg]);
+          if (
+            msg.message === "Tư vấn kết thúc"
+          ) {
+            setRequireModalVisible(true);
+          }
         } catch (e) {
           console.error("Invalid msg format", e);
         }
@@ -107,7 +125,9 @@ const ChatBox = () => {
     const outgoing = {
       senderName: currentUserName,
       message: inputText.trim(),
+      accountID: chatID,
       status: "SENT",
+
       date: new Date().toISOString(),
     };
 

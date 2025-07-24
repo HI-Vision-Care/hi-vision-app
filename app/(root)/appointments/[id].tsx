@@ -1,8 +1,9 @@
+import { HeaderBack } from "@/components";
 import { useCancelAppointment } from "@/services/appointment/hooks";
 import { useGetLabResultsByAppointmentId } from "@/services/lab-results/hooks";
 import { useGetMedicalRecordByAppointmentId } from "@/services/medical-record/hooks";
-import { useTransferToAppointment } from "@/services/transaction/hooks";
 import capitalize from "@/utils/capitalize";
+import { formatVietnameseDate } from "@/utils/format";
 import { FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React from "react";
@@ -20,39 +21,17 @@ const AppointmentDetail = () => {
   const { data } = useLocalSearchParams<{ id: string; data?: string }>();
   const appointment = data ? JSON.parse(data) : undefined;
 
-  const { data: medicalRecord, isLoading: isMedicalLoading } =
-    useGetMedicalRecordByAppointmentId(appointment?.appointmentID);
+  const {
+    data: medicalRecord,
+    isLoading: isMedicalLoading,
+    error: medicalError,
+  } = useGetMedicalRecordByAppointmentId(appointment?.appointmentID);
 
   const { data: labResults, isLoading: isLabLoading } =
     useGetLabResultsByAppointmentId(appointment?.appointmentID);
 
   const { mutate: cancelAppointment, isLoading: isCancelling } =
     useCancelAppointment();
-
-  const { mutate: transferToAppointment, isLoading: isPaying } =
-    useTransferToAppointment();
-
-  const handlePayment = () => {
-    transferToAppointment(
-      {
-        appointmentId: appointment.appointmentID,
-        accountId: appointment.patient.account.id,
-      },
-      {
-        onSuccess: () => {
-          Alert.alert("Thanh toán thành công!");
-          // có thể refetch lại thông tin appointment nếu muốn
-        },
-        onError: (error) => {
-          // error.message sẽ lấy message trả về từ backend (nếu có)
-          Alert.alert(
-            "Lỗi thanh toán",
-            error?.message || "Có lỗi xảy ra, vui lòng thử lại"
-          );
-        },
-      }
-    );
-  };
 
   const handleCancelAppointment = () => {
     cancelAppointment(
@@ -121,20 +100,7 @@ const AppointmentDetail = () => {
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
 
-      {/* Header */}
-      <View className="bg-white px-4 py-3 border-b border-gray-200">
-        <View className="flex-row items-center justify-between">
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#374151" />
-          </TouchableOpacity>
-          <Text className="text-lg font-semibold text-gray-900">
-            Appointment Details
-          </Text>
-          <TouchableOpacity>
-            <Ionicons name="ellipsis-vertical" size={24} color="#374151" />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <HeaderBack title="Appointment Detail" />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Appointment Information */}
@@ -168,12 +134,23 @@ const AppointmentDetail = () => {
 
           <View className="p-4 space-y-3">
             {/* Date & Time */}
-            <View className="flex-row items-center">
+            {/* Appointment Date */}
+            <View className="flex-row items-center mb-1">
               <Ionicons name="calendar-outline" size={20} color="#6b7280" />
               <Text className="text-gray-900 ml-3 flex-1">
-                {formatDateUTC(appointment.appointmentDate)}
+                {formatVietnameseDate(appointment.appointmentDate)}
               </Text>
             </View>
+
+            {/* Appointment Slot/Time */}
+            {appointment.slot && (
+              <View className="flex-row items-center mb-1">
+                <Ionicons name="time-outline" size={20} color="#6b7280" />
+                <Text className="text-gray-900 ml-3 flex-1">
+                  {appointment.slot}
+                </Text>
+              </View>
+            )}
 
             {/* Doctor */}
             <View className="flex-row items-center">
@@ -249,46 +226,79 @@ const AppointmentDetail = () => {
         </View>
 
         {/* Medical Record Section */}
-        {!isMedicalLoading && medicalRecord && (
-          <View className="bg-white mx-4 mt-4 rounded-lg shadow-sm border border-gray-200">
-            <View className="p-4 border-b border-gray-100">
-              <View className="flex-row items-center">
-                <FontAwesome5 name="file-medical" size={20} color="#ef4444" />
-                <Text className="text-lg font-semibold text-gray-900 ml-2">
-                  Medical Record
+        {!isMedicalLoading && (
+          <>
+            {/* Nếu có lỗi khi fetch */}
+            {medicalError && (
+              <View className="bg-white mx-4 mt-4 rounded-lg border border-red-200 p-4 flex-row items-center">
+                <Ionicons name="alert-circle" size={20} color="#ef4444" />
+                <Text className="ml-2 text-red-700 flex-1">
+                  {medicalError.response?.data?.message ||
+                    medicalError.message ||
+                    "Đã xảy ra lỗi khi lấy hồ sơ khám bệnh."}
                 </Text>
               </View>
-            </View>
-            <View className="p-4 space-y-3">
-              {/* Diagnosis */}
-              <View>
-                <Text className="text-sm font-medium text-gray-700 mb-1">
-                  Diagnosis:
-                </Text>
-                <Text className="text-gray-900">{medicalRecord.diagnosis}</Text>
-              </View>
+            )}
 
-              {/* Creation Date */}
-              <View>
-                <Text className="text-sm font-medium text-gray-700 mb-1">
-                  Record Created:
-                </Text>
-                <Text className="text-gray-600">
-                  {formatDateUTC(medicalRecord.createDate || "")}
+            {/* Nếu không có record và không bị lỗi */}
+            {!medicalError && !medicalRecord && (
+              <View className="bg-white mx-4 mt-4 rounded-lg border border-yellow-200 p-4 flex-row items-center">
+                <Ionicons name="information-circle" size={20} color="#f59e42" />
+                <Text className="ml-2 text-yellow-700 flex-1">
+                  Không có hồ sơ khám bệnh cho lịch hẹn này.
                 </Text>
               </View>
+            )}
 
-              {/* Medical Notes */}
-              <View>
-                <Text className="text-sm font-medium text-gray-700 mb-1">
-                  Medical Notes:
-                </Text>
-                <Text className="text-gray-600 leading-5">
-                  {medicalRecord.note}
-                </Text>
+            {/* Nếu có record */}
+            {medicalRecord && (
+              <View className="bg-white mx-4 mt-4 rounded-lg shadow-sm border border-gray-200">
+                <View className="p-4 border-b border-gray-100">
+                  <View className="flex-row items-center">
+                    <FontAwesome5
+                      name="file-medical"
+                      size={20}
+                      color="#ef4444"
+                    />
+                    <Text className="text-lg font-semibold text-gray-900 ml-2">
+                      Medical Record
+                    </Text>
+                  </View>
+                </View>
+                <View className="p-4 space-y-3">
+                  {/* Diagnosis */}
+                  <View>
+                    <Text className="text-sm font-medium text-gray-700 mb-1">
+                      Diagnosis:
+                    </Text>
+                    <Text className="text-gray-900">
+                      {medicalRecord.diagnosis}
+                    </Text>
+                  </View>
+
+                  {/* Creation Date */}
+                  <View>
+                    <Text className="text-sm font-medium text-gray-700 mb-1">
+                      Record Created:
+                    </Text>
+                    <Text className="text-gray-600">
+                      {formatDateUTC(medicalRecord.createDate || "")}
+                    </Text>
+                  </View>
+
+                  {/* Medical Notes */}
+                  <View>
+                    <Text className="text-sm font-medium text-gray-700 mb-1">
+                      Medical Notes:
+                    </Text>
+                    <Text className="text-gray-600 leading-5">
+                      {medicalRecord.note}
+                    </Text>
+                  </View>
+                </View>
               </View>
-            </View>
-          </View>
+            )}
+          </>
         )}
 
         {/* Lab Results Section */}
@@ -305,7 +315,7 @@ const AppointmentDetail = () => {
             <View className="p-4">
               {labResults.map((result, index) => (
                 <View
-                  key={result.recordId}
+                  key={`${result.recordId}_${index}`}
                   className={`${
                     index > 0 ? "mt-4 pt-4 border-t border-gray-100" : ""
                   }`}
@@ -380,22 +390,6 @@ const AppointmentDetail = () => {
       {/* Footer with Action Buttons */}
       <View className="bg-white border-t border-gray-200 px-4 py-3 ">
         <View className="flex-row space-x-3">
-          {/* Make Payment: Chỉ ẩn khi đã thanh toán hoặc đã hủy */}
-          {appointment.paymentStatus !== "PAID" &&
-            appointment.status?.toLowerCase?.() !== "cancelled" && (
-              <TouchableOpacity
-                className="flex-1 bg-blue-600 py-3 rounded-lg"
-                onPress={handlePayment}
-                disabled={isPaying}
-              >
-                <View className="flex-row items-center justify-center">
-                  <MaterialIcons name="payment" size={20} color="white" />
-                  <Text className="text-white font-semibold ml-2">
-                    {isPaying ? "Đang thanh toán..." : "Make Payment"}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            )}
           {/* Cancel Appointment: chỉ cho phép nếu chưa cancelled */}
           {appointment.status?.toLowerCase?.() !== "cancelled" &&
             appointment.status?.toLowerCase?.() !== "completed" && (

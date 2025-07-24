@@ -6,6 +6,7 @@ const ONBOARDING_ROUTES = [
   "/patient-name",
   "/patient-gender",
   "/patient-medicalcard",
+  "/patient-symptoms",
 ];
 
 export const useOnboardingNavigation = () => {

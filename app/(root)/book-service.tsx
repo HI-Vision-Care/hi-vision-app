@@ -3,6 +3,9 @@ import {
   BookingSummary,
   ChooseDoctor,
   HeaderBack,
+  PaymenFailureModal,
+  PaymentOption,
+  PaymentSuccessModal,
   ServiceSelection,
   WeekNavigation,
 } from "@/components";
@@ -15,7 +18,10 @@ import {
 } from "@/services/booking-services/hooks";
 import { Doctor } from "@/services/doctor/types";
 import { useDoctorsBySpecialty } from "@/services/medical-services/hooks";
+import { useTransferToAppointment } from "@/services/transaction/hooks";
+import { useWalletByAccountId } from "@/services/wallet/hooks";
 import { Service } from "@/types/type";
+import { toLocalISODate, toLocalISODatee } from "@/utils/format";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -35,6 +41,17 @@ export type AvailabilityMap = Record<string, Record<string, string>>;
 export default function BookingScreen() {
   const { data: profile } = usePatientProfile();
   const patientId = profile?.patientID;
+  const accountId = profile?.account?.id;
+
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showFailureModal, setShowFailureModal] = useState(false);
+  const [successType, setSuccessType] = useState<"booking" | "payment">(
+    "booking"
+  );
+
+  const [paymentOption, setPaymentOption] = useState<"PAY_NOW" | "PAY_LATER">(
+    "PAY_LATER"
+  );
 
   const { data } = useLocalSearchParams<{ data: string }>();
   const [isAnonymous, setIsAnonymous] = useState(false);
@@ -64,8 +81,7 @@ export default function BookingScreen() {
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
 
   const bookAppointmentMutation = useBookAppointment(patientId ?? ""); // fallback to empty string if undefined
-
-  // const bookAppointmentMutation = useBookAppointment(patientId);
+  const transferToAppointmentMutation = useTransferToAppointment(); // Initialize the new mutation hook
 
   // Tuần hiện tại (thứ Hai)
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => {
@@ -110,30 +126,46 @@ export default function BookingScreen() {
     error: shiftsError,
   } = useGetWorkShiftsWeek(selectedDateParam, selectedDoctor?.doctorID);
 
+  const { data: wallet } = useWalletByAccountId(accountId || "");
+  const balance = wallet?.balance ?? 0;
+
   // Các slot cho ngày đang chọn
-  const selectedISO = selectedDate.toISOString().slice(0, 10);
+  const selectedISO = toLocalISODatee(selectedDate);
 
   const timeSlotsList = useMemo(
     () =>
       shifts
-        .filter(
-          (s) => new Date(s.date).toISOString().slice(0, 10) === selectedISO
-        )
+        .filter((s) => {
+          const dateStr = s.date
+            ? s.date
+            : s.startTime
+            ? s.startTime.slice(0, 10)
+            : null;
+          return dateStr === selectedISO;
+        })
         .map((s) => s.slot),
     [shifts, selectedISO]
   );
+
   // Bản đồ availability status
   const availability = useMemo(() => {
     const map: Record<string, Record<string, string>> = {};
     weekDates.forEach((date) => {
-      const iso = date.toISOString().slice(0, 10); // yyyy-mm-dd
+      const iso = date.toISOString().slice(0, 10);
       map[iso] = {};
     });
     shifts.forEach((s) => {
-      const iso = new Date(s.date).toISOString().slice(0, 10);
-      map[iso] = map[iso] || {};
-      map[iso][s.slot] = s.status;
+      const iso = s.date
+        ? s.date
+        : s.startTime
+        ? s.startTime.slice(0, 10)
+        : null;
+      if (iso) {
+        map[iso] = map[iso] || {};
+        map[iso][s.slot] = s.status;
+      }
     });
+
     return map;
   }, [shifts, weekDates]);
 
@@ -147,51 +179,131 @@ export default function BookingScreen() {
     setSelectedTime(null);
   };
 
-  const handleSelectDay = (day: string, idx: number) => {
-    setSelectedDay(day);
+  const handleSelectDay = (date: Date, idx: number) => {
+    setSelectedDate(date);
     setSelectedTime(null);
-    setSelectedDate(weekDates[idx]);
   };
+
+  useEffect(() => {
+    // Nếu selectedTime không còn trong slot hợp lệ, reset nó
+    if (selectedTime && !timeSlotsList.includes(selectedTime)) {
+      setSelectedTime(null);
+    }
+  }, [selectedTime, timeSlotsList]);
 
   // Đặt lịch
   const handleBooking = () => {
-    if (selectedService && selectedDay && selectedTime && selectedDoctor) {
-      const [startTime] = selectedTime.split(" - "); // "09:00"
-      const [hours, minutes] = startTime.split(":");
-      const localDate = new Date(selectedDate); // Clone để không ảnh hưởng state
-      localDate.setHours(Number(hours), Number(minutes), 0, 0);
-
-      // Cộng thêm phần offset chênh lệch múi giờ (UTC+7 thành 0)
-      const offsetMs = localDate.getTimezoneOffset() * 60 * 1000;
-      const utcDate = new Date(localDate.getTime() - offsetMs);
-      const appointmentDate = utcDate.toISOString(); // Chuẩn Z
-
-      // Hoặc chỉ cần:
-
-      bookAppointmentMutation.mutate(
-        {
-          serviceID: selectedService.serviceID,
-          doctorID: selectedDoctor.doctorID,
-          appointmentDate: appointmentDate,
-          isAnonymous: isAnonymous,
-          note: note,
-        },
-        {
-          onSuccess: () => {
-            Alert.alert("Scheduled successfully!");
-            router.replace("/(personal-info)/history");
-          },
-          onError: (error: any) => {
-            Alert.alert(
-              "Schedule failed",
-              error.message || "Error occurred while scheduling."
-            );
-          },
-        }
-      );
-    } else {
-      Alert.alert("Vui lòng chọn đầy đủ service, bác sĩ, ngày và khung giờ.");
+    // Check patientId
+    if (!patientId) {
+      Alert.alert("You must be logged in to book an appointment.");
+      return;
     }
+    // Check Service
+    if (!selectedService || !selectedService.isActive) {
+      Alert.alert(
+        "Selected service is no longer available. Please choose another service."
+      );
+      return;
+    }
+    // Check Doctor
+    if (!selectedDoctor) {
+      Alert.alert("Please select a doctor.");
+      return;
+    }
+    // Check Date & Time
+    if (!selectedDay || !selectedTime) {
+      Alert.alert("Please select a date and time slot.");
+      return;
+    }
+    // Validate appointment time not in the past
+    const [startTime] = selectedTime.split(" - "); // "09:00"
+    const [hours, minutes] = startTime.split(":");
+    const localDate = new Date(selectedDate);
+    localDate.setHours(Number(hours), Number(minutes), 0, 0);
+    if (localDate < new Date()) {
+      Alert.alert("You cannot book an appointment in the past.");
+      return;
+    }
+    // Note length validation
+    if (note.length > 255) {
+      Alert.alert("Note is too long (max 255 characters).");
+      return;
+    }
+    // ---- CHECK SỐ DƯ TRƯỚC ----
+    if (paymentOption === "PAY_NOW") {
+      if ((selectedService?.price ?? 0) > balance) {
+        Alert.alert(
+          "Số dư không đủ",
+          "Vui lòng nạp thêm tiền để thanh toán dịch vụ này!"
+        );
+        return;
+      }
+    }
+    // ---- CHỈ KHI ĐỦ TIỀN MỚI TẠO BOOKING ----
+    const payload = {
+      serviceID: selectedService.serviceID,
+      doctorID: selectedDoctor.doctorID,
+      appointmentDate: toLocalISODate(selectedDate),
+      isAnonymous: isAnonymous,
+      note: note,
+      slot: selectedTime,
+    };
+    console.log("PayLoad:", payload);
+
+    // Everything valid, proceed with booking
+    bookAppointmentMutation.mutate(payload, {
+      onSuccess: (response: any) => {
+        const appointmentId =
+          response?.appointmentId ||
+          response?.appointmentID ||
+          response?.id ||
+          response?.appointment?.appointmentId;
+
+        if (!appointmentId && paymentOption === "PAY_NOW") {
+          setShowFailureModal(true);
+          return;
+        }
+
+        // Trước khi gọi mutate cho transferToAppointment:
+        if (paymentOption === "PAY_NOW" && accountId) {
+          if ((selectedService?.price ?? 0) > balance) {
+            // Báo lỗi số dư không đủ
+            Alert.alert(
+              "Số dư không đủ",
+              "Vui lòng nạp thêm tiền để thanh toán dịch vụ này!"
+            );
+            return;
+          }
+          // Nếu đủ tiền mới chuyển tiếp thanh toán
+          transferToAppointmentMutation.mutate(
+            { appointmentId, accountId: accountId },
+            {
+              onSuccess: () => {
+                setSuccessType("payment"); // thành công thanh toán
+                setShowSuccessModal(true);
+              },
+              onError: () => {
+                setShowFailureModal(true);
+              },
+            }
+          );
+        } else {
+          setSuccessType("booking");
+          setShowSuccessModal(true);
+        }
+      },
+
+      onError: (error: any) => {
+        // Ưu tiên lấy message gốc trả về từ backend
+        const backendMessage =
+          error?.response?.data?.message ||
+          error?.response?.data?.error ||
+          error?.message ||
+          "An error occurred while scheduling.";
+
+        Alert.alert("Schedule failed", backendMessage);
+      },
+    });
   };
 
   return (
@@ -220,7 +332,7 @@ export default function BookingScreen() {
 
         <WeekNavigation
           weekDates={weekDates}
-          selectedDay={selectedDay}
+          selectedDate={selectedDate}
           onSelectDay={handleSelectDay}
           onPrevWeek={() => navigateWeek(-1)}
           onNextWeek={() => navigateWeek(1)}
@@ -246,7 +358,7 @@ export default function BookingScreen() {
         <TimeSlots
           timeSlots={timeSlotsList}
           availability={availability}
-          selectedDay={selectedDate.toISOString().slice(0, 10)} // dùng ISO
+          selectedDay={selectedISO}
           selectedTime={selectedTime}
           onSelectTime={setSelectedTime}
         />
@@ -264,20 +376,60 @@ export default function BookingScreen() {
           />
         </View>
 
+        <PaymentOption
+          selectedOption={paymentOption}
+          onSelectOption={setPaymentOption}
+        />
+
         {selectedService && selectedDay && selectedTime ? (
           <>
             <BookingSummary
               service={selectedService}
-              selectedDay={selectedDay}
+              selectedDate={selectedDate} // <-- Truyền luôn Date object
               selectedTime={selectedTime}
               weekDates={weekDates}
             />
+
             <BookButton onBook={handleBooking} disabled={false} />
           </>
         ) : (
-          <BookButton onBook={handleBooking} disabled />
+          <BookButton
+            onBook={handleBooking}
+            disabled={
+              !selectedService ||
+              !selectedDay ||
+              !selectedTime ||
+              bookAppointmentMutation.isLoading ||
+              transferToAppointmentMutation.isLoading
+            }
+          />
         )}
       </ScrollView>
+
+      <PaymenFailureModal
+        visible={showFailureModal}
+        onClose={() => setShowFailureModal(false)}
+      />
+      <PaymentSuccessModal
+        visible={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          router.replace({
+            pathname: "/(personal-info)/history",
+            params: { fromBooking: "1" },
+          });
+        }}
+        title={
+          successType === "payment"
+            ? "Thanh toán thành công!"
+            : "Đặt lịch thành công!"
+        }
+        subtitle={
+          successType === "payment"
+            ? "Bạn đã đặt lịch và thanh toán thành công."
+            : "Lịch hẹn của bạn đã được ghi nhận. Vui lòng thanh toán trước khi đến khám."
+        }
+      />
     </SafeAreaView>
   );
 }

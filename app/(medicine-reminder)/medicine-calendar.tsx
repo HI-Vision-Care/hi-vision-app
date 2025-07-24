@@ -3,12 +3,13 @@
 import { cancelAllArvNotifications, clearAllConfirmedDoses } from "@/services/notification/arv-notification"
 import { cancelAll } from "@/services/notification/prep-notification"
 import AsyncStorage from "@react-native-async-storage/async-storage"
-import * as Notifications from "expo-notifications"
 import { useFocusEffect } from "@react-navigation/native"
-import { useCallback } from "react"
+import * as Notifications from "expo-notifications"
 import { navigate } from "expo-router/build/global-state/routing"
-import { useEffect, useState } from "react"
-import { useMemo } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+
+
+import { router } from "expo-router"
 import { Alert, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 
@@ -224,7 +225,7 @@ const MedicineCalendar = () => {
   }
 
   const handleHomePress = () => {
-    Alert.alert("Trang chủ", "Quay về trang chủ")
+    router.push("/(root)/(tabs)/home")
   }
 
   const getSelectedDayData = () => {
@@ -704,7 +705,7 @@ const MedicineCalendar = () => {
               <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>➕ Thêm lịch nhắc mới</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={{
                 backgroundColor: "#FF5722",
                 borderRadius: 12,
@@ -720,7 +721,7 @@ const MedicineCalendar = () => {
               onPress={cancelAllArvNotifications}
             >
               <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>🗑️ Xóa lịch ARV</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
             <TouchableOpacity
               style={{
@@ -740,7 +741,7 @@ const MedicineCalendar = () => {
               <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>🗑️ Xóa hết lịch</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={{
                 backgroundColor: "#2196F3",
                 borderRadius: 12,
@@ -756,9 +757,9 @@ const MedicineCalendar = () => {
               onPress={logAllArvSchedules}
             >
               <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>📋 Log ra ARV</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={{
                 backgroundColor: "#f44336",
                 borderRadius: 12,
@@ -776,7 +777,7 @@ const MedicineCalendar = () => {
               <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>
                 🗑️ Xóa tất cả xác nhận đã uống
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </ScrollView>
         )}
       </View>

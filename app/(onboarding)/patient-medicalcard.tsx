@@ -1,32 +1,22 @@
 import { OnboardingLayout } from "@/components";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
-import { usePatientProfile } from "@/hooks/usePatientId";
-import { useUpdatePatientProfile } from "@/services/patient/hooks";
-import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+  isValidMedDate,
+  isValidMedFac,
+  isValidMedNo,
+} from "@/utils/validation-setup";
+import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
+import { Text, TextInput, TouchableOpacity, View } from "react-native";
 
 const PatientMedicalCard = () => {
-  const { handleBack } = useOnboardingNavigation();
-  const { setData, data, reset } = useOnboarding();
+  const { handleBack, progress, handleContinue } = useOnboardingNavigation();
+  const { setData } = useOnboarding();
   const [medNo, setMedNo] = useState("");
   const [medDate, setMedDate] = useState(""); // DD/MM/YYYY hoặc ISO string
   const [medFac, setMedFac] = useState("");
   const [focusedField, setFocusedField] = useState<string | null>(null);
-
-  const { data: profile } = usePatientProfile();
-  const patientId = profile?.patientID;
-
-  const { mutate: updateProfile, isLoading } = useUpdatePatientProfile();
 
   const formatDateInput = (text: string) => {
     // Remove all non-numeric characters
@@ -70,50 +60,24 @@ const PatientMedicalCard = () => {
     setMedNo(formatted);
   };
 
-  const handleFinish = () => {
-    if (!patientId) {
-      Alert.alert("Vui lòng chờ", "Đang tải mã bệnh nhân...");
-      return;
-    }
-    setData({ medNo, medDate, medFac });
-
-    updateProfile(
-      {
-        patientId,
-        payload: {
-          name: data.name ?? "",
-          dob: data.dob ?? "",
-          gender: data.gender ?? "",
-          medNo,
-          medDate,
-          medFac,
-        },
-      },
-      {
-        onSuccess: () => {
-          Alert.alert("Cập nhật thành công", "Thông tin hồ sơ đã lưu.");
-          router.replace("/(root)/(tabs)/home");
-          reset();
-        },
-        onError: (err: any) => {
-          Alert.alert(
-            "Có lỗi khi lưu hồ sơ!",
-            err?.message || "Vui lòng thử lại."
-          );
-        },
-      }
-    );
-  };
-
   const isFormValid =
-    medNo.length >= 10 && medDate.length === 10 && medFac.trim().length > 0;
+    isValidMedNo(medNo) && isValidMedDate(medDate) && isValidMedFac(medFac);
+
+  const handleContinueAndSave = () => {
+    setData({
+      medNo,
+      medDate,
+      medFac,
+    });
+    handleContinue();
+  };
 
   return (
     <OnboardingLayout
       question="Thông tin thẻ BHYT"
-      progress={1} // hoặc truyền progress chuẩn từ hook
-      onContinue={handleFinish}
-      disabled={!isFormValid || isLoading}
+      progress={progress} // hoặc truyền progress chuẩn từ hook
+      onContinue={handleContinueAndSave}
+      disabled={!isFormValid}
       onBack={handleBack}
       childrenWrapperClassName="flex-1 px-6 pt-8"
     >
@@ -173,6 +137,11 @@ const PatientMedicalCard = () => {
                 </TouchableOpacity>
               )}
             </View>
+            {medNo.length > 0 && !isValidMedNo(medNo) && (
+              <Text className="text-red-500 text-lg mt-1 ml-1">
+                Mã thẻ không hợp lệ (2 chữ cái đầu, 13 số).
+              </Text>
+            )}
             <Text className="text-gray-500 text-sm ml-1">
               15 ký tự: 2 chữ cái + 13 số
             </Text>
@@ -213,6 +182,11 @@ const PatientMedicalCard = () => {
                 </TouchableOpacity>
               )}
             </View>
+            {medDate.length === 10 && !isValidMedDate(medDate) && (
+              <Text className="text-red-500 text-lg mt-1 ml-1">
+                Ngày cấp không hợp lệ
+              </Text>
+            )}
             <Text className="text-gray-500 text-sm ml-1">
               Ví dụ: 15/01/2024
             </Text>
@@ -251,27 +225,16 @@ const PatientMedicalCard = () => {
                 </TouchableOpacity>
               )}
             </View>
+            {medFac.length > 0 && !isValidMedFac(medFac) && (
+              <Text className="text-red-500 text-xs mt-1 ml-1">
+                Nơi cấp phải có ít nhất 4 ký tự
+              </Text>
+            )}
             <Text className="text-gray-500 text-sm ml-1">
               Ví dụ: BHXH Thành phố Hồ Chí Minh
             </Text>
           </View>
         </View>
-
-        {/* Loading State */}
-        {isLoading && (
-          <View className="mt-8 bg-blue-50 rounded-xl p-4 border border-blue-200">
-            <View className="flex-row items-center justify-center">
-              <ActivityIndicator
-                size="small"
-                color="#3B82F6"
-                style={{ marginRight: 12 }}
-              />
-              <Text className="text-blue-800 font-medium">
-                Đang lưu thông tin hồ sơ...
-              </Text>
-            </View>
-          </View>
-        )}
 
         {/* Benefits Info */}
         <View className="mt-8 bg-green-50 rounded-xl p-4 border border-green-200">

@@ -56,12 +56,12 @@ export default function ConsultantRequireModal({
             transparent={true}
         >
             <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', alignItems: 'center' }}>
-                <View style={{ backgroundColor: 'white', padding: 24, borderRadius: 12, width: 300 }}>
+                <View style={{ backgroundColor: 'white', padding: 50, borderRadius: 12, width: 300 }}>
                     <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>Yêu cầu tư vấn</Text>
                     <Text style={{ marginBottom: 8 }}>Chủ đề muốn tư vấn:</Text>
                     <Picker
                         selectedValue={selectedTopic}
-                        style={{ height: 44, marginBottom: 16 }}
+                        style={{ height: 100, marginBottom: 16 }}
                         onValueChange={(itemValue) => setSelectedTopic(itemValue)}
                     >
                         {TOPIC_OPTIONS.map(option => (
