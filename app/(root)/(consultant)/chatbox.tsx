@@ -85,9 +85,7 @@ const ChatBox = () => {
         try {
           const msg: Message = JSON.parse(message.body);
           setMessages((prev) => [...prev, msg]);
-          if (
-            msg.message === "Tư vấn kết thúc"
-          ) {
+          if (msg.message === "Tư vấn kết thúc") {
             setRequireModalVisible(true);
           }
         } catch (e) {
@@ -101,15 +99,15 @@ const ChatBox = () => {
       setConnected(false);
     };
 
-    client.onWebSocketError = (evt) => {
-      console.error("✖ WebSocket error", evt);
-      setConnected(false);
-    };
+    // client.onWebSocketError = (evt) => {
+    //   console.error("✖ WebSocket error", evt);
+    //   setConnected(false);
+    // };
 
-    client.onWebSocketClose = (evt) => {
-      console.log("ℹ WebSocket closed", evt);
-      setConnected(false);
-    };
+    // client.onWebSocketClose = (evt) => {
+    //   console.log("ℹ WebSocket closed", evt);
+    //   setConnected(false);
+    // };
 
     client.activate();
     stompClient.current = client;
