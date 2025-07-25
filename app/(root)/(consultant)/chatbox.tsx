@@ -101,15 +101,15 @@ const ChatBox = () => {
       setConnected(false);
     };
 
-    client.onWebSocketError = (evt) => {
-      console.error("✖ WebSocket error", evt);
-      setConnected(false);
-    };
+    // client.onWebSocketError = (evt) => {
+    //   console.error("✖ WebSocket error", evt);
+    //   setConnected(false);
+    // };
 
-    client.onWebSocketClose = (evt) => {
-      console.log("ℹ WebSocket closed", evt);
-      setConnected(false);
-    };
+    // client.onWebSocketClose = (evt) => {
+    //   console.log("ℹ WebSocket closed", evt);
+    //   setConnected(false);
+    // };
 
     client.activate();
     stompClient.current = client;
