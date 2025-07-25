@@ -316,31 +316,28 @@ const AppointmentDetail = () => {
               {labResults.map((result, index) => (
                 <View
                   key={`${result.recordId}_${index}`}
-                  className={`${
-                    index > 0 ? "mt-4 pt-4 border-t border-gray-100" : ""
-                  }`}
+                  className={`${index > 0 ? "mt-4 pt-4 border-t border-gray-100" : ""
+                    }`}
                 >
                   <View className="flex-row items-center justify-between mb-2">
                     <Text className="text-base font-medium text-gray-900 flex-1">
                       {result.testType}
                     </Text>
                     <View
-                      className={`px-2 py-1 rounded-full ${
-                        result.resultText === "Normal"
+                      className={`px-2 py-1 rounded-full ${result.resultText === "Normal"
                           ? "bg-green-100"
                           : result.resultText === "Slightly Elevated"
-                          ? "bg-yellow-100"
-                          : "bg-red-100"
-                      }`}
+                            ? "bg-yellow-100"
+                            : "bg-red-100"
+                        }`}
                     >
                       <Text
-                        className={`text-xs font-medium ${
-                          result.resultText === "Normal"
+                        className={`text-xs font-medium ${result.resultText === "Normal"
                             ? "text-green-800"
                             : result.resultText === "Slightly Elevated"
-                            ? "text-yellow-800"
-                            : "text-red-800"
-                        }`}
+                              ? "text-yellow-800"
+                              : "text-red-800"
+                          }`}
                       >
                         {result.resultText}
                       </Text>
@@ -391,7 +388,7 @@ const AppointmentDetail = () => {
       <View className="bg-white border-t border-gray-200 px-4 py-3 ">
         <View className="flex-row space-x-3">
           {/* Cancel Appointment: chỉ cho phép nếu chưa cancelled */}
-          {appointment.status?.toLowerCase?.() !== "cancelled" &&
+          {appointment.status?.toLowerCase?.() !== "cancelled" && appointment.status?.toLowerCase?.() !== "ongoing" &&
             appointment.status?.toLowerCase?.() !== "completed" && (
               <TouchableOpacity
                 className="flex-1 bg-red-600 py-3 rounded-lg ml-3"

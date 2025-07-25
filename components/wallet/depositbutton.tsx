@@ -16,7 +16,7 @@ import {
 import { WebView } from "react-native-webview";
 import { TopUpSuccessModal } from "../modals";
 
-const VNPAY_CALLBACK_URL = "http://192.168.100.21:8081/success";
+const VNPAY_CALLBACK_URL = "http://10.87.52.113:8081/success";
 
 const DepositButton = ({
   accountId,
@@ -218,17 +218,15 @@ const DepositButton = ({
                 <TouchableOpacity
                   key={item.value}
                   onPress={() => setAmount(item.value)}
-                  className={`py-2 px-5 mr-2 rounded-xl border-2 ${
-                    amount === item.value
+                  className={`py-2 px-5 mr-2 rounded-xl border-2 ${amount === item.value
                       ? "bg-blue-100 border-blue-600"
                       : "bg-white border-gray-200"
-                  }`}
+                    }`}
                   activeOpacity={0.8}
                 >
                   <Text
-                    className={`font-bold text-base ${
-                      amount === item.value ? "text-blue-600" : "text-gray-700"
-                    }`}
+                    className={`font-bold text-base ${amount === item.value ? "text-blue-600" : "text-gray-700"
+                      }`}
                   >
                     {item.label}
                   </Text>
@@ -240,11 +238,10 @@ const DepositButton = ({
             <TouchableOpacity
               onPress={handleDeposit}
               disabled={isLoading || !amount || Number(amount) < 10000}
-              className={`py-4 rounded-2xl w-full ${
-                isLoading || !amount || Number(amount) < 10000
+              className={`py-4 rounded-2xl w-full ${isLoading || !amount || Number(amount) < 10000
                   ? "bg-gray-300"
                   : "bg-green-600"
-              }`}
+                }`}
               activeOpacity={0.85}
             >
               <View className="flex-row items-center justify-center">
