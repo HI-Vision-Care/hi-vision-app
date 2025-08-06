@@ -36,8 +36,6 @@ const MedicalHistory = () => {
     error: errorAppointments,
   } = useGetAppointmentByPatientId(patientId as string);
 
-  console.log(appointments);
-
   const tabs = [
     { id: "appointments", title: "Appointments" },
     { id: "history", title: "Medical History" },
