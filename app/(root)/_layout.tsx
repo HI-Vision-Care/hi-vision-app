@@ -8,6 +8,7 @@ const AppLayout = () => {
       <Stack.Screen name="book-service" options={{ headerShown: false }} />
       <Stack.Screen name="forums" options={{ headerShown: false }} />
       <Stack.Screen name="appointments" options={{ headerShown: false }} />
+      <Stack.Screen name="clinic" options={{ headerShown: false }} />
     </Stack>
   );
 };
