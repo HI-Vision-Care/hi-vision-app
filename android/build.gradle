@@ -6,9 +6,11 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    classpath('com.android.tools.build:gradle')
+    // Pin AGP to a version compatible with RN/Expo + Reanimated
+    classpath('com.android.tools.build:gradle:8.6.1')
     classpath('com.facebook.react:react-native-gradle-plugin')
-    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
+    // Kotlin version aligned with AGP 8.6.x
+    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.24')
   }
 }
 

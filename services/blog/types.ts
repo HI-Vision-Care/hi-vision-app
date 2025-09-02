@@ -7,8 +7,8 @@ export interface BlogPost {
   title: string;
   topic: string;
   banner: string;
-  createAt: string;    // Lưu ý: API trả về "createAt"
-  hide:boolean
+  createAt: string;
+  hide: boolean;
 }
 
 /** Khối nội dung trong chi tiết bài viết */

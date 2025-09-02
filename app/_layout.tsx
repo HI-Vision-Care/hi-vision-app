@@ -1,21 +1,25 @@
 import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
+import {
+  listenArvConfirm,
+  registerArvNotificationActions,
+} from "@/services/notification/arv-notification";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
+import * as Notifications from "expo-notifications";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import "./global.css";
-import * as Notifications from "expo-notifications";
 import { Alert, Platform } from "react-native";
-import { listenArvConfirm, registerArvNotificationActions } from "@/services/notification/arv-notification";
+import "react-native-reanimated";
+import "./global.css";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
-    shouldShowBanner: true,  // hiển thị banner (iOS 14+)
-    shouldShowList: true,  // hiển thị trong notification center
+    shouldShowBanner: true, // hiển thị banner (iOS 14+)
+    shouldShowList: true, // hiển thị trong notification center
   }),
 });
 
@@ -27,7 +31,6 @@ const queryClient = new QueryClient();
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-
   const [loaded] = useFonts({
     "Jakarta-Bold": require("../assets/fonts/PlusJakartaSans-Bold.ttf"),
     "Jakarta-ExtraBold": require("../assets/fonts/PlusJakartaSans-ExtraBold.ttf"),
@@ -38,18 +41,17 @@ export default function RootLayout() {
     "Jakarta-SemiBold": require("../assets/fonts/PlusJakartaSans-SemiBold.ttf"),
   });
 
-useEffect(() => {
-  // Đăng ký category notification ARV khi app khởi động (CHẠY 1 LẦN DUY NHẤT)
-  registerArvNotificationActions();
+  useEffect(() => {
+    // Đăng ký category notification ARV khi app khởi động (CHẠY 1 LẦN DUY NHẤT)
+    registerArvNotificationActions();
 
-  // Lắng nghe action xác nhận
-  const subscription = listenArvConfirm((doseTime) => {
-    // Có thể hiện Toast hoặc reload calendar tại đây nếu muốn
-    console.log("Đã xác nhận ARV cho:", doseTime);
-  });
-  return () => subscription.remove();
-}, []);
-
+    // Lắng nghe action xác nhận
+    const subscription = listenArvConfirm((doseTime) => {
+      // Có thể hiện Toast hoặc reload calendar tại đây nếu muốn
+      console.log("Đã xác nhận ARV cho:", doseTime);
+    });
+    return () => subscription.remove();
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -63,16 +65,17 @@ useEffect(() => {
       }
 
       // 2. TẠO CHANNEL VỚI MỨC IMPORTANCE MAX
-      if (Platform.OS === 'android') {
-        await Notifications.setNotificationChannelAsync('default', {
-          name: 'High Priority Channel',
-          importance: Notifications.AndroidImportance.MAX,        // heads-up banner
-          bypassDnd: true,                                        // vượt chế độ Không làm phiền
-          vibrationPattern: [0, 500, 200, 500],                   // pattern rung mạnh
-          enableLights: true,                                     // bật LED (nếu có)
-          lightColor: '#FF0000',                                  // màu LED đỏ
-          lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC, // hiện đầy đủ content trên lock-screen
-          showBadge: true,                                        // cho badge trên icon
+      if (Platform.OS === "android") {
+        await Notifications.setNotificationChannelAsync("default", {
+          name: "High Priority Channel",
+          importance: Notifications.AndroidImportance.MAX, // heads-up banner
+          bypassDnd: true, // vượt chế độ Không làm phiền
+          vibrationPattern: [0, 500, 200, 500], // pattern rung mạnh
+          enableLights: true, // bật LED (nếu có)
+          lightColor: "#FF0000", // màu LED đỏ
+          lockscreenVisibility:
+            Notifications.AndroidNotificationVisibility.PUBLIC, // hiện đầy đủ content trên lock-screen
+          showBadge: true, // cho badge trên icon
         });
       }
 

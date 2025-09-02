@@ -24,7 +24,8 @@ class MainApplication : Application(), ReactApplication {
           override fun getPackages(): List<ReactPackage> {
             val packages = PackageList(this).packages
             // Packages that cannot be autolinked yet can be added manually here, for example:
-            // packages.add(MyReactNativePackage())
+            // Register custom native modules here
+            packages.add(WidgetBridgePackage())
             return packages
           }
 
