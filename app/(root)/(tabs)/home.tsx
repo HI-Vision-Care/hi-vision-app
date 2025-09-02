@@ -24,7 +24,7 @@ const Home = () => {
   const { data: profile } = usePatientProfile();
   const patientId = profile?.patientID;
 
-  const { data: appointments = [], isLoading } = useGetAppointmentByPatientId(
+  const { data: appointments = [] } = useGetAppointmentByPatientId(
     patientId || ""
   );
 
@@ -50,7 +50,7 @@ const Home = () => {
         className="flex-1 bg-[#f2f5f9]"
       >
         <ScrollView className="flex-1 px-4 pt-6">
-          {/* Health Score */}
+          {/* Health Service Swiper */}
           <HealthServicesSwiper />
 
           <ChatbotSectionHeader
