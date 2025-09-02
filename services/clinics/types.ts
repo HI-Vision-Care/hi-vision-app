@@ -6,9 +6,12 @@ export interface Facility {
   name: string;
   address: string;
   phone: string;
+  img: string;
+  time: string;
+  rating: string;
   // Nếu backend sau này có thêm lat/lng thì add vào đây:
-  // latitude?: number;
-  // longitude?: number;
+  latitude?: string;
+  longitude?: string;
 }
 
 // Dùng cho chi tiết /facility/{facilityID}

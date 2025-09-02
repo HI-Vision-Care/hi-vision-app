@@ -3,7 +3,8 @@ import { useFacilities } from "@/services/clinics/hooks";
 import { Facility } from "@/services/clinics/types";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { router } from "expo-router";
+import { JSX, useCallback, useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   Image,
@@ -17,29 +18,20 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// ✅ NEW: dùng hooks & types từ module facility
-
-// ==============================
-// Types
-// ==============================
 type LatLng = { latitude: number; longitude: number };
 
-type Clinic = {
+type ClinicItem = {
   id: string;
   name: string;
-  specialty?: string;
   address: string;
   phone?: string;
-  photo?: string;
-  coords?: LatLng; // backend hiện chưa có lat/lng → để optional
-  rating?: number; // 0..5
-  openNow?: boolean;
-  _distance?: number; // tính tạm để sort
+  img?: string;
+  time?: string; // giờ hoạt động do backend trả về (string)
+  rating?: number; // chuyển từ string -> number
+  coords?: LatLng; // nếu backend có lat/lng
+  _distance?: number; // km để sort
 };
 
-// ==============================
-// Helpers
-// ==============================
 const kmDistance = (from: LatLng, to: LatLng) => {
   const R = 6371;
   const dLat = ((to.latitude - from.latitude) * Math.PI) / 180;
@@ -65,17 +57,13 @@ const openDirections = (coords: LatLng, label?: string) => {
   Linking.openURL(url);
 };
 
-// ==============================
-// Component
-// ==============================
 const ClinicsScreen: React.FC = () => {
   const [granted, setGranted] = useState<boolean | null>(null);
   const [coords, setCoords] = useState<LatLng | null>(null);
   const [search, setSearch] = useState("");
-  const [activeSpec, setActiveSpec] = useState<string>("Tất cả");
   const [refreshing, setRefreshing] = useState(false);
 
-  // ✅ NEW: fetch danh sách phòng khám từ backend
+  // đúng module facility (không còn /clinics)
   const {
     data: facilities,
     isLoading: loadingFacilities,
@@ -83,7 +71,6 @@ const ClinicsScreen: React.FC = () => {
     refetch,
   } = useFacilities();
 
-  // Ask for permission & get current location
   const requestLocation = useCallback(async () => {
     try {
       setRefreshing(true);
@@ -102,7 +89,7 @@ const ClinicsScreen: React.FC = () => {
         longitude: pos.coords.longitude,
       });
     } catch {
-      // keep UI soft-failing
+      // mềm lỗi UI
     } finally {
       setRefreshing(false);
     }
@@ -112,45 +99,54 @@ const ClinicsScreen: React.FC = () => {
     requestLocation();
   }, [requestLocation]);
 
-  // ✅ NEW: chuẩn hoá dữ liệu từ backend → format dùng cho UI
-  const base: Clinic[] = useMemo(() => {
-    const list = (facilities ?? []).map((f: Facility) => ({
-      id: f.facilityID,
-      name: f.name,
-      specialty: "Phòng khám", // backend chưa có -> gắn nhãn chung
-      address: f.address,
-      phone: f.phone,
-      photo: undefined, // nếu backend có ảnh thì map vào đây
-      coords: undefined, // nếu backend trả lat/lng thì map: { latitude: f.latitude!, longitude: f.longitude! }
-      rating: undefined,
-      openNow: undefined,
-    }));
+  // Chuẩn hoá dữ liệu từ backend -> dữ liệu hiển thị UI
+  const base: ClinicItem[] = useMemo(() => {
+    const list = (facilities ?? []).map((f: Facility) => {
+      // rating backend là string -> number (an toàn NaN)
+      const ratingNum =
+        f.rating != null && f.rating !== "" ? parseFloat(f.rating) : undefined;
+
+      // latitude/longitude có thể là string -> parse thành number
+      const lat =
+        f.latitude != null && f.latitude !== ""
+          ? parseFloat(f.latitude)
+          : undefined;
+      const lon =
+        f.longitude != null && f.longitude !== ""
+          ? parseFloat(f.longitude)
+          : undefined;
+
+      const hasCoords =
+        typeof lat === "number" &&
+        !Number.isNaN(lat) &&
+        typeof lon === "number" &&
+        !Number.isNaN(lon);
+
+      return {
+        id: f.facilityID,
+        name: f.name,
+        address: f.address,
+        phone: f.phone,
+        img: f.img,
+        time: f.time,
+        rating: !Number.isNaN(ratingNum!) ? ratingNum : undefined,
+        coords: hasCoords ? { latitude: lat!, longitude: lon! } : undefined,
+      };
+    });
     return list;
   }, [facilities]);
 
-  // ✅ NEW: sinh chips theo danh sách thật
-  const specialties = useMemo(
-    () => [
-      "Tất cả",
-      ...Array.from(new Set(base.map((c) => c.specialty || "Phòng khám"))),
-    ],
-    [base]
-  );
-
-  // Filter + sort (nearest first if location available && có coords)
+  // Tìm kiếm theo tên + địa chỉ
   const results = useMemo(() => {
     const q = search.trim().toLowerCase();
-
     let list = base.filter(
       (c) =>
-        (activeSpec === "Tất cả" ||
-          (c.specialty || "Phòng khám") === activeSpec) &&
-        (q.length === 0 ||
-          c.name.toLowerCase().includes(q) ||
-          (c.specialty || "").toLowerCase().includes(q) ||
-          c.address.toLowerCase().includes(q))
+        q.length === 0 ||
+        c.name.toLowerCase().includes(q) ||
+        c.address.toLowerCase().includes(q)
     );
 
+    // sort theo khoảng cách (nếu có vị trí người dùng & coords phòng khám)
     if (coords) {
       list = list
         .map((c) =>
@@ -165,35 +161,43 @@ const ClinicsScreen: React.FC = () => {
     }
 
     return list;
-  }, [base, search, activeSpec, coords]);
+  }, [base, search, coords]);
 
-  const renderChip = (label: string) => {
-    const selected = activeSpec === label;
-    return (
-      <Pressable
-        key={label}
-        onPress={() => setActiveSpec(label)}
-        className={`px-3 py-2 mr-2 rounded-full border ${
-          selected ? "bg-blue-600 border-blue-600" : "bg-white border-gray-200"
-        } shadow-sm`}
-      >
-        <Text
-          className={`text-[13px] ${
-            selected ? "text-white font-semibold" : "text-gray-700"
-          }`}
-        >
-          {label}
-        </Text>
-      </Pressable>
-    );
+  const renderStars = (rating?: number) => {
+    if (!rating || Number.isNaN(rating)) return null;
+    const full = Math.floor(rating);
+    const half = rating - full >= 0.5;
+    const empty = 5 - full - (half ? 1 : 0);
+    const icons: JSX.Element[] = [];
+    for (let i = 0; i < full; i++)
+      icons.push(
+        <Ionicons key={`f${i}`} name="star" size={12} color="#F59E0B" />
+      );
+    if (half)
+      icons.push(
+        <Ionicons key="h" name="star-half" size={12} color="#F59E0B" />
+      );
+    for (let i = 0; i < empty; i++)
+      icons.push(
+        <Ionicons key={`e${i}`} name="star-outline" size={12} color="#F59E0B" />
+      );
+    return <View className="flex-row items-center">{icons}</View>;
   };
 
-  const renderItem = ({ item }: { item: Clinic }) => (
-    <Pressable className="bg-white rounded-2xl p-3 mb-4 shadow-sm flex-row">
+  const renderItem = ({ item }: { item: ClinicItem }) => (
+    <Pressable
+      className="bg-white rounded-2xl p-3 mb-4 shadow-sm flex-row"
+      onPress={() =>
+        router.push({
+          pathname: "/clinic/[id]", // route động
+          params: { id: String(item.id) }, // truyền id phòng khám
+        })
+      }
+    >
       <Image
         source={{
           uri:
-            item.photo || "https://via.placeholder.com/160x160.png?text=Clinic",
+            item.img || "https://via.placeholder.com/160x160.png?text=Clinic",
         }}
         className="w-24 h-24 rounded-xl mr-3"
       />
@@ -205,12 +209,16 @@ const ClinicsScreen: React.FC = () => {
           >
             {item.name}
           </Text>
+          {renderStars(item.rating)}
         </View>
 
-        <Text className="text-[12px] text-blue-700 mt-1">
-          {item.specialty || "Phòng khám"}
-        </Text>
-        <Text className="text-[12px] text-gray-500 mt-1" numberOfLines={1}>
+        {!!item.time && (
+          <Text className="text-[12px] text-emerald-700 mt-1" numberOfLines={1}>
+            {item.time}
+          </Text>
+        )}
+
+        <Text className="text-[12px] text-gray-500 mt-1" numberOfLines={2}>
           {item.address}
         </Text>
 
@@ -234,7 +242,7 @@ const ClinicsScreen: React.FC = () => {
                 onPress={() => Linking.openURL(`tel:${item.phone}`)}
                 className="px-3 py-2 rounded-xl bg-gray-100 mr-2"
               >
-                <Text className="text-[12px] text-gray-800">Gọi</Text>
+                <Text className="text-[12px] text-gray-800">Call</Text>
               </Pressable>
             )}
             <Pressable
@@ -251,7 +259,7 @@ const ClinicsScreen: React.FC = () => {
                   item.coords ? "text-white" : "text-gray-500"
                 }`}
               >
-                Chỉ đường
+                Directions
               </Text>
             </Pressable>
           </View>
@@ -266,10 +274,10 @@ const ClinicsScreen: React.FC = () => {
       <View className="px-5 pt-2 pb-3 flex-row items-center justify-between">
         <View>
           <Text className="text-xl font-bold text-gray-900">
-            Phòng khám gần bạn
+            Clinic near you
           </Text>
           <Text className="text-[13px] text-gray-500 mt-0.5">
-            Tìm nhanh – đặt khám – chỉ đường tức thì
+            Quick search – appointment booking – instant directions
           </Text>
         </View>
         <Pressable
@@ -288,7 +296,7 @@ const ClinicsScreen: React.FC = () => {
         <View className="flex-row items-center bg-white border border-gray-200 rounded-2xl px-3 py-2 shadow-sm">
           <Ionicons name="search" size={18} color="#6B7280" />
           <TextInput
-            placeholder="Tìm theo tên, chuyên khoa, địa chỉ..."
+            placeholder="Search by name or address..."
             className="ml-2 flex-1 text-[14px] text-gray-800"
             value={search}
             onChangeText={setSearch}
@@ -302,30 +310,19 @@ const ClinicsScreen: React.FC = () => {
         </View>
       </View>
 
-      {/* Chips */}
-      <View className="px-5 mt-3">
-        <FlatList
-          data={specialties}
-          keyExtractor={(s) => s}
-          renderItem={({ item }) => renderChip(item)}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        />
-      </View>
-
-      {/* Status / Hint */}
+      {/* Cảnh báo quyền vị trí */}
       <View className="px-5 mt-3">
         {granted === false && (
           <View className="bg-amber-50 border border-amber-200 rounded-xl p-3">
             <Text className="text-[13px] text-amber-800">
-              Bạn chưa bật quyền vị trí. Hãy bật quyền truy cập vị trí để xem
-              phòng khám gần nhất.
+              You have not enabled location permissions. Please enable location
+              access to see the nearest clinics.
             </Text>
           </View>
         )}
       </View>
 
-      {/* List */}
+      {/* Danh sách */}
       <FlatList
         className="px-5 mt-3"
         data={results}
@@ -337,8 +334,8 @@ const ClinicsScreen: React.FC = () => {
             <Ionicons name="search" size={24} color="#9CA3AF" />
             <Text className="text-[13px] text-gray-500 mt-2">
               {loadingFacilities
-                ? "Đang tải phòng khám..."
-                : "Không tìm thấy phòng khám phù hợp."}
+                ? "Loading clinic..."
+                : "No suitable clinic found."}
             </Text>
           </View>
         }

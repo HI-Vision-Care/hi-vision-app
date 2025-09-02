@@ -5,7 +5,7 @@ const ClinicLayouts = () => {
   return (
     <Stack>
       <Stack.Screen
-        name="clinics"
+        name="[id]"
         options={{
           headerShown: false,
         }}
