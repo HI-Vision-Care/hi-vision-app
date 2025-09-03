@@ -48,7 +48,8 @@ class MyFirstWidget : AppWidgetProvider() {
         val padHpx = (minH * PADDING_RATIO * density).toInt()
         val titleLeft = computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
         views.setViewPadding(R.id.wide_content, padWpx, padHpx, padWpx, padHpx)
-        views.setViewPadding(R.id.widget_title, titleLeft, 0, padWpx, 0)
+        // Give the title maximum width; rely on layout margins only
+        views.setViewPadding(R.id.widget_title, 0, 0, 0, 0)
         val src = BitmapFactory.decodeResource(context.resources, fallbackRes)
         val containerH = (canvasH - padHpx - padHpx).coerceAtLeast(1)
         var imgH = containerH
@@ -67,7 +68,7 @@ class MyFirstWidget : AppWidgetProvider() {
       // Post-process in background
       Thread {
         val src = BitmapFactory.decodeResource(context.resources, fallbackRes)
-        val blurred = blurBitmapCompat(src, 10)
+        val blurred = blurBitmapCompat(src, BLUR_RADIUS)
         val chosenLayout = layoutForCurrentWidth(context, appWidgetId, null)
         val v = RemoteViews(context.packageName, chosenLayout)
         if (chosenLayout == R.layout.widget_news_card_wide) {
@@ -77,16 +78,28 @@ class MyFirstWidget : AppWidgetProvider() {
           val density = context.resources.displayMetrics.density
           val canvasW = (minW * density).toInt().coerceAtLeast(1)
           val canvasH = (minH * density).toInt().coerceAtLeast(1)
-          val composite = composeWideComposite(blurred, src, canvasW, canvasH, PADDING_RATIO)
-          v.setImageViewBitmap(R.id.widget_bg, composite)
+          val dark = applyDarkOverlay(blurred, BG_DARKEN_ALPHA)
+          v.setImageViewBitmap(R.id.widget_bg, dark)
           // Push title to the right of the card
           val padWpx = (minW * PADDING_RATIO * density).toInt()
           val padHpx = (minH * PADDING_RATIO * density).toInt()
           val titleLeft = computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
-          v.setViewPadding(R.id.widget_title, titleLeft, 0, padWpx, 0)
-          v.setViewVisibility(R.id.widget_thumb, View.GONE)
+          v.setViewPadding(R.id.wide_content, padWpx, padHpx, padWpx, padHpx)
+          v.setViewPadding(R.id.widget_title, 0, 0, 0, 0)
+          // Render left card in its own ImageView to reserve horizontal space
+          val containerH = (canvasH - padHpx - padHpx).coerceAtLeast(1)
+          var imgH = containerH
+          var imgW = ((imgH * 3f) / 4f).toInt()
+          val availW = (canvasW - padWpx - padWpx).coerceAtLeast(1)
+          if (imgW > availW) { imgW = availW; imgH = ((imgW * 4f) / 3f).toInt() }
+          val cropped = centerCropTo(src, imgW, imgH)
+          val rounded = roundedCornersBitmap(cropped, 16f)
+          v.setImageViewBitmap(R.id.widget_thumb, rounded)
+          v.setViewVisibility(R.id.widget_thumb, View.VISIBLE)
         } else {
-          v.setImageViewBitmap(R.id.widget_bg, blurred)
+          // Darken a bit for readability
+          val dark = applyDarkOverlay(blurred, BG_DARKEN_ALPHA)
+          v.setImageViewBitmap(R.id.widget_bg, dark)
           v.setViewVisibility(R.id.widget_thumb, View.GONE)
         }
         v.setTextViewText(R.id.widget_title, defaultTitle)
@@ -124,7 +137,7 @@ class MyFirstWidget : AppWidgetProvider() {
       val padHpx = (minHInit * PADDING_RATIO * density).toInt()
       val titleLeft = computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
       views.setViewPadding(R.id.wide_content, padWpx, padHpx, padWpx, padHpx)
-      views.setViewPadding(R.id.widget_title, titleLeft, 0, padWpx, 0)
+      views.setViewPadding(R.id.widget_title, 0, 0, 0, 0)
       val src = BitmapFactory.decodeResource(context.resources, fallbackRes)
       val containerH = (canvasH - padHpx - padHpx).coerceAtLeast(1)
       var imgH = containerH
@@ -150,12 +163,14 @@ class MyFirstWidget : AppWidgetProvider() {
         val density = context.resources.displayMetrics.density
         val canvasW = (minW * density).toInt().coerceAtLeast(1)
         val canvasH = (minH * density).toInt().coerceAtLeast(1)
-        v.setImageViewBitmap(R.id.widget_bg, src)
+        val blurred = blurBitmapCompat(src, BLUR_RADIUS)
+        val dark = applyDarkOverlay(blurred, BG_DARKEN_ALPHA)
+        v.setImageViewBitmap(R.id.widget_bg, dark)
         val padWpx = (minW * PADDING_RATIO * density).toInt()
         val padHpx = (minH * PADDING_RATIO * density).toInt()
         val titleLeft = computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
         v.setViewPadding(R.id.wide_content, padWpx, padHpx, padWpx, padHpx)
-        v.setViewPadding(R.id.widget_title, titleLeft, 0, padWpx, 0)
+        v.setViewPadding(R.id.widget_title, 0, 0, 0, 0)
         val containerH = (canvasH - padHpx - padHpx).coerceAtLeast(1)
         var imgH = containerH
         var imgW = ((imgH * 3f) / 4f).toInt()
@@ -166,7 +181,9 @@ class MyFirstWidget : AppWidgetProvider() {
         v.setImageViewBitmap(R.id.widget_thumb, rounded)
         v.setViewVisibility(R.id.widget_thumb, View.VISIBLE)
       } else {
-        v.setImageViewBitmap(R.id.widget_bg, src)
+        val blurred = blurBitmapCompat(src, BLUR_RADIUS)
+        val dark = applyDarkOverlay(blurred, BG_DARKEN_ALPHA)
+        v.setImageViewBitmap(R.id.widget_bg, dark)
         v.setViewVisibility(R.id.widget_thumb, View.GONE)
       }
       v.setTextViewText(R.id.widget_title, defaultTitle)
@@ -184,6 +201,10 @@ class MyFirstWidget : AppWidgetProvider() {
   companion object {
     private const val TAG = "HiVisionWidget"
     private const val PADDING_RATIO = 0.08f
+    // Darken background for better text contrast
+    private const val BG_DARKEN_ALPHA = 160 // ~63% black overlay
+    private const val BLUR_RADIUS = 12
+    private const val CORNER_INSET_RATIO = 0.06f // extra left inset to avoid system rounded corners
     private const val CARD_SCALE = 1.2f // enlarge left card while keeping 3:4
     // Card uses strict 3:4 crop; width derived from height and available space
     const val DEFAULT_TITLE = "65% người dân ủng hộ hôn nhân đồng giới"
@@ -249,12 +270,15 @@ class MyFirstWidget : AppWidgetProvider() {
             val density = context.resources.displayMetrics.density
             val canvasW = (minW * density).toInt().coerceAtLeast(1)
             val canvasH = (minH * density).toInt().coerceAtLeast(1)
-            views.setImageViewBitmap(R.id.widget_bg, bmp)
+            val bgBlur = blurBitmapCompat(bmp, BLUR_RADIUS)
+            val dark = applyDarkOverlay(bgBlur, BG_DARKEN_ALPHA)
+            views.setImageViewBitmap(R.id.widget_bg, dark)
             val padWpx = (minW * PADDING_RATIO * density).toInt()
             val padHpx = (minH * PADDING_RATIO * density).toInt()
             val titleLeft = computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
             views.setViewPadding(R.id.wide_content, padWpx, padHpx, padWpx, padHpx)
-            views.setViewPadding(R.id.widget_title, titleLeft, 0, padWpx, 0)
+            views.setViewPadding(R.id.widget_title, 0, 0, 0, 0)
+            // Render left card via ImageView to reserve space
             val containerH = (canvasH - padHpx - padHpx).coerceAtLeast(1)
             var imgH = containerH
             var imgW = ((imgH * 3f) / 4f).toInt()
@@ -265,7 +289,9 @@ class MyFirstWidget : AppWidgetProvider() {
             views.setImageViewBitmap(R.id.widget_thumb, rounded)
             views.setViewVisibility(R.id.widget_thumb, View.VISIBLE)
           } else {
-            views.setImageViewBitmap(R.id.widget_bg, bmp)
+            val blurred = blurBitmapCompat(bmp, BLUR_RADIUS)
+            val dark = applyDarkOverlay(blurred, BG_DARKEN_ALPHA)
+            views.setImageViewBitmap(R.id.widget_bg, dark)
             views.setViewVisibility(R.id.widget_thumb, View.GONE)
           }
         } else {
@@ -279,12 +305,15 @@ class MyFirstWidget : AppWidgetProvider() {
             val density = context.resources.displayMetrics.density
             val canvasW = (minW * density).toInt().coerceAtLeast(1)
             val canvasH = (minH * density).toInt().coerceAtLeast(1)
-            views.setImageViewBitmap(R.id.widget_bg, src)
+            val bgBlur = blurBitmapCompat(src, BLUR_RADIUS)
+            val dark = applyDarkOverlay(bgBlur, BG_DARKEN_ALPHA)
+            views.setImageViewBitmap(R.id.widget_bg, dark)
             val padWpx = (minW * PADDING_RATIO * density).toInt()
             val padHpx = (minH * PADDING_RATIO * density).toInt()
             val titleLeft = computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
             views.setViewPadding(R.id.wide_content, padWpx, padHpx, padWpx, padHpx)
-            views.setViewPadding(R.id.widget_title, titleLeft, 0, padWpx, 0)
+            views.setViewPadding(R.id.widget_title, 0, 0, 0, 0)
+            // Render left card in ImageView
             val containerH = (canvasH - padHpx - padHpx).coerceAtLeast(1)
             var imgH = containerH
             var imgW = ((imgH * 3f) / 4f).toInt()
@@ -295,7 +324,9 @@ class MyFirstWidget : AppWidgetProvider() {
             views.setImageViewBitmap(R.id.widget_thumb, rounded)
             views.setViewVisibility(R.id.widget_thumb, View.VISIBLE)
           } else {
-            views.setImageViewBitmap(R.id.widget_bg, src)
+            val blurred = blurBitmapCompat(src, BLUR_RADIUS)
+            val dark = applyDarkOverlay(blurred, BG_DARKEN_ALPHA)
+            views.setImageViewBitmap(R.id.widget_bg, dark)
             views.setViewVisibility(R.id.widget_thumb, View.GONE)
           }
         }
@@ -334,7 +365,7 @@ class MyFirstWidget : AppWidgetProvider() {
             val padHpx = (minH * PADDING_RATIO * density).toInt()
             val titleLeft = computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
             views.setViewPadding(R.id.wide_content, padWpx, padHpx, padWpx, padHpx)
-            views.setViewPadding(R.id.widget_title, titleLeft, 0, padWpx, 0)
+            views.setViewPadding(R.id.widget_title, 0, 0, 0, 0)
             val src = BitmapFactory.decodeResource(context.resources, fallbackRes)
             val containerH = (canvasH - padHpx - padHpx).coerceAtLeast(1)
             var imgH = containerH
@@ -361,12 +392,15 @@ class MyFirstWidget : AppWidgetProvider() {
             val density = context.resources.displayMetrics.density
             val canvasW = (270 * density).toInt()
             val canvasH = (110 * density).toInt()
-            v.setImageViewBitmap(R.id.widget_bg, src)
+            val bgBlur = blurBitmapCompat(src, BLUR_RADIUS)
+            val dark = applyDarkOverlay(bgBlur, BG_DARKEN_ALPHA)
+            v.setImageViewBitmap(R.id.widget_bg, dark)
             val padWpx = (270 * PADDING_RATIO * density).toInt()
             val padHpx = (110 * PADDING_RATIO * density).toInt()
             val titleLeft = computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
             v.setViewPadding(R.id.wide_content, padWpx, padHpx, padWpx, padHpx)
-            v.setViewPadding(R.id.widget_title, titleLeft, 0, padWpx, 0)
+            v.setViewPadding(R.id.widget_title, 0, 0, 0, 0)
+            // Render left card into ImageView to reserve space
             val containerH = (canvasH - padHpx - padHpx).coerceAtLeast(1)
             var imgH = containerH
             var imgW = ((imgH * 3f) / 4f).toInt()
@@ -377,7 +411,9 @@ class MyFirstWidget : AppWidgetProvider() {
             v.setImageViewBitmap(R.id.widget_thumb, rounded)
             v.setViewVisibility(R.id.widget_thumb, View.VISIBLE)
           } else {
-            v.setImageViewBitmap(R.id.widget_bg, src)
+            val blurred = blurBitmapCompat(src, BLUR_RADIUS)
+            val dark = applyDarkOverlay(blurred, BG_DARKEN_ALPHA)
+            v.setImageViewBitmap(R.id.widget_bg, dark)
             v.setViewVisibility(R.id.widget_thumb, View.GONE)
           }
           v.setTextViewText(R.id.widget_title, title ?: "HiVision Widget")
@@ -656,12 +692,13 @@ class MyFirstWidget : AppWidgetProvider() {
       val canvas = Canvas(output)
       canvas.drawBitmap(bgCover, 0f, 0f, null)
       val darkPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-      darkPaint.color = Color.argb(120, 0, 0, 0) // ~47% black overlay
+      darkPaint.color = Color.argb(BG_DARKEN_ALPHA, 0, 0, 0)
       canvas.drawRect(0f, 0f, canvasW.toFloat(), canvasH.toFloat(), darkPaint)
 
       // Keep left card inside rounded corners by adding corner-safe padding
       // Dùng đúng padding tỷ lệ, bỏ tăng theo góc để tránh lệch trái quá nhiều
-      val safePadL = padW
+      val cornerInset = (canvasH * CORNER_INSET_RATIO).toInt()
+      val safePadL = padW + cornerInset
       val safePadT = padH
 
       // Container area for the card is the whole interior (left padded area)
@@ -683,14 +720,22 @@ class MyFirstWidget : AppWidgetProvider() {
       return output
     }
 
+    private fun applyDarkOverlay(src: Bitmap, alpha: Int = BG_DARKEN_ALPHA): Bitmap {
+      val out = src.copy(Bitmap.Config.ARGB_8888, true)
+      val c = Canvas(out)
+      val p = Paint(Paint.ANTI_ALIAS_FLAG)
+      p.color = Color.argb(alpha, 0, 0, 0)
+      c.drawRect(0f, 0f, out.width.toFloat(), out.height.toFloat(), p)
+      return out
+    }
+
     private fun computeTitleLeft(canvasW: Int, canvasH: Int, padW: Int, padH: Int): Int {
-      val safePadL = padW
-      val availW = (canvasW - safePadL - padW).coerceAtLeast(1)
-      val containerH = (canvasH - padH - padH).coerceAtLeast(1)
-      // 3:4 card width chosen by height, clamped by available width
-      var cardW = ((containerH * 3f) / 4f).toInt()
-      if (cardW > availW) cardW = availW
-      return safePadL + cardW + (padW / 2)
+      // Previously this method tried to offset the title based on the card width,
+      // which sometimes pushed the text outside of the visible bounds when the
+      // widget size changed. We only need a simple left padding here because the
+      // LinearLayout already places the title to the right of the thumbnail.
+      // Using the provided horizontal padding keeps the text visible.
+      return padW
     }
     private fun centerCropTo(src: Bitmap, targetW: Int, targetH: Int): Bitmap {
       if (targetW <= 0 || targetH <= 0) return src

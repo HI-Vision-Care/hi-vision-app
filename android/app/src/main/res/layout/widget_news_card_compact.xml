@@ -9,7 +9,7 @@
         android:id="@+id/widget_bg"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="centerCrop"
+        android:scaleType="fitXY"
         android:contentDescription="Widget background" />
 
     <!-- Keep the thumbnail view id for compatibility but hide it in compact mode -->
@@ -34,6 +34,10 @@
         android:shadowDy="2"
         android:shadowRadius="3"
         android:ellipsize="end"
-        android:maxLines="3" />
+        android:maxLines="3"
+        android:autoSizeTextType="uniform"
+        android:autoSizeMinTextSize="12sp"
+        android:autoSizeMaxTextSize="16sp"
+        android:autoSizeStepGranularity="1sp" />
 
 </FrameLayout>

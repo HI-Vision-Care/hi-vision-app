@@ -8,7 +8,7 @@
         android:id="@+id/widget_bg"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="centerCrop"
+        android:scaleType="fitXY"
         android:contentDescription="Widget background" />
 
     <!-- Foreground content: left thumbnail + wider title area for 4x2 -->
@@ -40,14 +40,32 @@
             android:layout_weight="1"
             android:text="HiVision Widget"
             android:textColor="@android:color/white"
-            android:textSize="18sp"
+            android:textSize="22sp"
             android:shadowColor="#80000000"
             android:shadowDx="0"
             android:shadowDy="2"
             android:shadowRadius="3"
-            android:maxLines="3"
-            android:ellipsize="end" />
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
+            android:lineSpacingExtra="2dp"
+            android:maxLines="5"
+            android:ellipsize="end"
+            android:autoSizeTextType="uniform"
+            android:autoSizeMinTextSize="12sp"
+            android:autoSizeMaxTextSize="26sp"
+            android:autoSizeStepGranularity="1sp" />
     </LinearLayout>
+
+    <!-- Optional bottom-right badge (e.g., rainbow emoji/icon). Provide asset and set visibility to visible. -->
+    <ImageView
+        android:id="@+id/widget_badge"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:contentDescription="Widget badge"
+        android:visibility="gone" />
 
     <!-- optional bottom gradient overlay for readability (if exists) -->
     <!--
