@@ -8,22 +8,38 @@
     "scheme": "hivisionmobileapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "ios": {
-      "supportsTablet": true
+
+    "splash": {
+      "image": "./assets/images/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
     },
+
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.HI-Vision-Mobile-App"
+    },
+
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.HI_Vision_Mobile_App"
+      "package": "com.anonymous.HI_Vision_Mobile_App",
+      "splash": {
+        "image": "./assets/images/logo.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#ffffff"
+      }
     },
+
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/logo.png"
     },
+
     "plugins": [
       "expo-router",
       [
@@ -38,6 +54,7 @@
       "expo-font",
       "expo-web-browser"
     ],
+
     "experiments": {
       "typedRoutes": true
     },

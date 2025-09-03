@@ -1,5 +1,6 @@
 import { usePatientProfile } from "@/hooks/usePatientId";
 import { useGetAppointmentByPatientId } from "@/services/appointment/hooks";
+import { useSyncWidgetWithBlog } from "@/services/blog/hooks";
 import {
   ActivityList,
   ChatbotCard,
@@ -31,6 +32,8 @@ const Home = () => {
   const latestAppointment = appointments.length
     ? appointments[appointments.length - 1]
     : null;
+
+  useSyncWidgetWithBlog(patientId);
 
   return (
     <>
