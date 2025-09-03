@@ -248,7 +248,6 @@ export default function BookingScreen() {
       note: note,
       slot: selectedTime,
     };
-    console.log("PayLoad:", payload);
 
     // Everything valid, proceed with booking
     bookAppointmentMutation.mutate(payload, {

@@ -71,6 +71,7 @@ import symptoms from "@/assets/images/symptoms.png";
 import syphilis from "@/assets/images/syphilis.png";
 import transgenderImage from "@/assets/images/transgenderImage.png";
 import welcome from "@/assets/images/welcome.png";
+import { router } from "expo-router";
 
 export const images = {
   passwordSent,
@@ -666,3 +667,66 @@ export const data = {
   eatingOptions,
   menuItems,
 };
+
+export const healthServices = [
+  {
+    id: "1",
+    title: "Chat với AI",
+    icon: "chatbubble-ellipses",
+    iconColor: "#FFFFFF",
+    backgroundColor: "#3B82F6",
+    gradientColors: ["#3B82F6", "#1D4ED8"],
+    onPress: () => {
+      router.push("/(chat-bot)/chat-bot");
+    },
+  },
+  {
+    id: "2",
+    title: "Nhắc uống\nthuốc",
+    icon: "medical",
+    iconColor: "#FFFFFF",
+    backgroundColor: "#10B981",
+    gradientColors: ["#10B981", "#059669"],
+    onPress: () => {
+      router.push("/(medicine-reminder)/medicine-calendar");
+    },
+  },
+  {
+    id: "3",
+    title: "Tiêm Vắc\nxin",
+    icon: "shield-checkmark",
+    iconColor: "#FFFFFF",
+    backgroundColor: "#8B5CF6",
+    gradientColors: ["#8B5CF6", "#7C3AED"],
+    onPress: () => console.log("Tiêm Vắc xin"),
+  },
+  {
+    id: "4",
+    title: "Đơn của\ntôi",
+    icon: "receipt",
+    iconColor: "#FFFFFF",
+    backgroundColor: "#F59E0B",
+    gradientColors: ["#F59E0B", "#D97706"],
+    onPress: () => console.log("Đơn của tôi"),
+  },
+  {
+    id: "5",
+    title: "Tìm bác sĩ\ntheo khoa",
+    icon: "people",
+    iconColor: "#FFFFFF",
+    backgroundColor: "#EF4444",
+    gradientColors: ["#EF4444", "#DC2626"],
+    onPress: () => console.log("Tìm bác sĩ"),
+  },
+  {
+    id: "6",
+    title: "Phòng\nkhám",
+    icon: "business", // có thể thay bằng "medkit", "home", "hospital" nếu muốn
+    iconColor: "#FFFFFF",
+    backgroundColor: "#0EA5E9",
+    gradientColors: ["#0EA5E9", "#0369A1"],
+    onPress: () => {
+      router.push("/(clinics)/clinics");
+    },
+  },
+];
