@@ -18,6 +18,9 @@ export interface Facility {
 export interface FacilityDetail {
   name: string;
   address: string;
+  img: string;
+  time: string;
+  des: string;
   phone: string;
   doctors: {
     name: string;
