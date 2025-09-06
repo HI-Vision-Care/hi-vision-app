@@ -124,7 +124,7 @@ const ClinicDetail: React.FC = () => {
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Thông tin chính */}
-        <View className="px-4 mb-4 flex-row items-start space-x-4">
+        <View className="px-4 mb-4 flex-row items-start space-x-4 gap-2">
           <Image
             source={{
               uri:
@@ -255,7 +255,7 @@ const ClinicDetail: React.FC = () => {
           </Text>
           <View className="bg-gray-50 rounded-xl p-4">
             <Text className="text-[13px] text-gray-700 leading-5">
-              {clinic.description ||
+              {clinic.des ||
                 "Phòng khám chuyên khoa với đội ngũ bác sĩ giàu kinh nghiệm, trang thiết bị hiện đại và dịch vụ chăm sóc sức khỏe toàn diện."}
             </Text>
           </View>
