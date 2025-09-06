@@ -1,4 +1,5 @@
 import { icons, images } from "@/constants";
+import { useGoogleAuth } from "@/services/auth/google-auth";
 import { useSignIn } from "@/services/auth/hooks";
 import { CustomButton, InputField } from "@components";
 import { router } from "expo-router";
@@ -34,6 +35,9 @@ const SignIn: React.FC = () => {
       );
     }
   };
+
+  const { loginWithGoogle, ready } = useGoogleAuth();
+
   return (
     <SafeAreaView edges={["bottom"]} className="flex-1 bg-white">
       <StatusBar
@@ -130,9 +134,8 @@ const SignIn: React.FC = () => {
             mb-8
             self-center
           "
-          onPress={() => {
-            console.log("Google Sign In pressed");
-          }}
+          disabled={!ready}
+          onPress={loginWithGoogle}
         >
           <Text className="text-gray-700 text-2xl font-bold">G</Text>
         </TouchableOpacity>
