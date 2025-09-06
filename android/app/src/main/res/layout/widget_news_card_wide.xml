@@ -22,21 +22,27 @@
         android:paddingTop="0dp"
         android:paddingBottom="0dp">
 
-        <ImageView
-            android:id="@+id/widget_thumb"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:minWidth="72dp"
-            android:contentDescription="Widget thumbnail"
-            android:adjustViewBounds="true"
-            android:scaleType="centerCrop" />
+ <ImageView
+    android:id="@+id/widget_thumb"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:layout_gravity="center_vertical"
+    android:adjustViewBounds="true"
+    android:scaleType="fitCenter"
+    android:minWidth="80dp"
+    android:minHeight="80dp"
+    android:layout_marginStart="10dp"
+    android:layout_marginTop="10dp"
+    android:layout_marginBottom="10dp"
+     android:layout_marginEnd="5dp"/>
+
 
         <TextView
             android:id="@+id/widget_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:text="HiVision Widget"
             android:textColor="@android:color/white"
