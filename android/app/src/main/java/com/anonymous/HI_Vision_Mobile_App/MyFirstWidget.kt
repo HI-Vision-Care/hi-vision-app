@@ -9,91 +9,107 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.Path
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import android.graphics.RectF
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import kotlin.math.ceil
-// RenderEffect requires API 31+; we'll use a CPU stack-blur to support older versions reliably
-import android.widget.RemoteViews
 import android.view.View
+import android.widget.RemoteViews
+import kotlin.math.sqrt
 import java.net.HttpURLConnection
 import java.net.URL
 
 class MyFirstWidget : AppWidgetProvider() {
+
   private val defaultTitle = "65% người dân ủng hộ hôn nhân đồng giới"
   private val defaultImage = "https://scontent.fsgn5-9.fna.fbcdn.net/v/t39.30808-6/491419671_122184810890500724_7772420299609524587_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=YPisds6QH8YQ7kNvwE0Bt1E&_nc_oc=Adn8TfELPtJqXy703VxhNT3beMoH021zVP7_BugTH86tKPfCnIi1oycZF6qhQq0k6VY&_nc_zt=23&_nc_ht=scontent.fsgn5-9.fna&_nc_gid=EJ8uIpO-a0AAGx_Iel87Yw&oh=00_AfXAZGkfN1hGcrqdwTsZwWH2XdPRiYPqKi8x0CKaG9c_aw&oe=68B9EA1B"
+
   override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
     super.onUpdate(context, appWidgetManager, appWidgetIds)
-    // Default initial content
+
     for (appWidgetId in appWidgetIds) {
       val layoutId = layoutForCurrentWidth(context, appWidgetId, null)
       val views = RemoteViews(context.packageName, layoutId)
       views.setTextViewText(R.id.widget_title, defaultTitle)
+
       val localRes = context.resources.getIdentifier("widget_bg_fallback", "drawable", context.packageName)
       val fallbackRes = if (localRes != 0) localRes else R.drawable.splashscreen_logo
-      // Show immediate images
+
+      // Hiển thị tức thời
       views.setImageViewResource(R.id.widget_bg, fallbackRes)
+
       val optsNow = AppWidgetManager.getInstance(context).getAppWidgetOptions(appWidgetId)
       val minW = optsNow?.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0) ?: 0
       val minH = optsNow?.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0) ?: 0
+
       if (layoutId == R.layout.widget_news_card_wide && minW > 0 && minH > 0) {
         val density = context.resources.displayMetrics.density
         val canvasW = (minW * density).toInt().coerceAtLeast(1)
         val canvasH = (minH * density).toInt().coerceAtLeast(1)
-        val padWpx = (minW * PADDING_RATIO * density).toInt()
-        val padHpx = (minH * PADDING_RATIO * density).toInt()
-        val titleLeft = computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
+        val padWpx = (minW * PADDING_H_RATIO * density).toInt()
+        val padHpx = (minH * PADDING_V_RATIO * density).toInt()
+        computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
         views.setViewPadding(R.id.wide_content, padWpx, padHpx, padWpx, padHpx)
-        views.setViewPadding(R.id.widget_title, titleLeft, 0, padWpx, 0)
+        views.setViewPadding(R.id.widget_title, 0, 0, 0, 0)
+
         val src = BitmapFactory.decodeResource(context.resources, fallbackRes)
         val containerH = (canvasH - padHpx - padHpx).coerceAtLeast(1)
-        var imgH = containerH
-        var imgW = ((imgH * 3f) / 4f).toInt()
         val availW = (canvasW - padWpx - padWpx).coerceAtLeast(1)
-        if (imgW > availW) { imgW = availW; imgH = ((imgW * 4f) / 3f).toInt() }
-        val cropped = centerCropTo(src, imgW, imgH)
-        val rounded = roundedCornersBitmap(cropped, 16f)
-        views.setImageViewBitmap(R.id.widget_thumb, rounded)
+        val (imgW, imgH) = computeThumbSizePreserveRatio(containerH, availW, density, src.width, src.height)
+
+        // scale → round → rotate  (bo trước, xoay sau)
+        val scaled = Bitmap.createScaledBitmap(src, imgW, imgH, true)
+        val rounded = roundedCornersBitmap(scaled, 16f)
+        val rotated = rotateBitmap(rounded, -8f)
+
+        views.setImageViewBitmap(R.id.widget_thumb, rotated)
         views.setViewVisibility(R.id.widget_thumb, View.VISIBLE)
       } else {
         views.setViewVisibility(R.id.widget_thumb, View.GONE)
       }
       appWidgetManager.updateAppWidget(appWidgetId, views)
 
-      // Post-process in background
+      // Hậu xử lý nền mờ + thử tải ảnh mặc định
       Thread {
         val src = BitmapFactory.decodeResource(context.resources, fallbackRes)
-        val blurred = blurBitmapCompat(src, 10)
+        val blurred = blurBitmapCompat(src, BLUR_RADIUS)
         val chosenLayout = layoutForCurrentWidth(context, appWidgetId, null)
         val v = RemoteViews(context.packageName, chosenLayout)
+
         if (chosenLayout == R.layout.widget_news_card_wide) {
           val opts = AppWidgetManager.getInstance(context).getAppWidgetOptions(appWidgetId)
-          val minW = opts?.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0) ?: 0
-          val minH = opts?.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0) ?: 0
+          val minW2 = opts?.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0) ?: 0
+          val minH2 = opts?.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0) ?: 0
           val density = context.resources.displayMetrics.density
-          val canvasW = (minW * density).toInt().coerceAtLeast(1)
-          val canvasH = (minH * density).toInt().coerceAtLeast(1)
-          val composite = composeWideComposite(blurred, src, canvasW, canvasH, PADDING_RATIO)
-          v.setImageViewBitmap(R.id.widget_bg, composite)
-          // Push title to the right of the card
-          val padWpx = (minW * PADDING_RATIO * density).toInt()
-          val padHpx = (minH * PADDING_RATIO * density).toInt()
-          val titleLeft = computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
-          v.setViewPadding(R.id.widget_title, titleLeft, 0, padWpx, 0)
-          v.setViewVisibility(R.id.widget_thumb, View.GONE)
+          val canvasW = (minW2 * density).toInt().coerceAtLeast(1)
+          val canvasH = (minH2 * density).toInt().coerceAtLeast(1)
+
+          v.setImageViewBitmap(R.id.widget_bg, applyDarkOverlay(blurred, BG_DARKEN_ALPHA))
+          val padWpx = (minW2 * PADDING_H_RATIO * density).toInt()
+          val padHpx = (minH2 * PADDING_V_RATIO * density).toInt()
+          computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
+          v.setViewPadding(R.id.wide_content, padWpx, padHpx, padWpx, padHpx)
+          v.setViewPadding(R.id.widget_title, 0, 0, 0, 0)
+
+          val containerH = (canvasH - padHpx - padHpx).coerceAtLeast(1)
+          val availW = (canvasW - padWpx - padWpx).coerceAtLeast(1)
+          val (imgW, imgH) = computeThumbSizePreserveRatio(containerH, availW, density, src.width, src.height)
+
+          val scaled = Bitmap.createScaledBitmap(src, imgW, imgH, true)
+          val rounded = roundedCornersBitmap(scaled, 16f)
+          val rotated = rotateBitmap(rounded, -8f)
+
+          v.setImageViewBitmap(R.id.widget_thumb, rotated)
+          v.setViewVisibility(R.id.widget_thumb, View.VISIBLE)
         } else {
-          v.setImageViewBitmap(R.id.widget_bg, blurred)
+          v.setImageViewBitmap(R.id.widget_bg, applyDarkOverlay(blurred, BG_DARKEN_ALPHA))
           v.setViewVisibility(R.id.widget_thumb, View.GONE)
         }
         v.setTextViewText(R.id.widget_title, defaultTitle)
         AppWidgetManager.getInstance(context).updateAppWidget(appWidgetId, v)
       }.start()
 
-      // Then try remote default image asynchronously
       Companion.currentTitle = defaultTitle
       Companion.currentImageUrl = defaultImage
       loadImageAndUpdate(context, appWidgetId, defaultImage)
@@ -107,73 +123,81 @@ class MyFirstWidget : AppWidgetProvider() {
     newOptions: Bundle
   ) {
     super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
-    // Re-render when user resizes between 3x2 and 4x2
+
     val layoutId = layoutForCurrentWidth(context, appWidgetId, newOptions)
     val views = RemoteViews(context.packageName, layoutId)
     views.setTextViewText(R.id.widget_title, defaultTitle)
+
     val localRes = context.resources.getIdentifier("widget_bg_fallback", "drawable", context.packageName)
     val fallbackRes = if (localRes != 0) localRes else R.drawable.splashscreen_logo
     views.setImageViewResource(R.id.widget_bg, fallbackRes)
+
     val minWInit = newOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
     val minHInit = newOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0)
+
     if (layoutId == R.layout.widget_news_card_wide && minWInit > 0 && minHInit > 0) {
       val density = context.resources.displayMetrics.density
       val canvasW = (minWInit * density).toInt().coerceAtLeast(1)
       val canvasH = (minHInit * density).toInt().coerceAtLeast(1)
-      val padWpx = (minWInit * PADDING_RATIO * density).toInt()
-      val padHpx = (minHInit * PADDING_RATIO * density).toInt()
-      val titleLeft = computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
+      val padWpx = (minWInit * PADDING_H_RATIO * density).toInt()
+      val padHpx = (minHInit * PADDING_V_RATIO * density).toInt()
+      computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
       views.setViewPadding(R.id.wide_content, padWpx, padHpx, padWpx, padHpx)
-      views.setViewPadding(R.id.widget_title, titleLeft, 0, padWpx, 0)
+      views.setViewPadding(R.id.widget_title, 0, 0, 0, 0)
+
       val src = BitmapFactory.decodeResource(context.resources, fallbackRes)
       val containerH = (canvasH - padHpx - padHpx).coerceAtLeast(1)
-      var imgH = containerH
-      var imgW = ((imgH * 3f) / 4f).toInt()
       val availW = (canvasW - padWpx - padWpx).coerceAtLeast(1)
-      if (imgW > availW) { imgW = availW; imgH = ((imgW * 4f) / 3f).toInt() }
-      val cropped = centerCropTo(src, imgW, imgH)
-      val rounded = roundedCornersBitmap(cropped, 16f)
-      views.setImageViewBitmap(R.id.widget_thumb, rounded)
+      val (imgW, imgH) = computeThumbSizePreserveRatio(containerH, availW, density, src.width, src.height)
+
+      val scaled = Bitmap.createScaledBitmap(src, imgW, imgH, true)
+      val rounded = roundedCornersBitmap(scaled, 16f)
+      val rotated = rotateBitmap(rounded, -8f)
+
+      views.setImageViewBitmap(R.id.widget_thumb, rotated)
       views.setViewVisibility(R.id.widget_thumb, View.VISIBLE)
     } else {
       views.setViewVisibility(R.id.widget_thumb, View.GONE)
     }
     appWidgetManager.updateAppWidget(appWidgetId, views)
-    // Re-apply processing async
+
     Thread {
       val src = BitmapFactory.decodeResource(context.resources, fallbackRes)
-      val layoutId = layoutForCurrentWidth(context, appWidgetId, newOptions)
-      val v = RemoteViews(context.packageName, layoutId)
-      if (layoutId == R.layout.widget_news_card_wide) {
+      val layoutId2 = layoutForCurrentWidth(context, appWidgetId, newOptions)
+      val v = RemoteViews(context.packageName, layoutId2)
+
+      if (layoutId2 == R.layout.widget_news_card_wide) {
         val minW = newOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
         val minH = newOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0)
         val density = context.resources.displayMetrics.density
         val canvasW = (minW * density).toInt().coerceAtLeast(1)
         val canvasH = (minH * density).toInt().coerceAtLeast(1)
-        v.setImageViewBitmap(R.id.widget_bg, src)
-        val padWpx = (minW * PADDING_RATIO * density).toInt()
-        val padHpx = (minH * PADDING_RATIO * density).toInt()
-        val titleLeft = computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
+
+        v.setImageViewBitmap(R.id.widget_bg, applyDarkOverlay(blurBitmapCompat(src, BLUR_RADIUS), BG_DARKEN_ALPHA))
+        val padWpx = (minW * PADDING_H_RATIO * density).toInt()
+        val padHpx = (minH * PADDING_V_RATIO * density).toInt()
+        computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
         v.setViewPadding(R.id.wide_content, padWpx, padHpx, padWpx, padHpx)
-        v.setViewPadding(R.id.widget_title, titleLeft, 0, padWpx, 0)
+        v.setViewPadding(R.id.widget_title, 0, 0, 0, 0)
+
         val containerH = (canvasH - padHpx - padHpx).coerceAtLeast(1)
-        var imgH = containerH
-        var imgW = ((imgH * 3f) / 4f).toInt()
         val availW = (canvasW - padWpx - padWpx).coerceAtLeast(1)
-        if (imgW > availW) { imgW = availW; imgH = ((imgW * 4f) / 3f).toInt() }
-        val cropped = centerCropTo(src, imgW, imgH)
-        val rounded = roundedCornersBitmap(cropped, 16f)
-        v.setImageViewBitmap(R.id.widget_thumb, rounded)
+        val (imgW, imgH) = computeThumbSizePreserveRatio(containerH, availW, density, src.width, src.height)
+
+        val scaled = Bitmap.createScaledBitmap(src, imgW, imgH, true)
+        val rounded = roundedCornersBitmap(scaled, 16f)
+        val rotated = rotateBitmap(rounded, -8f)
+
+        v.setImageViewBitmap(R.id.widget_thumb, rotated)
         v.setViewVisibility(R.id.widget_thumb, View.VISIBLE)
       } else {
-        v.setImageViewBitmap(R.id.widget_bg, src)
+        v.setImageViewBitmap(R.id.widget_bg, applyDarkOverlay(blurBitmapCompat(src, BLUR_RADIUS), BG_DARKEN_ALPHA))
         v.setViewVisibility(R.id.widget_thumb, View.GONE)
       }
       v.setTextViewText(R.id.widget_title, defaultTitle)
       AppWidgetManager.getInstance(context).updateAppWidget(appWidgetId, v)
     }.start()
 
-    // Re-apply last known remote image & title if available
     val title = currentTitle ?: defaultTitle
     val image = currentImageUrl
     if (!image.isNullOrEmpty()) {
@@ -183,11 +207,17 @@ class MyFirstWidget : AppWidgetProvider() {
 
   companion object {
     private const val TAG = "HiVisionWidget"
-    private const val PADDING_RATIO = 0.08f
-    private const val CARD_SCALE = 1.2f // enlarge left card while keeping 3:4
-    // Card uses strict 3:4 crop; width derived from height and available space
+    private const val PADDING_H_RATIO = 0.0f
+    private const val PADDING_V_RATIO = 0.0f
+    private const val BG_DARKEN_ALPHA = 160
+    private const val BLUR_RADIUS = 12
+    private const val CORNER_INSET_RATIO = 0.06f
+    private const val CARD_SCALE = 1.2f
+    private const val THUMB_SCALE = 0.7f
+
     const val DEFAULT_TITLE = "65% người dân ủng hộ hôn nhân đồng giới"
     const val DEFAULT_IMAGE = "https://scontent.fsgn5-9.fna.fbcdn.net/v/t39.30808-6/491419671_122184810890500724_7772420299609524587_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=YPisds6QH8YQ7kNvwE0Bt1E&_nc_oc=Adn8TfELPtJqXy703VxhNT3beMoH021zVP7_BugTH86tKPfCnIi1oycZF6qhQq0k6VY&_nc_zt=23&_nc_ht=scontent.fsgn5-9.fna&_nc_gid=EJ8uIpO-a0AAGx_Iel87Yw&oh=00_AfXAZGkfN1hGcrqdwTsZwWH2XdPRiYPqKi8x0CKaG9c_aw&oe=68B9EA1B"
+
     var currentTitle: String? = null
     var currentImageUrl: String? = null
 
@@ -207,8 +237,8 @@ class MyFirstWidget : AppWidgetProvider() {
           val minW = opts?.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0) ?: 0
           val minH = opts?.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0) ?: 0
           val density = context.resources.displayMetrics.density
-          val lr = (minW * PADDING_RATIO * density).toInt()
-          val tb = (minH * PADDING_RATIO * density).toInt()
+          val lr = (minW * PADDING_H_RATIO * density).toInt()
+          val tb = (minH * PADDING_V_RATIO * density).toInt()
           views.setViewPadding(R.id.wide_content, lr, tb, lr, tb)
         }
         views.setTextViewText(R.id.widget_title, title ?: "HiVision Widget")
@@ -240,6 +270,7 @@ class MyFirstWidget : AppWidgetProvider() {
 
         val layoutId = layoutOverride ?: layoutForCurrentWidth(context, appWidgetId, optsOverride)
         val views = RemoteViews(context.packageName, layoutId)
+
         val bmp = bitmap
         if (bmp != null) {
           if (layoutId == R.layout.widget_news_card_wide) {
@@ -249,29 +280,36 @@ class MyFirstWidget : AppWidgetProvider() {
             val density = context.resources.displayMetrics.density
             val canvasW = (minW * density).toInt().coerceAtLeast(1)
             val canvasH = (minH * density).toInt().coerceAtLeast(1)
-            views.setImageViewBitmap(R.id.widget_bg, bmp)
-            val padWpx = (minW * PADDING_RATIO * density).toInt()
-            val padHpx = (minH * PADDING_RATIO * density).toInt()
-            val titleLeft = computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
+
+            val bgBlur = blurBitmapCompat(bmp, BLUR_RADIUS)
+            views.setImageViewBitmap(R.id.widget_bg, applyDarkOverlay(bgBlur, BG_DARKEN_ALPHA))
+
+            val padWpx = (minW * PADDING_H_RATIO * density).toInt()
+            val padHpx = (minH * PADDING_V_RATIO * density).toInt()
+            computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
             views.setViewPadding(R.id.wide_content, padWpx, padHpx, padWpx, padHpx)
-            views.setViewPadding(R.id.widget_title, titleLeft, 0, padWpx, 0)
+            views.setViewPadding(R.id.widget_title, 0, 0, 0, 0)
+
             val containerH = (canvasH - padHpx - padHpx).coerceAtLeast(1)
-            var imgH = containerH
-            var imgW = ((imgH * 3f) / 4f).toInt()
             val availW = (canvasW - padWpx - padWpx).coerceAtLeast(1)
-            if (imgW > availW) { imgW = availW; imgH = ((imgW * 4f) / 3f).toInt() }
-            val cropped = centerCropTo(bmp, imgW, imgH)
-            val rounded = roundedCornersBitmap(cropped, 16f)
-            views.setImageViewBitmap(R.id.widget_thumb, rounded)
+            val (imgW, imgH) = computeThumbSizePreserveRatio(containerH, availW, density, bmp.width, bmp.height)
+
+            val scaled = Bitmap.createScaledBitmap(bmp, imgW, imgH, true)
+            val rounded = roundedCornersBitmap(scaled, 16f)
+            val rotated = rotateBitmap(rounded, -8f)
+
+            views.setImageViewBitmap(R.id.widget_thumb, rotated)
             views.setViewVisibility(R.id.widget_thumb, View.VISIBLE)
           } else {
-            views.setImageViewBitmap(R.id.widget_bg, bmp)
+            val blurred = blurBitmapCompat(bmp, BLUR_RADIUS)
+            views.setImageViewBitmap(R.id.widget_bg, applyDarkOverlay(blurred, BG_DARKEN_ALPHA))
             views.setViewVisibility(R.id.widget_thumb, View.GONE)
           }
         } else {
           val localRes = context.resources.getIdentifier("widget_bg_fallback", "drawable", context.packageName)
           val fallbackRes = if (localRes != 0) localRes else R.drawable.splashscreen_logo
           val src = BitmapFactory.decodeResource(context.resources, fallbackRes)
+
           if (layoutId == R.layout.widget_news_card_wide) {
             val opts = optsOverride ?: AppWidgetManager.getInstance(context).getAppWidgetOptions(appWidgetId)
             val minW = opts?.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0) ?: 0
@@ -279,31 +317,36 @@ class MyFirstWidget : AppWidgetProvider() {
             val density = context.resources.displayMetrics.density
             val canvasW = (minW * density).toInt().coerceAtLeast(1)
             val canvasH = (minH * density).toInt().coerceAtLeast(1)
-            views.setImageViewBitmap(R.id.widget_bg, src)
-            val padWpx = (minW * PADDING_RATIO * density).toInt()
-            val padHpx = (minH * PADDING_RATIO * density).toInt()
-            val titleLeft = computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
+
+            views.setImageViewBitmap(R.id.widget_bg, applyDarkOverlay(blurBitmapCompat(src, BLUR_RADIUS), BG_DARKEN_ALPHA))
+
+            val padWpx = (minW * PADDING_H_RATIO * density).toInt()
+            val padHpx = (minH * PADDING_V_RATIO * density).toInt()
+            computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
             views.setViewPadding(R.id.wide_content, padWpx, padHpx, padWpx, padHpx)
-            views.setViewPadding(R.id.widget_title, titleLeft, 0, padWpx, 0)
+            views.setViewPadding(R.id.widget_title, 0, 0, 0, 0)
+
             val containerH = (canvasH - padHpx - padHpx).coerceAtLeast(1)
-            var imgH = containerH
-            var imgW = ((imgH * 3f) / 4f).toInt()
             val availW = (canvasW - padWpx - padWpx).coerceAtLeast(1)
-            if (imgW > availW) { imgW = availW; imgH = ((imgW * 4f) / 3f).toInt() }
-            val cropped = centerCropTo(src, imgW, imgH)
-            val rounded = roundedCornersBitmap(cropped, 16f)
-            views.setImageViewBitmap(R.id.widget_thumb, rounded)
+            val (imgW, imgH) = computeThumbSizePreserveRatio(containerH, availW, density, src.width, src.height)
+
+            val scaled = Bitmap.createScaledBitmap(src, imgW, imgH, true)
+            val rounded = roundedCornersBitmap(scaled, 16f)
+            val rotated = rotateBitmap(rounded, -8f)
+
+            views.setImageViewBitmap(R.id.widget_thumb, rotated)
             views.setViewVisibility(R.id.widget_thumb, View.VISIBLE)
           } else {
-            views.setImageViewBitmap(R.id.widget_bg, src)
+            val blurred = blurBitmapCompat(src, BLUR_RADIUS)
+            views.setImageViewBitmap(R.id.widget_bg, applyDarkOverlay(blurred, BG_DARKEN_ALPHA))
             views.setViewVisibility(R.id.widget_thumb, View.GONE)
           }
         }
+
         AppWidgetManager.getInstance(context).updateAppWidget(appWidgetId, views)
       }.start()
     }
 
-    // Used by fixed-size providers to update all instances of a given provider class with a specific layout
     fun updateAllFixed(
       context: Context,
       providerClass: Class<*>,
@@ -319,9 +362,11 @@ class MyFirstWidget : AppWidgetProvider() {
       for (id in ids) {
         val views = RemoteViews(context.packageName, layoutId)
         views.setTextViewText(R.id.widget_title, title ?: "HiVision Widget")
+
         val localRes = context.resources.getIdentifier("widget_bg_fallback", "drawable", context.packageName)
         val fallbackRes = if (localRes != 0) localRes else R.drawable.splashscreen_logo
         views.setImageViewResource(R.id.widget_bg, fallbackRes)
+
         if (layoutId == R.layout.widget_news_card_wide) {
           val opts = AppWidgetManager.getInstance(context).getAppWidgetOptions(id)
           val minW = opts?.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0) ?: 0
@@ -330,20 +375,22 @@ class MyFirstWidget : AppWidgetProvider() {
             val density = context.resources.displayMetrics.density
             val canvasW = (minW * density).toInt().coerceAtLeast(1)
             val canvasH = (minH * density).toInt().coerceAtLeast(1)
-            val padWpx = (minW * PADDING_RATIO * density).toInt()
-            val padHpx = (minH * PADDING_RATIO * density).toInt()
-            val titleLeft = computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
+            val padWpx = (minW * PADDING_H_RATIO * density).toInt()
+            val padHpx = (minH * PADDING_V_RATIO * density).toInt()
+            computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
             views.setViewPadding(R.id.wide_content, padWpx, padHpx, padWpx, padHpx)
-            views.setViewPadding(R.id.widget_title, titleLeft, 0, padWpx, 0)
+            views.setViewPadding(R.id.widget_title, 0, 0, 0, 0)
+
             val src = BitmapFactory.decodeResource(context.resources, fallbackRes)
             val containerH = (canvasH - padHpx - padHpx).coerceAtLeast(1)
-            var imgH = containerH
-            var imgW = ((imgH * 3f) / 4f).toInt()
             val availW = (canvasW - padWpx - padWpx).coerceAtLeast(1)
-            if (imgW > availW) { imgW = availW; imgH = ((imgW * 4f) / 3f).toInt() }
-            val cropped = centerCropTo(src, imgW, imgH)
-            val rounded = roundedCornersBitmap(cropped, 16f)
-            views.setImageViewBitmap(R.id.widget_thumb, rounded)
+            val (imgW, imgH) = computeThumbSizePreserveRatio(containerH, availW, density, src.width, src.height)
+
+            val scaled = Bitmap.createScaledBitmap(src, imgW, imgH, true)
+            val rounded = roundedCornersBitmap(scaled, 16f)
+            val rotated = rotateBitmap(rounded, -8f)
+
+            views.setImageViewBitmap(R.id.widget_thumb, rotated)
             views.setViewVisibility(R.id.widget_thumb, View.VISIBLE)
           } else {
             views.setViewVisibility(R.id.widget_thumb, View.GONE)
@@ -353,7 +400,7 @@ class MyFirstWidget : AppWidgetProvider() {
         }
         manager.updateAppWidget(id, views)
 
-        // process & remote image
+        // Hậu xử lý & ảnh từ network
         Thread {
           val src = BitmapFactory.decodeResource(context.resources, fallbackRes)
           val v = RemoteViews(context.packageName, layoutId)
@@ -361,23 +408,28 @@ class MyFirstWidget : AppWidgetProvider() {
             val density = context.resources.displayMetrics.density
             val canvasW = (270 * density).toInt()
             val canvasH = (110 * density).toInt()
-            v.setImageViewBitmap(R.id.widget_bg, src)
-            val padWpx = (270 * PADDING_RATIO * density).toInt()
-            val padHpx = (110 * PADDING_RATIO * density).toInt()
-            val titleLeft = computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
+            val bgBlur = blurBitmapCompat(src, BLUR_RADIUS)
+            v.setImageViewBitmap(R.id.widget_bg, applyDarkOverlay(bgBlur, BG_DARKEN_ALPHA))
+
+            val padWpx = (270 * PADDING_H_RATIO * density).toInt()
+            val padHpx = (110 * PADDING_V_RATIO * density).toInt()
+            computeTitleLeft(canvasW, canvasH, padWpx, padHpx)
             v.setViewPadding(R.id.wide_content, padWpx, padHpx, padWpx, padHpx)
-            v.setViewPadding(R.id.widget_title, titleLeft, 0, padWpx, 0)
+            v.setViewPadding(R.id.widget_title, 0, 0, 0, 0)
+
             val containerH = (canvasH - padHpx - padHpx).coerceAtLeast(1)
-            var imgH = containerH
-            var imgW = ((imgH * 3f) / 4f).toInt()
             val availW = (canvasW - padWpx - padWpx).coerceAtLeast(1)
-            if (imgW > availW) { imgW = availW; imgH = ((imgW * 4f) / 3f).toInt() }
-            val cropped = centerCropTo(src, imgW, imgH)
-            val rounded = roundedCornersBitmap(cropped, 16f)
-            v.setImageViewBitmap(R.id.widget_thumb, rounded)
+            val (imgW, imgH) = computeThumbSizePreserveRatio(containerH, availW, density, src.width, src.height)
+
+            val scaled = Bitmap.createScaledBitmap(src, imgW, imgH, true)
+            val rounded = roundedCornersBitmap(scaled, 16f)
+            val rotated = rotateBitmap(rounded, -8f)
+
+            v.setImageViewBitmap(R.id.widget_thumb, rotated)
             v.setViewVisibility(R.id.widget_thumb, View.VISIBLE)
           } else {
-            v.setImageViewBitmap(R.id.widget_bg, src)
+            val blurred = blurBitmapCompat(src, BLUR_RADIUS)
+            v.setImageViewBitmap(R.id.widget_bg, applyDarkOverlay(blurred, BG_DARKEN_ALPHA))
             v.setViewVisibility(R.id.widget_thumb, View.GONE)
           }
           v.setTextViewText(R.id.widget_title, title ?: "HiVision Widget")
@@ -396,7 +448,6 @@ class MyFirstWidget : AppWidgetProvider() {
       val minWidthDp = opts?.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0) ?: 0
       val minHeightDp = opts?.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0) ?: 0
 
-      // Robust detection across launchers: require both a wide ratio and a minimum width.
       val w = if (minWidthDp <= 0) 1 else minWidthDp
       val h = if (minHeightDp <= 0) 1 else minHeightDp
       val ratio = w.toFloat() / h.toFloat()
@@ -409,7 +460,6 @@ class MyFirstWidget : AppWidgetProvider() {
 
     private fun blurBitmapCompat(src: Bitmap, radius: Int): Bitmap {
       val r = radius.coerceIn(1, 25)
-      // scale down for performance
       val scale = 0.5f
       val w = (src.width * scale).toInt().coerceAtLeast(1)
       val h = (src.height * scale).toInt().coerceAtLeast(1)
@@ -418,10 +468,9 @@ class MyFirstWidget : AppWidgetProvider() {
       return Bitmap.createScaledBitmap(out, src.width, src.height, true)
     }
 
-    // Lightweight stack blur implementation (box blur approximation)
+    // Stack blur đơn giản
     private fun stackBlur(sentBitmap: Bitmap, radius: Int): Bitmap {
       if (radius < 1) return sentBitmap
-
       val bitmap = sentBitmap.copy(Bitmap.Config.ARGB_8888, true)
       val w = bitmap.width
       val h = bitmap.height
@@ -487,64 +536,34 @@ class MyFirstWidget : AppWidgetProvider() {
           gsum += sir[1] * rbs
           bsum += sir[2] * rbs
           if (i > 0) {
-            rinsum += sir[0]
-            ginsum += sir[1]
-            binsum += sir[2]
+            rinsum += sir[0]; ginsum += sir[1]; binsum += sir[2]
           } else {
-            routsum += sir[0]
-            goutsum += sir[1]
-            boutsum += sir[2]
+            routsum += sir[0]; goutsum += sir[1]; boutsum += sir[2]
           }
           i++
         }
         stackpointer = radius
-
         x = 0
         while (x < w) {
-          r[yi] = dv[rsum]
-          g[yi] = dv[gsum]
-          b[yi] = dv[bsum]
-
-          rsum -= routsum
-          gsum -= goutsum
-          bsum -= boutsum
-
+          r[yi] = dv[rsum]; g[yi] = dv[gsum]; b[yi] = dv[bsum]
+          rsum -= routsum; gsum -= goutsum; bsum -= boutsum
           stackstart = stackpointer - radius + div
           sir = stack[stackstart % div]
-
-          routsum -= sir[0]
-          goutsum -= sir[1]
-          boutsum -= sir[2]
-
+          routsum -= sir[0]; goutsum -= sir[1]; boutsum -= sir[2]
           if (y == 0) vmin[x] = kotlin.math.min(x + radius + 1, wm)
           p = pix[yw + vmin[x]]
           sir[0] = (p and 0xff0000) shr 16
           sir[1] = (p and 0x00ff00) shr 8
           sir[2] = (p and 0x0000ff)
-
-          rinsum += sir[0]
-          ginsum += sir[1]
-          binsum += sir[2]
-
-          rsum += rinsum
-          gsum += ginsum
-          bsum += binsum
-
+          rinsum += sir[0]; ginsum += sir[1]; binsum += sir[2]
+          rsum += rinsum; gsum += ginsum; bsum += binsum
           stackpointer = (stackpointer + 1) % div
           sir = stack[stackpointer]
-
-          routsum += sir[0]
-          goutsum += sir[1]
-          boutsum += sir[2]
-          rinsum -= sir[0]
-          ginsum -= sir[1]
-          binsum -= sir[2]
-
-          yi++
-          x++
+          routsum += sir[0]; goutsum += sir[1]; boutsum += sir[2]
+          rinsum -= sir[0]; ginsum -= sir[1]; binsum -= sir[2]
+          yi++; x++
         }
-        yw += w
-        y++
+        yw += w; y++
       }
 
       x = 0
@@ -557,23 +576,12 @@ class MyFirstWidget : AppWidgetProvider() {
         while (i <= radius) {
           yi = kotlin.math.max(0, yp) + x
           sir = stack[i + radius]
-          sir[0] = r[yi]
-          sir[1] = g[yi]
-          sir[2] = b[yi]
+          sir[0] = r[yi]; sir[1] = g[yi]; sir[2] = b[yi]
           rbs = r1 - kotlin.math.abs(i)
-          rsum += r[yi] * rbs
-          gsum += g[yi] * rbs
-          bsum += b[yi] * rbs
-          if (i > 0) {
-            rinsum += sir[0]
-            ginsum += sir[1]
-            binsum += sir[2]
-          } else {
-            routsum += sir[0]
-            goutsum += sir[1]
-            boutsum += sir[2]
-          }
-          if (i < hm) yp += w
+          rsum += r[yi] * rbs; gsum += g[yi] * rbs; bsum += b[yi] * rbs
+          if (i > 0) { rinsum += sir[0]; ginsum += sir[1]; binsum += sir[2] }
+          else { routsum += sir[0]; goutsum += sir[1]; boutsum += sir[2] }
+          if (i < h - 1) yp += w
           i++
         }
         yi = x
@@ -581,43 +589,20 @@ class MyFirstWidget : AppWidgetProvider() {
         y = 0
         while (y < h) {
           pix[yi] = (0xff000000.toInt() and pix[yi]) or (dv[rsum] shl 16) or (dv[gsum] shl 8) or dv[bsum]
-
-          rsum -= routsum
-          gsum -= goutsum
-          bsum -= boutsum
-
+          rsum -= routsum; gsum -= goutsum; bsum -= boutsum
           stackstart = stackpointer - radius + div
           sir = stack[stackstart % div]
-
-          routsum -= sir[0]
-          goutsum -= sir[1]
-          boutsum -= sir[2]
-
-          if (x == 0) vmin[y] = kotlin.math.min(y + r1, hm) * w
+          routsum -= sir[0]; goutsum -= sir[1]; boutsum -= sir[2]
+          if (x == 0) vmin[y] = kotlin.math.min(y + r1, h - 1) * w
           p = x + vmin[y]
-          sir[0] = r[p]
-          sir[1] = g[p]
-          sir[2] = b[p]
-
-          rinsum += sir[0]
-          ginsum += sir[1]
-          binsum += sir[2]
-
-          rsum += rinsum
-          gsum += ginsum
-          bsum += binsum
-
+          sir[0] = r[p]; sir[1] = g[p]; sir[2] = b[p]
+          rinsum += sir[0]; ginsum += sir[1]; binsum += sir[2]
+          rsum += rinsum; gsum += ginsum; bsum += binsum
           stackpointer = (stackpointer + 1) % div
           sir = stack[stackpointer]
-          routsum += sir[0]
-          goutsum += sir[1]
-          boutsum += sir[2]
-          rinsum -= sir[0]
-          ginsum -= sir[1]
-          binsum -= sir[2]
-
-          yi += w
-          y++
+          routsum += sir[0]; goutsum += sir[1]; boutsum += sir[2]
+          rinsum -= sir[0]; ginsum -= sir[1]; binsum -= sir[2]
+          yi += w; y++
         }
         x++
       }
@@ -627,6 +612,7 @@ class MyFirstWidget : AppWidgetProvider() {
     }
 
     private fun roundedCornersBitmap(src: Bitmap, radiusDp: Float): Bitmap {
+      // Bo góc ngay trên ảnh gốc (chưa xoay)
       val radiusPx = radiusDp * (src.width.coerceAtLeast(src.height) / 200f).coerceAtLeast(1f)
       val output = Bitmap.createBitmap(src.width, src.height, Bitmap.Config.ARGB_8888)
       val canvas = Canvas(output)
@@ -640,58 +626,55 @@ class MyFirstWidget : AppWidgetProvider() {
       return output
     }
 
-    private fun composeWideComposite(
-      bgBlur: Bitmap,
-      cardSrc: Bitmap,
-      canvasW: Int,
-      canvasH: Int,
-      paddingRatio: Float
-    ): Bitmap {
-      val padW = (canvasW * paddingRatio).toInt()
-      val padH = (canvasH * paddingRatio).toInt()
-
-      // Background: cover (center-crop) and darken
-      val bgCover = centerCropTo(bgBlur, canvasW, canvasH)
-      val output = Bitmap.createBitmap(canvasW, canvasH, Bitmap.Config.ARGB_8888)
-      val canvas = Canvas(output)
-      canvas.drawBitmap(bgCover, 0f, 0f, null)
-      val darkPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-      darkPaint.color = Color.argb(120, 0, 0, 0) // ~47% black overlay
-      canvas.drawRect(0f, 0f, canvasW.toFloat(), canvasH.toFloat(), darkPaint)
-
-      // Keep left card inside rounded corners by adding corner-safe padding
-      // Dùng đúng padding tỷ lệ, bỏ tăng theo góc để tránh lệch trái quá nhiều
-      val safePadL = padW
-      val safePadT = padH
-
-      // Container area for the card is the whole interior (left padded area)
-      val availW = (canvasW - safePadL - padW).coerceAtLeast(1)
-      val containerH = (canvasH - safePadT - padH).coerceAtLeast(1)
-      // Strict 3:4 ratio (W:H). Maximize by height, clamp by available width.
-      var imgH = containerH
-      var imgW = ((imgH * 3f) / 4f).toInt()
-      if (imgW > availW) {
-        imgW = availW
-        imgH = ((imgW * 4f) / 3f).toInt()
-      }
-
-      val cropped = centerCropTo(cardSrc, imgW, imgH)
-      val rounded = roundedCornersBitmap(cropped, 16f)
-      val drawX = safePadL // left align within padded area
-      val drawY = safePadT + ((containerH - imgH) / 2) // vertically centered
-      canvas.drawBitmap(rounded, drawX.toFloat(), drawY.toFloat(), null)
-      return output
+    private fun applyDarkOverlay(src: Bitmap, alpha: Int = BG_DARKEN_ALPHA): Bitmap {
+      val out = src.copy(Bitmap.Config.ARGB_8888, true)
+      val c = Canvas(out)
+      val p = Paint(Paint.ANTI_ALIAS_FLAG)
+      p.color = Color.argb(alpha, 0, 0, 0)
+      c.drawRect(0f, 0f, out.width.toFloat(), out.height.toFloat(), p)
+      return scaleDownIfNeeded(out)
     }
 
-    private fun computeTitleLeft(canvasW: Int, canvasH: Int, padW: Int, padH: Int): Int {
-      val safePadL = padW
-      val availW = (canvasW - safePadL - padW).coerceAtLeast(1)
-      val containerH = (canvasH - padH - padH).coerceAtLeast(1)
-      // 3:4 card width chosen by height, clamped by available width
-      var cardW = ((containerH * 3f) / 4f).toInt()
-      if (cardW > availW) cardW = availW
-      return safePadL + cardW + (padW / 2)
+    private fun scaleDownIfNeeded(src: Bitmap, maxPixels: Int = 250_000): Bitmap {
+      val pixels = src.width * src.height
+      if (pixels <= maxPixels) return src
+      val ratio = sqrt(maxPixels.toDouble() / pixels.toDouble())
+      val newW = (src.width * ratio).toInt().coerceAtLeast(1)
+      val newH = (src.height * ratio).toInt().coerceAtLeast(1)
+      return Bitmap.createScaledBitmap(src, newW, newH, true)
     }
+
+    private fun computeTitleLeft(canvasW: Int, canvasH: Int, padW: Int, padH: Int): Int = padW
+
+    private fun computeThumbSizePreserveRatio(
+      containerH: Int,
+      availW: Int,
+      density: Float,
+      srcW: Int,
+      srcH: Int
+    ): Pair<Int, Int> {
+      val boundW = availW.coerceAtLeast(1)
+      val boundH = containerH.coerceAtLeast(1)
+      val w = srcW.coerceAtLeast(1).toFloat()
+      val h = srcH.coerceAtLeast(1).toFloat()
+      val scale = kotlin.math.min(boundW / w, boundH / h)
+      val baseW = kotlin.math.max(1, kotlin.math.floor(w * scale).toInt())
+      val baseH = kotlin.math.max(1, kotlin.math.floor(h * scale).toInt())
+      val upScale = THUMB_SCALE
+      val upW = (baseW * upScale).toInt()
+      val upH = (baseH * upScale).toInt()
+      val overW = upW > boundW
+      val overH = upH > boundH
+      val finalScale = if (overW || overH) {
+        val sW = boundW.toFloat() / baseW.toFloat()
+        val sH = boundH.toFloat() / baseH.toFloat()
+        kotlin.math.min(sW, sH)
+      } else upScale
+      val outW = kotlin.math.max(1, (baseW * finalScale).toInt())
+      val outH = kotlin.math.max(1, (baseH * finalScale).toInt())
+      return Pair(outW, outH)
+    }
+
     private fun centerCropTo(src: Bitmap, targetW: Int, targetH: Int): Bitmap {
       if (targetW <= 0 || targetH <= 0) return src
       val scale = maxOf(targetW.toFloat() / src.width, targetH.toFloat() / src.height)
@@ -701,6 +684,12 @@ class MyFirstWidget : AppWidgetProvider() {
       val x = ((scaledW - targetW) / 2).coerceAtLeast(0)
       val y = ((scaledH - targetH) / 2).coerceAtLeast(0)
       return Bitmap.createBitmap(scaled, x, y, targetW.coerceAtMost(scaledW - x), targetH.coerceAtMost(scaledH - y))
+    }
+
+    private fun rotateBitmap(src: Bitmap, angle: Float): Bitmap {
+      val matrix = android.graphics.Matrix()
+      matrix.postRotate(angle)
+      return Bitmap.createBitmap(src, 0, 0, src.width, src.height, matrix, true)
     }
   }
 }
