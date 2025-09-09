@@ -730,3 +730,12 @@ export const healthServices = [
     },
   },
 ];
+
+export const quickAmounts = [
+  { label: "50K", value: "50000" },
+  { label: "100K", value: "100000" },
+  { label: "200K", value: "200000" },
+  { label: "500K", value: "500000" },
+];
+
+export const MIN_WITHDRAW = 10000;
