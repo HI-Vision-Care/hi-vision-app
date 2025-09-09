@@ -1,6 +1,8 @@
 import axios from "@/config/axios";
 import {
   DepositPayload,
+  RequestWithdrawPayload,
+  RequestWithdrawResponse,
   VNPayCallbackParams,
   VNPayCallbackResponse,
   Wallet,
@@ -33,5 +35,17 @@ export const getWalletByAccountId = async (
   accountId: string
 ): Promise<Wallet> => {
   const res = await axios.get(`/wallet/view/${accountId}`);
+  return res.data;
+};
+
+// Yêu cầu rút tiền
+export const requestWithdraw = async (
+  accountId: string,
+  payload: RequestWithdrawPayload
+): Promise<RequestWithdrawResponse> => {
+  const res = await axios.post(
+    `/wallet/request-withdraw/${accountId}`,
+    payload
+  );
   return res.data;
 };
