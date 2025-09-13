@@ -53,11 +53,18 @@ export default function BookingScreen() {
     "PAY_LATER"
   );
 
-  const { data } = useLocalSearchParams<{ data: string }>();
+  const { data, doctorId, specialty } = useLocalSearchParams<{
+    data?: string;
+    doctorId?: string;
+    specialty?: string;
+  }>();
   const [isAnonymous, setIsAnonymous] = useState(false);
   const initialService: Service | null = data
     ? JSON.parse(decodeURIComponent(data))
     : null;
+
+  // Ưu tiên specialty từ service; nếu không có thì dùng specialty truyền qua params
+  const specialtyParam = initialService?.specialty || specialty || "";
 
   const [selectedService, setSelectedService] = useState<Service | null>(
     initialService
@@ -76,9 +83,18 @@ export default function BookingScreen() {
     data: doctors,
     isLoading: doctorsLoading,
     error: doctorsError,
-  } = useDoctorsBySpecialty(selectedService?.specialty || "");
+  } = useDoctorsBySpecialty(specialtyParam);
 
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
+
+  useEffect(() => {
+    if (!selectedDoctor && doctorId && Array.isArray(doctors)) {
+      const found = doctors.find(
+        (d) => String(d.doctorID) === String(doctorId)
+      );
+      if (found) setSelectedDoctor(found);
+    }
+  }, [doctorId, doctors, selectedDoctor]);
 
   const bookAppointmentMutation = useBookAppointment(patientId ?? ""); // fallback to empty string if undefined
   const transferToAppointmentMutation = useTransferToAppointment(); // Initialize the new mutation hook
