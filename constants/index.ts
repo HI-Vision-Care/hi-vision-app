@@ -693,33 +693,6 @@ export const healthServices = [
   },
   {
     id: "3",
-    title: "Tiêm Vắc\nxin",
-    icon: "shield-checkmark",
-    iconColor: "#FFFFFF",
-    backgroundColor: "#8B5CF6",
-    gradientColors: ["#8B5CF6", "#7C3AED"],
-    onPress: () => console.log("Tiêm Vắc xin"),
-  },
-  {
-    id: "4",
-    title: "Đơn của\ntôi",
-    icon: "receipt",
-    iconColor: "#FFFFFF",
-    backgroundColor: "#F59E0B",
-    gradientColors: ["#F59E0B", "#D97706"],
-    onPress: () => console.log("Đơn của tôi"),
-  },
-  {
-    id: "5",
-    title: "Tìm bác sĩ\ntheo khoa",
-    icon: "people",
-    iconColor: "#FFFFFF",
-    backgroundColor: "#EF4444",
-    gradientColors: ["#EF4444", "#DC2626"],
-    onPress: () => console.log("Tìm bác sĩ"),
-  },
-  {
-    id: "6",
     title: "Phòng\nkhám",
     icon: "business", // có thể thay bằng "medkit", "home", "hospital" nếu muốn
     iconColor: "#FFFFFF",
@@ -728,6 +701,33 @@ export const healthServices = [
     onPress: () => {
       router.push("/(clinics)/clinics");
     },
+  },
+  {
+    id: "4",
+    title: "Tiêm Vắc\nxin",
+    icon: "shield-checkmark",
+    iconColor: "#FFFFFF",
+    backgroundColor: "#8B5CF6",
+    gradientColors: ["#8B5CF6", "#7C3AED"],
+    onPress: () => console.log("Tiêm Vắc xin"),
+  },
+  {
+    id: "5",
+    title: "Đơn của\ntôi",
+    icon: "receipt",
+    iconColor: "#FFFFFF",
+    backgroundColor: "#F59E0B",
+    gradientColors: ["#F59E0B", "#D97706"],
+    onPress: () => console.log("Đơn của tôi"),
+  },
+  {
+    id: "6",
+    title: "Tìm bác sĩ\ntheo khoa",
+    icon: "people",
+    iconColor: "#FFFFFF",
+    backgroundColor: "#EF4444",
+    gradientColors: ["#EF4444", "#DC2626"],
+    onPress: () => console.log("Tìm bác sĩ"),
   },
 ];
 
