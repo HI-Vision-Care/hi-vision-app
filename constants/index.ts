@@ -688,7 +688,7 @@ export const healthServices = [
     backgroundColor: "#10B981",
     gradientColors: ["#10B981", "#059669"],
     onPress: () => {
-      router.push("/(medicine-reminder)/medicine-calendar");
+      router.replace("/(medicine-reminder)/medicine-calendar");
     },
   },
   {
@@ -699,7 +699,7 @@ export const healthServices = [
     backgroundColor: "#0EA5E9",
     gradientColors: ["#0EA5E9", "#0369A1"],
     onPress: () => {
-      router.push("/(clinics)/clinics");
+      router.replace("/(clinics)/clinics");
     },
   },
   {
