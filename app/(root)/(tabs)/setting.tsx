@@ -1,4 +1,4 @@
-import { DepositButton } from "@/components";
+import { DepositButton, WithDrawButton } from "@/components";
 import { featureCards, images, menuSections } from "@/constants";
 import { usePatientProfile } from "@/hooks/usePatientId";
 import { useDeleteAccount } from "@/services/patient/hooks";
@@ -375,6 +375,7 @@ const Setting = () => {
                 </Text>
               </View>
               {!wallet && !isWalletLoading ? (
+                // Nếu chưa có ví thì hiện nút Tạo ví
                 <TouchableOpacity
                   onPress={() => {
                     if (!accountId) return;
@@ -398,10 +399,18 @@ const Setting = () => {
                   </View>
                 </TouchableOpacity>
               ) : (
-                <DepositButton
-                  accountId={accountId}
-                  refetchWallet={refetchWallet}
-                />
+                // Nếu đã có ví thì hiện cả 2 nút
+                <View className="flex-col items-end">
+                  <DepositButton
+                    accountId={accountId}
+                    refetchWallet={refetchWallet}
+                  />
+                  <View className="h-3" />
+                  <WithDrawButton
+                    accountId={accountId}
+                    refetchWallet={refetchWallet}
+                  />
+                </View>
               )}
             </View>
           </View>

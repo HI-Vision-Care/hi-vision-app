@@ -34,7 +34,6 @@ const TabNavigation = ({
 }) => {
   const tabs = [
     { key: "details", label: "Chi tiết" },
-    { key: "services", label: "Dịch vụ" },
     { key: "reviews", label: "Hỏi đáp" },
     { key: "feedback", label: "Nhận xét" },
   ];
@@ -204,7 +203,18 @@ const ClinicDetail: React.FC = () => {
                       )}
                     </View>
                   </View>
-                  <Pressable className="bg-blue-600 rounded-lg py-2">
+                  <Pressable
+                    className="bg-blue-600 rounded-lg py-2"
+                    onPress={() =>
+                      router.push({
+                        pathname: "/book-service",
+                        params: {
+                          doctorId: String(item.doctorID), // id bác sĩ
+                          specialty: item.specialty || "", // để màn sau load đúng danh sách
+                        },
+                      })
+                    }
+                  >
                     <Text className="text-white text-[12px] text-center">
                       Đặt lịch
                     </Text>
@@ -220,7 +230,7 @@ const ClinicDetail: React.FC = () => {
           clinic.medicalServices.length > 0 && (
             <View className="px-4 mb-6">
               <Text className="text-lg font-bold text-gray-900 mb-4">
-                Gói khám
+                Dịch vụ
               </Text>
               <FlatList
                 horizontal
