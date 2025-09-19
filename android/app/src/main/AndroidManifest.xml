@@ -53,5 +53,9 @@
         android:name="android.appwidget.provider"
         android:resource="@xml/my_widget_large_info" />
     </receiver>
+
+    <receiver
+      android:name=".WidgetPinnedReceiver"
+      android:exported="false" />
   </application>
 </manifest>
