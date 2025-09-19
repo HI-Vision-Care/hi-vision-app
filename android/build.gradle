@@ -9,8 +9,9 @@ buildscript {
     // Pin AGP to a version compatible with RN/Expo + Reanimated
     classpath('com.android.tools.build:gradle:8.6.1')
     classpath('com.facebook.react:react-native-gradle-plugin')
-    // Kotlin version aligned with AGP 8.6.x
-    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.24')
+    // Use Kotlin 2.0.21 and the Compose Compiler Gradle plugin (required for compose=true)
+    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.21')
+    classpath('org.jetbrains.kotlin:compose-compiler-gradle-plugin:2.0.21')
   }
 }
 

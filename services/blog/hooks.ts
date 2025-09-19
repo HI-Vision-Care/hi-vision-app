@@ -17,7 +17,7 @@ export function useSyncWidgetWithBlog(accountID?: string) {
   useEffect(() => {
     if (!accountID) {
       try {
-        WidgetBridge.setBlogCard(DEFAULT_TITLE, DEFAULT_BG_URL);
+        WidgetBridge?.setBlogCard?.(DEFAULT_TITLE, DEFAULT_BG_URL);
       } catch (e) {
         console.warn("Set default widget failed:", e);
       }
@@ -32,7 +32,7 @@ export function useSyncWidgetWithBlog(accountID?: string) {
     if (!latest) return;
 
     try {
-      WidgetBridge.setBlogCard(
+      WidgetBridge?.setBlogCard?.(
         latest.title || DEFAULT_TITLE,
         latest.banner || DEFAULT_BG_URL
       );

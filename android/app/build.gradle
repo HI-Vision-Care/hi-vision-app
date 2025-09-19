@@ -1,5 +1,6 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
+apply plugin: "org.jetbrains.kotlin.plugin.compose"
 apply plugin: "com.facebook.react"
 
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
@@ -29,10 +30,9 @@ react {
     // codegenDir = file("../../node_modules/@react-native/codegen")
 
     /* Variants */
-    //   The list of variants to that are debuggable. For those we're going to
-    //   skip the bundling of the JS bundle and the assets. By default is just 'debug'.
-    //   If you add flavors like lite, prod, etc. you'll have to list your debuggableVariants.
-    // debuggableVariants = ["liteDebug", "prodDebug"]
+    //   By default, 'debug' is debuggable and bundling is skipped (expects Metro).
+    //   To make debug builds self-contained, set debuggableVariants = [] so we bundle JS.
+    debuggableVariants = []
 
     /* Bundling */
     //   A list containing the node command and its flags. Default is just 'node'.
@@ -125,6 +125,12 @@ android {
     androidResources {
         ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
     }
+
+    // Enable Jetpack Compose (required by Glance)
+    buildFeatures {
+        compose true
+    }
+    // With Kotlin 2.0+, Compose compiler is provided by the Compose Compiler Gradle plugin.
 }
 
 // Apply static values from `gradle.properties` to the `android.packagingOptions`
@@ -173,5 +179,23 @@ dependencies {
         implementation("com.facebook.react:hermes-android")
     } else {
         implementation jscFlavor
+    }
+
+    // Jetpack Glance for App Widgets
+    implementation("androidx.glance:glance-appwidget:1.1.0")
+    implementation("androidx.glance:glance:1.1.0")
+
+    // Align WorkManager to avoid duplicate classes between runtime 2.8.x and ktx 2.7.x
+    implementation("androidx.work:work-runtime:2.8.1")
+    implementation("androidx.work:work-runtime-ktx:2.8.1")
+}
+
+configurations.all {
+    resolutionStrategy {
+        eachDependency { details ->
+            if (details.requested.group == 'androidx.work') {
+                details.useVersion '2.8.1'
+            }
+        }
     }
 }

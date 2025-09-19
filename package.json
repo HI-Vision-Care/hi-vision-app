@@ -76,6 +76,7 @@
     "tailwindcss": "^3.4.17"
   },
   "devDependencies": {
+    "expo": "53.0.22",
     "@babel/core": "^7.25.2",
     "@react-native-community/cli": "^19.1.1",
     "@types/react": "~19.1.10",
