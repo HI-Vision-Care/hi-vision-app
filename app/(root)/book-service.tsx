@@ -16,6 +16,7 @@ import {
   useBookAppointment,
   useGetWorkShiftsWeek,
 } from "@/services/booking-services/hooks";
+import { useFacility as useFacilityDetail } from "@/services/clinics/hooks";
 import { Doctor } from "@/services/doctor/types";
 import { useDoctorsBySpecialty } from "@/services/medical-services/hooks";
 import { useTransferToAppointment } from "@/services/transaction/hooks";
@@ -57,7 +58,16 @@ export default function BookingScreen() {
     data?: string;
     doctorId?: string;
     specialty?: string;
+    facilityId?: string;
   }>();
+
+  const facilityId = data
+    ? undefined
+    : String((useLocalSearchParams() as any)?.facilityId || "") || undefined;
+
+  const { data: facilityDetail, isLoading: facilityLoading } =
+    useFacilityDetail(facilityId);
+
   const [isAnonymous, setIsAnonymous] = useState(false);
   const initialService: Service | null = data
     ? JSON.parse(decodeURIComponent(data))
@@ -69,6 +79,25 @@ export default function BookingScreen() {
   const [selectedService, setSelectedService] = useState<Service | null>(
     initialService
   );
+
+  // Lấy list từ facility, có thể lọc theo specialty nếu được truyền
+  const servicesFromFacility: Service[] = useMemo(() => {
+    const raw = facilityDetail?.medicalServices ?? [];
+    const list = Array.isArray(raw) ? raw : [];
+    const mapped = list.map((s) => ({
+      serviceID: s.serviceID,
+      name: s.name,
+      price: s.price,
+      description: s.description,
+      specialty: s.specialty,
+      type: s.type,
+      isActive: s.isActive,
+      // ...bổ sung field nào bạn dùng trong ServiceSelection
+    })) as unknown as Service[];
+    return specialtyParam
+      ? mapped.filter((sv) => (sv.specialty || "") === specialtyParam)
+      : mapped;
+  }, [facilityDetail, specialtyParam]);
   const [selectedDay, setSelectedDay] = useState<string>(() => {
     const today = new Date();
     const todayName = weekDays[today.getDay()];
@@ -257,6 +286,7 @@ export default function BookingScreen() {
     }
     // ---- CHỈ KHI ĐỦ TIỀN MỚI TẠO BOOKING ----
     const payload = {
+      facilityID: String(facilityId || ""),
       serviceID: selectedService.serviceID,
       doctorID: selectedDoctor.doctorID,
       appointmentDate: toLocalISODate(selectedDate),
@@ -335,7 +365,7 @@ export default function BookingScreen() {
         />
 
         <ServiceSelection
-          services={selectedService ? [selectedService] : []}
+          services={servicesFromFacility}
           selectedServiceId={selectedService?.serviceID ?? null}
           onSelect={setSelectedService}
         />

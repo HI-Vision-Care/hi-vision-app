@@ -209,8 +209,9 @@ const ClinicDetail: React.FC = () => {
                       router.push({
                         pathname: "/book-service",
                         params: {
-                          doctorId: String(item.doctorID), // id bác sĩ
-                          specialty: item.specialty || "", // để màn sau load đúng danh sách
+                          doctorId: String(item.doctorID),
+                          specialty: item.specialty || "",
+                          facilityId: String(id), // để màn sau load đúng danh sách
                         },
                       })
                     }
