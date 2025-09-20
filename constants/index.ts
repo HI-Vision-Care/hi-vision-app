@@ -729,6 +729,17 @@ export const healthServices = [
     gradientColors: ["#EF4444", "#DC2626"],
     onPress: () => console.log("Tìm bác sĩ"),
   },
+  {
+    id: "7",
+    title: "Sản Phẩm",
+    icon: "people",
+    iconColor: "#FFFFFF",
+    backgroundColor: "#EF4444",
+    gradientColors: ["#EF4444", "#DC2626"],
+    onPress: () => {
+      router.push("/(product)/products");
+    },
+  },
 ];
 
 export const quickAmounts = [
