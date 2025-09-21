@@ -5,6 +5,7 @@ import {
   getLabResults,
   getPatientProfile,
   updatePatientProfile,
+  uploadAccountAvatar,
 } from "./api";
 import {
   DeleteAccountResponse,
@@ -35,6 +36,17 @@ export const useUpdatePatientProfile = () =>
       patientId: string;
       payload: UpdatePatientProfilePayload;
     }) => updatePatientProfile(patientId, payload),
+  });
+
+export const useUploadAccountAvatar = () =>
+  useMutation({
+    mutationFn: ({
+      accountId,
+      uri,
+    }: {
+      accountId: string;
+      uri: string;
+    }) => uploadAccountAvatar(accountId, uri),
   });
 
 export const useDeleteAccount = () => {
