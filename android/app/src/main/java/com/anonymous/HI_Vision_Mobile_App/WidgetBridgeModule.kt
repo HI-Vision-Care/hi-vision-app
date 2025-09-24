@@ -7,8 +7,9 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.time.Instant
@@ -131,16 +132,30 @@ class WidgetBridgeModule(reactContext: ReactApplicationContext) : ReactContextBa
   private fun requestWidgetRefresh() {
     val manager = GlanceAppWidgetManager(appContext)
     val widget = NewsCardGlanceWidget()
-    GlobalScope.launch(Dispatchers.Main.immediate) {
-      val ids = manager.getGlanceIds(NewsCardGlanceWidget::class.java)
-      if (ids.isEmpty()) return@launch
-      ids.forEach { glanceId ->
-        widget.update(appContext, glanceId)
+    val dispatcher = resolveDispatcher()
+    CoroutineScope(dispatcher).launch {
+      try {
+        val ids = manager.getGlanceIds(NewsCardGlanceWidget::class.java)
+        if (ids.isEmpty()) return@launch
+        ids.forEach { glanceId ->
+          widget.update(appContext, glanceId)
+        }
+      } catch (error: Exception) {
+        Log.e(TAG, "Failed to refresh widget", error)
       }
     }
   }
 
   companion object {
     private const val TAG = "WidgetBridgeModule"
+  }
+
+  private fun resolveDispatcher(): CoroutineDispatcher {
+    return try {
+      Dispatchers.Main.immediate
+    } catch (error: IllegalStateException) {
+      Log.w(TAG, "Main dispatcher unavailable, falling back to Default", error)
+      Dispatchers.Default
+    }
   }
 }
