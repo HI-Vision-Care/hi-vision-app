@@ -134,6 +134,7 @@ class WidgetBridgeModule(reactContext: ReactApplicationContext) : ReactContextBa
     val context = appContext.applicationContext
     refreshScope.launch {
       WidgetRefresher.refresh(context)
+
     }
   }
 
@@ -144,5 +145,14 @@ class WidgetBridgeModule(reactContext: ReactApplicationContext) : ReactContextBa
 
   companion object {
     private const val TAG = "WidgetBridgeModule"
+  }
+
+  private fun resolveDispatcher(): CoroutineDispatcher {
+    return try {
+      Dispatchers.Main.immediate
+    } catch (error: IllegalStateException) {
+      Log.w(TAG, "Main dispatcher unavailable, falling back to Default", error)
+      Dispatchers.Default
+    }
   }
 }
