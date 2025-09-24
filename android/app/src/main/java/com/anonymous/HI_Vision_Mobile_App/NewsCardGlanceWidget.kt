@@ -15,7 +15,6 @@ import androidx.glance.action.ActionParameters
 import androidx.glance.action.actionParametersOf
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
-import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
@@ -761,14 +760,7 @@ class ConfirmDoseAction : ActionCallback {
     }
 
     val appContext = context.applicationContext
-    val widget = NewsCardGlanceWidget()
-    val manager = GlanceAppWidgetManager(appContext)
-    val ids = manager.getGlanceIds(NewsCardGlanceWidget::class.java)
-    if (ids.isEmpty()) {
-      widget.update(appContext, glanceId)
-    } else {
-      ids.forEach { widget.update(appContext, it) }
-    }
+    WidgetRefresher.refresh(appContext)
   }
 
   companion object {
