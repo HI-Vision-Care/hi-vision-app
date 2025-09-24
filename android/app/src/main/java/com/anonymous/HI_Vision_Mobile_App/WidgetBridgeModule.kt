@@ -11,6 +11,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.time.Instant
@@ -157,6 +158,7 @@ class WidgetBridgeModule(reactContext: ReactApplicationContext) : ReactContextBa
         } catch (error: Exception) {
           Log.e(TAG, "Failed to refresh widget id=$glanceId", error)
         }
+
       }
     }
   }
@@ -168,5 +170,14 @@ class WidgetBridgeModule(reactContext: ReactApplicationContext) : ReactContextBa
 
   companion object {
     private const val TAG = "WidgetBridgeModule"
+  }
+
+  private fun resolveDispatcher(): CoroutineDispatcher {
+    return try {
+      Dispatchers.Main.immediate
+    } catch (error: IllegalStateException) {
+      Log.w(TAG, "Main dispatcher unavailable, falling back to Default", error)
+      Dispatchers.Default
+    }
   }
 }
