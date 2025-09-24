@@ -7,15 +7,18 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.time.Instant
 
 class WidgetBridgeModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
   private val appContext: ReactApplicationContext = reactContext
+  private val refreshScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
   override fun getName(): String = "WidgetBridge"
 
@@ -130,20 +133,39 @@ class WidgetBridgeModule(reactContext: ReactApplicationContext) : ReactContextBa
   }
 
   private fun requestWidgetRefresh() {
-    val manager = GlanceAppWidgetManager(appContext)
+    val context = appContext.applicationContext
     val widget = NewsCardGlanceWidget()
-    val dispatcher = resolveDispatcher()
-    CoroutineScope(dispatcher).launch {
-      try {
-        val ids = manager.getGlanceIds(NewsCardGlanceWidget::class.java)
-        if (ids.isEmpty()) return@launch
-        ids.forEach { glanceId ->
-          widget.update(appContext, glanceId)
-        }
+    refreshScope.launch {
+      val manager = try {
+        GlanceAppWidgetManager(context)
       } catch (error: Exception) {
-        Log.e(TAG, "Failed to refresh widget", error)
+        Log.e(TAG, "Unable to create Glance manager", error)
+        return@launch
+      }
+
+      val ids = try {
+        manager.getGlanceIds(NewsCardGlanceWidget::class.java)
+      } catch (error: Exception) {
+        Log.e(TAG, "Failed to load widget ids", error)
+        return@launch
+      }
+
+      if (ids.isEmpty()) return@launch
+
+      ids.forEach { glanceId ->
+        try {
+          widget.update(context, glanceId)
+        } catch (error: Exception) {
+          Log.e(TAG, "Failed to refresh widget id=$glanceId", error)
+        }
+
       }
     }
+  }
+
+  override fun onCatalystInstanceDestroy() {
+    super.onCatalystInstanceDestroy()
+    refreshScope.cancel()
   }
 
   companion object {
