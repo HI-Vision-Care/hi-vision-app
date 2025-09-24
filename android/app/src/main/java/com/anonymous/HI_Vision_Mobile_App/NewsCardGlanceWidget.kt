@@ -2,6 +2,7 @@ package com.anonymous.HI_Vision_Mobile_App
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.*
 import android.util.Log
 import androidx.compose.runtime.Composable
@@ -11,8 +12,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.*
 import androidx.glance.action.ActionParameters
+import androidx.glance.action.actionParametersOf
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
@@ -33,6 +36,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
+import java.time.DayOfWeek
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -206,17 +211,16 @@ class NewsCardGlanceWidget : GlanceAppWidget() {
     val backgroundColor = backgroundColorForState(state)
     val statusColor = statusColorForState(state)
     val indicatorColor = indicatorColorForState(state)
-    val dateLabel = formatDateLabel(zone)
     val dueTimeLabel = formatTimeLabel(nextTime, zone)
-    val progress = computeProgress(now, nextTime)
     val showButton = !data.isConfirmed && (state == DoseState.WINDOW || state == DoseState.MISSED)
+    val medicineLabel = nextEntry.medicineName ?: "thuốc"
 
     val primaryMessage = when (state) {
-      DoseState.WAITING -> "Liều kế tiếp lúc $dueTimeLabel"
-      DoseState.WINDOW -> "Đến giờ uống thuốc!"
-      DoseState.MISSED -> "Bạn đã bỏ lỡ liều hôm nay."
-      DoseState.TAKEN_ON_TIME -> "Tuyệt vời! Bạn đã hoàn thành liều hôm nay."
-      DoseState.TAKEN_LATE -> "Đã ghi nhận liều hôm nay (trễ)."
+      DoseState.WAITING -> "${medicineLabel.capitalizeWords()} kế tiếp lúc $dueTimeLabel"
+      DoseState.WINDOW -> "Đến giờ uống ${medicineLabel}!"
+      DoseState.MISSED -> "Bạn đã bỏ lỡ liều ${medicineLabel} hôm nay."
+      DoseState.TAKEN_ON_TIME -> "Tuyệt vời! Đã ghi nhận ${medicineLabel} hôm nay."
+      DoseState.TAKEN_LATE -> "Đã ghi nhận liều ${medicineLabel} (trễ)."
     }
 
     val secondaryMessage = when (state) {
@@ -229,7 +233,6 @@ class NewsCardGlanceWidget : GlanceAppWidget() {
 
     val entryNote = nextEntry.note
     val customNotes = data.notes
-    val upcoming = data.preview.filter { it.iso != nextEntry.iso }
 
     Column(
       modifier = GlanceModifier
@@ -252,8 +255,13 @@ class NewsCardGlanceWidget : GlanceAppWidget() {
           maxLines = 1,
           modifier = GlanceModifier.padding(end = 6.dp)
         )
+        val confirmedLabel = if (data.isConfirmed) {
+          data.confirmedAt?.let { formatTimeLabel(it, zone) } ?: dueTimeLabel
+        } else {
+          dueTimeLabel
+        }
         Text(
-          text = dateLabel,
+          text = if (data.isConfirmed) "Đã xác nhận lúc $confirmedLabel" else "Uống lúc $confirmedLabel",
           style = TextStyle(
             color = ColorProvider(Color(0xFF1F2937)),
             fontWeight = FontWeight.Medium,
@@ -265,33 +273,17 @@ class NewsCardGlanceWidget : GlanceAppWidget() {
         )
       }
 
-      Text(
-        text = "Uống lúc $dueTimeLabel",
-        style = TextStyle(
-          color = ColorProvider(Color(0xFF1F2937)),
-          fontWeight = FontWeight.Medium,
-          fontSize = 13.sp
-        ),
-        maxLines = 1,
-        modifier = GlanceModifier.padding(top = 4.dp)
-      )
-
-      Row(
-        modifier = GlanceModifier
-          .fillMaxWidth()
-          .padding(top = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-      ) {
-        val steps = (progress * 12).roundToInt().coerceIn(0, 12)
-        for (index in 0 until 12) {
-          val filled = index < steps
-          Box(
-            modifier = GlanceModifier
-              .padding(end = if (index == 11) 0.dp else 2.dp)
-              .size(if (isWide) 10.dp else 8.dp)
-              .background(ColorProvider(if (filled) indicatorColor else Color(0x33FFFFFF)))
-          ) {}
-        }
+      nextEntry.planName?.takeIf { it.isNotBlank() }?.let { planName ->
+        Text(
+          text = planName,
+          style = TextStyle(
+            color = ColorProvider(Color(0xFF1E40AF)),
+            fontWeight = FontWeight.Medium,
+            fontSize = 12.sp
+          ),
+          maxLines = 1,
+          modifier = GlanceModifier.padding(top = 2.dp)
+        )
       }
 
       Text(
@@ -345,6 +337,9 @@ class NewsCardGlanceWidget : GlanceAppWidget() {
       }
 
       if (showButton) {
+        val confirmParams = actionParametersOf(
+          ConfirmDoseAction.DOSE_ISO_PARAM to (nextEntry.iso ?: ""),
+        )
         Box(
           contentAlignment = Alignment.Center,
           modifier = GlanceModifier
@@ -352,7 +347,7 @@ class NewsCardGlanceWidget : GlanceAppWidget() {
             .fillMaxWidth()
             .height(if (isWide) 42.dp else 38.dp)
             .background(ColorProvider(Color(0xFF2563EB)))
-            .clickable(actionRunCallback<ConfirmDoseAction>())
+            .clickable(actionRunCallback<ConfirmDoseAction>(confirmParams))
         ) {
           Text(
             text = "Đã uống liều hôm nay",
@@ -362,43 +357,6 @@ class NewsCardGlanceWidget : GlanceAppWidget() {
               fontSize = 13.sp
             ),
             maxLines = 1
-          )
-        }
-      } else if (state == DoseState.TAKEN_ON_TIME || state == DoseState.TAKEN_LATE) {
-        Text(
-          text = if (state == DoseState.TAKEN_LATE) "Đã ghi nhận liều trễ của bạn." else "Thuốc đã được ghi nhận cho hôm nay.",
-          style = TextStyle(
-            color = ColorProvider(Color(0xFF14532D)),
-            fontWeight = FontWeight.Medium,
-            fontSize = 12.sp
-          ),
-          maxLines = 2,
-          modifier = GlanceModifier.padding(top = 12.dp)
-        )
-      }
-
-      if (upcoming.isNotEmpty()) {
-        Text(
-          text = "Sắp tới:",
-          style = TextStyle(
-            color = ColorProvider(Color(0xFF1F2937)),
-            fontWeight = FontWeight.Medium,
-            fontSize = 12.sp
-          ),
-          maxLines = 1,
-          modifier = GlanceModifier.padding(top = 12.dp)
-        )
-
-        upcoming.take(if (isWide) 3 else 2).forEach { item ->
-          Text(
-            text = "• ${item.label}",
-            style = TextStyle(
-              color = ColorProvider(Color(0xFF1F2937)),
-              fontWeight = FontWeight.Normal,
-              fontSize = 12.sp
-            ),
-            maxLines = 1,
-            modifier = GlanceModifier.padding(top = 4.dp)
           )
         }
       }
@@ -438,35 +396,105 @@ class NewsCardGlanceWidget : GlanceAppWidget() {
 
     return try {
       val json = JSONObject(raw)
-      val regimen = json.optString("regimen").ifBlank { "Lịch nhắc thuốc" }
-      val notes = json.optString("notes").takeIf { it.isNotBlank() }?.let { truncateText(it, 90) }
-      val total = json.optInt("totalSchedules", 0)
+      val version = json.optInt("version", 1)
       val timezoneId = json.optString("timezone").takeIf { it.isNotBlank() }
       val zoneId = runCatching { timezoneId?.let { ZoneId.of(it) } ?: ZoneId.systemDefault() }.getOrDefault(ZoneId.systemDefault())
 
       val previewItems = parsePreviewItems(json.optJSONArray("preview"))
-      val now = Instant.now()
-      val activeItems = previewItems.filter { entry -> entry.time == null || entry.time!!.isAfter(now.minus(Duration.ofHours(12))) }
-      val nextEntry = (activeItems + previewItems).firstOrNull { it.time != null } ?: return WidgetContent.Empty
+      if (previewItems.isEmpty()) return WidgetContent.Empty
 
+      val now = Instant.now()
       val prefs = context.widgetPrefs
-      prefs.edit().putString(WidgetStorage.KEY_MEDICATION_ACTIVE_ISO, nextEntry.iso).apply()
+
+      val nextObj = json.optJSONObject("next")
+      val nextIso = nextObj?.optString("timeISO")?.takeIf { it.isNotBlank() }
+      val nextEntryFromPreview = nextIso?.let { iso -> previewItems.firstOrNull { it.iso == iso } }
+
+      val candidate = when {
+        nextEntryFromPreview != null -> nextEntryFromPreview
+        nextIso != null -> {
+          val time = parseInstant(nextIso)
+          PreviewEntry(
+            label = nextObj?.optString("label")?.takeIf { it.isNotBlank() }
+              ?: previewItems.first().label,
+            note = nextObj?.optString("note")?.takeIf { it.isNotBlank() },
+            iso = nextIso,
+            time = time,
+            pills = nextObj?.optInt("pills", 1) ?: 1,
+            planName = nextObj?.optString("planName")?.takeIf { it.isNotBlank() },
+            medicineName = nextObj?.optString("medicine")?.takeIf { it.isNotBlank() }
+          )
+        }
+        else -> {
+          val active = previewItems.firstOrNull { entry ->
+            val entryTime = entry.time
+            entryTime != null && entryTime.isAfter(now.minus(Duration.ofHours(12)))
+          }
+          active ?: previewItems.first()
+        }
+      }
+
+      val nextEntry = candidate
+
+      nextEntry.iso?.let {
+        prefs.edit().putString(WidgetStorage.KEY_MEDICATION_ACTIVE_ISO, it).apply()
+      }
 
       val confirmedIso = prefs.getString(WidgetStorage.KEY_MEDICATION_CONFIRMED_SCHEDULE, null)
-      val confirmedAt = prefs.getString(WidgetStorage.KEY_MEDICATION_CONFIRMED_AT, null)?.let { parseInstant(it) }
-      val isConfirmed = confirmedIso != null && confirmedIso == nextEntry.iso
+      val confirmedAtPref = prefs.getString(WidgetStorage.KEY_MEDICATION_CONFIRMED_AT, null)?.let { parseInstant(it) }
 
-      val displayPreview = buildList {
-        add(nextEntry)
-        previewItems.filter { it.iso != null && it.iso != nextEntry.iso }.forEach { add(it) }
-      }.take(4)
+      val historyMatch = loadConfirmationHistory(prefs).firstOrNull { entry ->
+        val entryIso = entry.scheduleIso
+        val entryInstant = runCatching { Instant.parse(entryIso) }.getOrNull()
+        when {
+          entryIso.isBlank() -> false
+          nextEntry.iso != null -> entryIso == nextEntry.iso
+          nextEntry.time != null && entryInstant != null -> entryInstant == nextEntry.time
+          else -> false
+        }
+      }
 
-      val totalSchedules = if (total > 0) total else previewItems.size.coerceAtLeast(1)
+      val confirmedIsoInstant = confirmedIso?.let { runCatching { Instant.parse(it) }.getOrNull() }
+      val nextIsoInstant = nextEntry.iso?.let { runCatching { Instant.parse(it) }.getOrNull() }
+
+      val keyMatches = when {
+        confirmedIsoInstant != null && nextEntry.time != null -> confirmedIsoInstant == nextEntry.time
+        confirmedIsoInstant != null && nextIsoInstant != null -> confirmedIsoInstant == nextIsoInstant
+        confirmedIso != null && nextEntry.iso != null -> confirmedIso == nextEntry.iso
+        else -> false
+      }
+
+      val recentConfirmation = when {
+        confirmedAtPref != null && nextEntry.time != null ->
+          confirmedAtPref.isAfter(nextEntry.time.minus(Duration.ofHours(12)))
+        confirmedAtPref != null -> confirmedAtPref.isAfter(Instant.now().minus(Duration.ofHours(12)))
+        else -> false
+      }
+
+      val isConfirmed = keyMatches || historyMatch != null || recentConfirmation
+      val confirmedAt = historyMatch?.confirmedAtIso?.let { parseInstant(it) }
+        ?: confirmedAtPref
+
+      val summary = json.optJSONObject("summary")
+      val totalSchedules = summary?.optInt("totalUpcoming", previewItems.size)
+        ?: json.optInt("totalSchedules", previewItems.size.coerceAtLeast(1))
+
+      val weeklyProgress = parseWeeklyProgress(json.optJSONArray("weeklyProgress"))
+
+      val notes = when {
+        nextObj?.optString("note")?.isNotBlank() == true -> nextObj.optString("note")
+        else -> json.optString("notes").takeIf { it.isNotBlank() }
+      }?.let { truncateText(it, 90) }
+
+      val planName = nextEntry.planName
+        ?: nextObj?.optString("planName")?.takeIf { it.isNotBlank() }
+        ?: if (version >= 2) "Lịch uống thuốc" else json.optString("regimen").ifBlank { "Lịch nhắc thuốc" }
 
       val data = MedicationWidgetData(
-        regimen = regimen,
+        planName = planName,
         next = nextEntry,
-        preview = displayPreview,
+        preview = previewItems,
+        weeklyProgress = weeklyProgress,
         notes = notes,
         totalSchedules = totalSchedules,
         isConfirmed = isConfirmed,
@@ -490,8 +518,37 @@ class NewsCardGlanceWidget : GlanceAppWidget() {
       val iso = obj.optString("timeISO").takeIf { it.isNotBlank() }
       val time = iso?.let { parseInstant(it) }
       val note = obj.optString("note").takeIf { it.isNotBlank() }
-      val pills = obj.optInt("pills", 0)
-      items.add(PreviewEntry(label = label, note = note, iso = iso, time = time, pills = pills))
+      val pills = when {
+        obj.has("quantity") -> obj.optInt("quantity", 1)
+        else -> obj.optInt("pills", 0)
+      }
+      val planName = obj.optString("planName").takeIf { it.isNotBlank() }
+      val medicine = obj.optString("medicine").takeIf { it.isNotBlank() }
+      items.add(
+        PreviewEntry(
+          label = label,
+          note = note,
+          iso = iso,
+          time = time,
+          pills = pills,
+          planName = planName,
+          medicineName = medicine
+        )
+      )
+    }
+    return items
+  }
+
+  private fun parseWeeklyProgress(array: JSONArray?): List<WeeklyProgressEntry> {
+    if (array == null) return emptyList()
+    val items = mutableListOf<WeeklyProgressEntry>()
+    for (i in 0 until array.length()) {
+      val obj = array.optJSONObject(i) ?: continue
+      val dateIso = obj.optString("dateISO").takeIf { it.isNotBlank() } ?: continue
+      val instant = runCatching { Instant.parse(dateIso) }.getOrNull() ?: continue
+      val total = obj.optInt("total", 0)
+      val confirmed = obj.optInt("confirmed", 0)
+      items.add(WeeklyProgressEntry(instant, total, confirmed))
     }
     return items
   }
@@ -500,6 +557,16 @@ class NewsCardGlanceWidget : GlanceAppWidget() {
     if (value.length <= max) return value
     if (max <= 1) return value.first().toString()
     return value.take(max - 1) + "…"
+  }
+
+  private fun String.capitalizeWords(): String {
+    if (isBlank()) return this
+    val locale = Locale("vi", "VN")
+    return trim().split(Regex("\\s+")).joinToString(" ") { part ->
+      part.lowercase(locale).replaceFirstChar { ch ->
+        if (ch.isLowerCase()) ch.titlecase(locale) else ch.toString()
+      }
+    }
   }
 
   private fun computeProgress(now: Instant, nextTime: Instant): Float {
@@ -555,6 +622,71 @@ class NewsCardGlanceWidget : GlanceAppWidget() {
 
   private fun parseInstant(value: String): Instant? = runCatching { Instant.parse(value) }.getOrNull()
 
+  @Composable
+  private fun WeeklyProgressRow(entries: List<WeeklyProgressEntry>, zone: ZoneId) {
+    val today = ZonedDateTime.now(zone).toLocalDate()
+    Row(
+      modifier = GlanceModifier
+        .fillMaxWidth()
+        .padding(top = 12.dp),
+      horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+      entries.forEach { entry ->
+        val date = ZonedDateTime.ofInstant(entry.date, zone).toLocalDate()
+        val label = formatWeekdayLabel(date)
+        val isToday = date == today
+        val symbol = computePillSymbol(entry)
+        Column(
+          horizontalAlignment = Alignment.CenterHorizontally,
+          modifier = GlanceModifier.padding(horizontal = 3.dp)
+        ) {
+          Text(
+            text = symbol,
+            style = TextStyle(
+              color = ColorProvider(if (isToday) Color(0xFF15803D) else Color(0xFF4B5563)),
+              fontSize = 16.sp,
+              fontWeight = FontWeight.Bold,
+              textAlign = TextAlign.Center
+            ),
+            maxLines = 1
+          )
+          Text(
+            text = label,
+            style = TextStyle(
+              color = ColorProvider(if (isToday) Color(0xFF0F172A) else Color(0xFF4B5563)),
+              fontSize = 10.sp,
+              fontWeight = if (isToday) FontWeight.Medium else FontWeight.Normal
+            ),
+            maxLines = 1,
+            modifier = GlanceModifier.padding(top = 2.dp)
+          )
+        }
+      }
+    }
+  }
+
+  private fun computePillSymbol(entry: WeeklyProgressEntry): String {
+    if (entry.total <= 0) return "○"
+    val ratio = entry.confirmed.toFloat() / entry.total.toFloat()
+    return when {
+      ratio >= 0.95f -> "●"
+      ratio >= 0.75f -> "◕"
+      ratio >= 0.5f -> "◑"
+      ratio > 0f -> "◔"
+      else -> "○"
+    }
+  }
+
+  private fun formatWeekdayLabel(date: LocalDate): String = when (date.dayOfWeek) {
+    DayOfWeek.MONDAY -> "T2"
+    DayOfWeek.TUESDAY -> "T3"
+    DayOfWeek.WEDNESDAY -> "T4"
+    DayOfWeek.THURSDAY -> "T5"
+    DayOfWeek.FRIDAY -> "T6"
+    DayOfWeek.SATURDAY -> "T7"
+    DayOfWeek.SUNDAY -> "CN"
+  }
+
   private sealed interface WidgetContent {
     data class Blog(val title: String) : WidgetContent
     data class Medication(val data: MedicationWidgetData) : WidgetContent
@@ -566,13 +698,22 @@ class NewsCardGlanceWidget : GlanceAppWidget() {
     val note: String?,
     val iso: String?,
     val time: Instant?,
-    val pills: Int
+    val pills: Int,
+    val planName: String?,
+    val medicineName: String?
+  )
+
+  private data class WeeklyProgressEntry(
+    val date: Instant,
+    val total: Int,
+    val confirmed: Int
   )
 
   private data class MedicationWidgetData(
-    val regimen: String,
+    val planName: String,
     val next: PreviewEntry,
     val preview: List<PreviewEntry>,
+    val weeklyProgress: List<WeeklyProgressEntry>,
     val notes: String?,
     val totalSchedules: Int,
     val isConfirmed: Boolean,
@@ -594,19 +735,97 @@ class NewsCardGlanceWidget : GlanceAppWidget() {
 class ConfirmDoseAction : ActionCallback {
   override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
     val prefs = context.widgetPrefs
-    val activeIso = prefs.getString(WidgetStorage.KEY_MEDICATION_ACTIVE_ISO, null) ?: return
+    val isoFromParams = parameters[DOSE_ISO_PARAM]?.takeIf { it.isNotBlank() }
+    val storedActiveIso = prefs.getString(WidgetStorage.KEY_MEDICATION_ACTIVE_ISO, null)
+    val isoToConfirm = isoFromParams ?: storedActiveIso ?: resolveActiveDoseIso(prefs)
 
-    prefs.edit()
-      .putString(WidgetStorage.KEY_MEDICATION_CONFIRMED_SCHEDULE, activeIso)
-      .putString(WidgetStorage.KEY_MEDICATION_CONFIRMED_AT, Instant.now().toString())
-      .apply()
-
-    prefs.getString(WidgetStorage.KEY_MEDICATION_JSON, null)?.let {
-      WidgetRefreshScheduler.scheduleFromPayload(context, it)
+    if (isoToConfirm.isNullOrBlank()) {
+      Log.w(CONFIRM_LOG_TAG, "Unable to resolve active medication schedule for confirmation")
+      return
     }
 
-    NewsCardGlanceWidget().update(context, glanceId)
+    val nowIso = Instant.now().toString()
+
+    prefs.edit().also { editor ->
+      editor.putString(WidgetStorage.KEY_MEDICATION_CONFIRMED_SCHEDULE, isoToConfirm)
+      editor.putString(WidgetStorage.KEY_MEDICATION_CONFIRMED_AT, nowIso)
+      if (storedActiveIso != isoToConfirm) {
+        editor.putString(WidgetStorage.KEY_MEDICATION_ACTIVE_ISO, isoToConfirm)
+      }
+    }.apply()
+
+    appendConfirmationHistory(prefs, isoToConfirm, nowIso)
+
+    prefs.getString(WidgetStorage.KEY_MEDICATION_JSON, null)?.let {
+      WidgetRefreshScheduler.scheduleFromPayload(context.applicationContext, it)
+    }
+
+    val appContext = context.applicationContext
+    val widget = NewsCardGlanceWidget()
+    val manager = GlanceAppWidgetManager(appContext)
+    val ids = manager.getGlanceIds(NewsCardGlanceWidget::class.java)
+    if (ids.isEmpty()) {
+      widget.update(appContext, glanceId)
+    } else {
+      ids.forEach { widget.update(appContext, it) }
+    }
   }
+
+  companion object {
+    private const val CONFIRM_LOG_TAG = "ConfirmDoseAction"
+    internal val DOSE_ISO_PARAM = ActionParameters.Key<String>("dose_iso")
+  }
+}
+
+private fun resolveActiveDoseIso(prefs: SharedPreferences): String? {
+  val raw = prefs.getString(WidgetStorage.KEY_MEDICATION_JSON, null) ?: return null
+  val json = runCatching { JSONObject(raw) }.getOrNull() ?: return null
+  val now = Instant.now()
+
+  val preview = json.optJSONArray("preview")
+  if (preview != null && preview.length() > 0) {
+    val earlyWindow = Duration.ofHours(2)
+    val lateWindow = Duration.ofHours(12)
+    var recentIso: String? = null
+    var recentInstant: Instant? = null
+    var upcomingIso: String? = null
+    var upcomingInstant: Instant? = null
+
+    for (index in 0 until preview.length()) {
+      val item = preview.optJSONObject(index) ?: continue
+      val iso = item.optString("timeISO").takeIf { it.isNotBlank() } ?: continue
+      val instant = runCatching { Instant.parse(iso) }.getOrNull() ?: continue
+
+      if (instant.isBefore(now)) {
+        val lateDiff = Duration.between(instant, now)
+        if (lateDiff <= lateWindow) {
+          if (recentInstant == null || instant.isAfter(recentInstant)) {
+            recentInstant = instant
+            recentIso = iso
+          }
+        }
+      } else {
+        val futureDiff = Duration.between(now, instant)
+        if (upcomingInstant == null || instant.isBefore(upcomingInstant)) {
+          upcomingInstant = instant
+          upcomingIso = iso
+        }
+        if (futureDiff <= earlyWindow) {
+          // User can confirm up to ~1 hour early, so prefer the upcoming dose when we're still before it.
+          return iso
+        }
+      }
+    }
+
+    if (upcomingIso != null && upcomingInstant != null && now.isBefore(upcomingInstant)) {
+      return upcomingIso
+    }
+
+    if (recentIso != null) return recentIso
+    if (upcomingIso != null) return upcomingIso
+  }
+
+  return json.optJSONObject("next")?.optString("timeISO")?.takeIf { it.isNotBlank() }
 }
 
 /* ====================== Helpers ====================== */

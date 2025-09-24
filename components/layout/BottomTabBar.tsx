@@ -23,14 +23,9 @@ export default function BottomTabBar({ state, navigation }: ExpoTabBarProps) {
 
     const tabs = [
         { route: 'medicine-calendar', icon: '💙', label: 'Trang chủ' },
-        { route: 'add-reminder', icon: '📅+', label: 'Thêm lịch\nnhắc mới', isCenter: true },
+        { route: 'medication-reminder-form', icon: '📅+', label: 'Thêm lịch\nnhắc mới', isCenter: true },
         { route: 'my-prescriptions', icon: '📋', label: 'Đơn thuốc\ncủa tôi' }
     ];
-
-    // Hide on certain screens with fade animation
-    if (pathname.includes('arv-reminder') || pathname.includes('prep-reminder')) {
-        return null;
-    }
 
     const handleTabPress = (route: string) => {
         // Complex animation sequence

@@ -1,37 +1,37 @@
 "use client"
 
-import { cancelAllArvNotifications, clearAllConfirmedDoses } from "@/services/notification/arv-notification"
-import { cancelAll } from "@/services/notification/prep-notification"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { useFocusEffect } from "@react-navigation/native"
-import * as Notifications from "expo-notifications"
 import { navigate } from "expo-router/build/global-state/routing"
 import { useCallback, useEffect, useMemo, useState } from "react"
-
-
+import { loadMedicationPlans } from "@/services/medication/storage"
+import { clearAllMedicationPlans } from "@/services/medication/scheduler"
+import { WidgetBridge } from "@/native/WidgetBridge"
 import { router } from "expo-router"
-import { Alert, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native"
+import {
+  Alert,
+  Platform,
+  ScrollView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 
 // Types for better organization
-type NotificationEvent = {
+type MedicationEvent = {
   id: string
   time: Date
-  type: "countdown" | "reminder" | "warning"
+  type: "reminder" | "confirmed"
   title: string
   body: string
-  doseTime?: string
+  doseIso: string
+  planName: string
+  medicineName: string
+  quantity?: number
+  note?: string
 }
-
-type ConfirmedEvent = {
-  id: string
-  time: Date
-  type: "confirmed"
-  title: string
-  body: string
-}
-
-type MedicationEvent = NotificationEvent | ConfirmedEvent
 
 type DayData = {
   date: number
@@ -85,26 +85,60 @@ const MedicineCalendar = () => {
     }
   }, [currentWeekStart, today])
 
-  // Load confirmed doses from AsyncStorage
+  // Load confirmed doses from storage + widget history
   const loadConfirmedDoses = useCallback(async () => {
     try {
       const stored = await AsyncStorage.getItem("confirmedDoses")
-      if (stored) {
-        const arr: string[] = JSON.parse(stored)
-        setConfirmedDoses(arr)
-      } else {
-        setConfirmedDoses([])
+      const asyncStorageList: string[] = stored ? JSON.parse(stored) : []
+
+      let widgetList: string[] = []
+      if (Platform.OS === "android" && WidgetBridge?.getMedicationConfirmedHistory) {
+        try {
+          const values = await WidgetBridge.getMedicationConfirmedHistory()
+          if (Array.isArray(values)) {
+            widgetList = values.filter(
+              (item): item is string => typeof item === "string"
+            )
+          }
+        } catch (error) {
+          console.warn("Không thể đồng bộ xác nhận từ widget:", error)
+        }
       }
+
+      const combined = [...asyncStorageList, ...widgetList]
+      const uniqueSorted = Array.from(new Set(combined)).sort(
+        (a, b) => new Date(a).getTime() - new Date(b).getTime()
+      )
+
+      setConfirmedDoses(uniqueSorted)
     } catch (error) {
       console.error("Error loading confirmed doses:", error)
+      setConfirmedDoses([])
     }
   }, [])
 
   // Tạo dữ liệu tuần
   const generateWeekData = useCallback(async () => {
     try {
-      const scheduled = await Notifications.getAllScheduledNotificationsAsync()
+      const plans = await loadMedicationPlans()
       const weekDays = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]
+      const confirmedSet = new Set(confirmedDoses)
+
+      const allDoses = plans.flatMap((plan) =>
+        plan.doses
+          .map((dose) => ({
+            planId: plan.id,
+            planName: plan.name,
+            medicineName: dose.medicineName,
+            time: new Date(dose.timeISO),
+            doseIso: dose.timeISO,
+            label: dose.label,
+            note: dose.note,
+            quantity: dose.quantity,
+          }))
+          .filter((dose) => !Number.isNaN(dose.time.getTime())),
+      )
+
       const weekData: DayData[] = []
 
       for (let i = 0; i < 7; i++) {
@@ -116,56 +150,33 @@ const MedicineCalendar = () => {
         const year = currentDate.getFullYear()
         const dayName = weekDays[i]
 
-        // Kiểm tra xem có phải hôm nay không
         const isToday = currentDate.toDateString() === today.toDateString()
-
-        // Kiểm tra xem có được chọn không
         const isSelected = currentDate.toDateString() === selectedDate
 
-        // Get scheduled notifications for this date
-        const dayNotifications: NotificationEvent[] = scheduled
-          .map((item): NotificationEvent | null => {
-            const trig = item.trigger as any
-            const raw = trig.date ?? trig.value
-            if (!raw) return null
-
-            const time = new Date(raw)
-            if (time.toDateString() !== currentDate.toDateString()) return null
-
-            // Determine notification type based on content
-            let type: "countdown" | "reminder" | "warning" = "reminder"
-            if (item.content.title?.includes("Countdown")) type = "countdown"
-            else if (item.content.title?.includes("Warning")) type = "warning"
-
+        const dayEvents: MedicationEvent[] = allDoses
+          .filter((dose) => dose.time.toDateString() === currentDate.toDateString())
+          .map((dose) => {
+            const confirmed = confirmedSet.has(dose.doseIso)
+            const title = `${dose.medicineName}`
+            const bodyParts = [dose.label, dose.note].filter(Boolean)
+            const eventType: MedicationEvent["type"] = confirmed ? "confirmed" : "reminder"
             return {
-              id: item.identifier,
-              time,
-              type,
-              title: item.content.title || "",
-              body: item.content.body || "",
-              doseTime: item.content.data?.doseTime as string | undefined,
+              id: `${dose.planId}-${dose.doseIso}`,
+              time: dose.time,
+              type: eventType,
+              title,
+              body: bodyParts.join(" • ") || title,
+              doseIso: dose.doseIso,
+              planName: dose.planName,
+              medicineName: dose.medicineName,
+              quantity: dose.quantity,
+              note: dose.note,
             }
           })
-          .filter((item): item is NotificationEvent => item !== null)
+          .sort((a, b) => a.time.getTime() - b.time.getTime())
 
-        // Get confirmed doses for this date
-        const dayConfirmed: ConfirmedEvent[] = confirmedDoses
-          .map((doseStr) => new Date(doseStr))
-          .filter((doseDate) => doseDate.toDateString() === currentDate.toDateString())
-          .map(
-            (doseDate): ConfirmedEvent => ({
-              id: `confirmed-${doseDate.getTime()}`,
-              time: doseDate,
-              type: "confirmed",
-              title: "✅ Đã uống",
-              body: "Đã xác nhận uống thuốc",
-            }),
-          )
-
-        // Combine and sort all events
-        const allEvents: MedicationEvent[] = [...dayNotifications, ...dayConfirmed].sort(
-          (a, b) => a.time.getTime() - b.time.getTime(),
-        )
+        const confirmedCount = dayEvents.filter((event) => event.type === "confirmed").length
+        const pendingCount = dayEvents.length - confirmedCount
 
         weekData.push({
           date,
@@ -174,9 +185,9 @@ const MedicineCalendar = () => {
           dayName,
           isToday,
           isSelected,
-          events: allEvents,
-          confirmedCount: dayConfirmed.length,
-          pendingCount: dayNotifications.length,
+          events: dayEvents,
+          confirmedCount,
+          pendingCount,
           fullDate: new Date(currentDate),
         })
       }
@@ -221,12 +232,37 @@ const MedicineCalendar = () => {
   }
 
   const handleCreateReminder = () => {
-    navigate("/(medicine-reminder)/add-reminder")
+    navigate("/(medicine-reminder)/medication-reminder-form")
   }
 
   const handleHomePress = () => {
     router.push("/(root)/(tabs)/home")
   }
+
+  const handleClearAll = useCallback(() => {
+    Alert.alert(
+      "Xóa tất cả lịch",
+      "Bạn chắc chắn muốn xóa toàn bộ kế hoạch uống thuốc?",
+      [
+        { text: "Hủy", style: "cancel" },
+        {
+          text: "Xóa",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await clearAllMedicationPlans()
+              await loadConfirmedDoses()
+              await generateWeekData()
+              Alert.alert("Đã xóa", "Tất cả kế hoạch uống thuốc đã được xóa.")
+            } catch (error) {
+              console.error("Failed to clear medication plans", error)
+              Alert.alert("Lỗi", "Không thể xóa kế hoạch. Vui lòng thử lại.")
+            }
+          },
+        },
+      ],
+    )
+  }, [generateWeekData, loadConfirmedDoses])
 
   const getSelectedDayData = () => {
     return dayData.find((day) => day.isSelected)
@@ -234,12 +270,8 @@ const MedicineCalendar = () => {
 
   const getEventIcon = (type: MedicationEvent["type"]) => {
     switch (type) {
-      case "countdown":
-        return "⏳"
       case "reminder":
         return "💊"
-      case "warning":
-        return "⚠️"
       case "confirmed":
         return "✅"
       default:
@@ -249,12 +281,8 @@ const MedicineCalendar = () => {
 
   const getEventColor = (type: MedicationEvent["type"]) => {
     switch (type) {
-      case "countdown":
-        return { bg: "#E3F2FD", text: "#1976D2", border: "#2196F3" }
       case "reminder":
         return { bg: "#F3E5F5", text: "#7B1FA2", border: "#9C27B0" }
-      case "warning":
-        return { bg: "#FFEBEE", text: "#C62828", border: "#F44336" }
       case "confirmed":
         return { bg: "#E8F5E8", text: "#2E7D32", border: "#4CAF50" }
       default:
@@ -263,33 +291,6 @@ const MedicineCalendar = () => {
   }
 
   const selectedDayData = getSelectedDayData()
-
-  const logAllArvSchedules = async (): Promise<void> => {
-    try {
-      const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync()
-      const arvNotifications = scheduledNotifications.filter(
-        (notification) =>
-          notification.content.categoryIdentifier === ARV_CATEGORY ||
-          (notification.content.title && notification.content.title.includes("ARV")),
-      )
-
-      if (arvNotifications.length === 0) {
-        console.log("Không có lịch thông báo ARV nào được đặt!")
-        Alert.alert("Log ARV", "Không có lịch thông báo ARV nào được đặt!")
-        return
-      }
-
-      console.log(`Đang có ${arvNotifications.length} lịch thông báo ARV đã đặt:`)
-      arvNotifications.forEach((n, i) => {
-        console.log(`[${i + 1}] id=${n.identifier}, title=${n.content.title}, trigger=`, n.trigger)
-      })
-
-      Alert.alert("Log ARV", `Có ${arvNotifications.length} lịch ARV. Xem chi tiết ở log console.`)
-    } catch (error) {
-      console.error("Lỗi khi log lịch ARV:", error)
-      Alert.alert("Log ARV", "Lỗi khi log lịch ARV. Xem log console!")
-    }
-  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#3B82F6" }} edges={["top", "left", "right"]}>
@@ -679,6 +680,9 @@ const MedicineCalendar = () => {
                       >
                         {event.title}
                       </Text>
+                      <Text style={{ fontSize: 12, color: "#1E3A8A", marginBottom: 2 }}>
+                        {event.planName}
+                      </Text>
                       <Text style={{ fontSize: 12, color: "#666" }}>{event.body}</Text>
                     </View>
                   </View>
@@ -705,24 +709,6 @@ const MedicineCalendar = () => {
               <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>➕ Thêm lịch nhắc mới</Text>
             </TouchableOpacity>
 
-            {/* <TouchableOpacity
-              style={{
-                backgroundColor: "#FF5722",
-                borderRadius: 12,
-                padding: 16,
-                alignItems: "center",
-                marginBottom: 16,
-                elevation: 2,
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.1,
-                shadowRadius: 4,
-              }}
-              onPress={cancelAllArvNotifications}
-            >
-              <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>🗑️ Xóa lịch ARV</Text>
-            </TouchableOpacity> */}
-
             <TouchableOpacity
               style={{
                 backgroundColor: "#F44336",
@@ -736,48 +722,12 @@ const MedicineCalendar = () => {
                 shadowOpacity: 0.1,
                 shadowRadius: 4,
               }}
-              onPress={cancelAll}
+              onPress={handleClearAll}
             >
               <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>🗑️ Xóa hết lịch</Text>
             </TouchableOpacity>
 
-            {/* <TouchableOpacity
-              style={{
-                backgroundColor: "#2196F3",
-                borderRadius: 12,
-                padding: 16,
-                alignItems: "center",
-                marginBottom: 32,
-                elevation: 2,
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.1,
-                shadowRadius: 4,
-              }}
-              onPress={logAllArvSchedules}
-            >
-              <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>📋 Log ra ARV</Text>
-            </TouchableOpacity> */}
-
-            {/* <TouchableOpacity
-              style={{
-                backgroundColor: "#f44336",
-                borderRadius: 12,
-                padding: 16,
-                alignItems: "center",
-                marginVertical: 8,
-                elevation: 2,
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.1,
-                shadowRadius: 4,
-              }}
-              onPress={clearAllConfirmedDoses}
-            >
-              <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>
-                🗑️ Xóa tất cả xác nhận đã uống
-              </Text>
-            </TouchableOpacity> */}
+            {/* Giữ sẵn các action nâng cao nếu cần trong tương lai */}
           </ScrollView>
         )}
       </View>
