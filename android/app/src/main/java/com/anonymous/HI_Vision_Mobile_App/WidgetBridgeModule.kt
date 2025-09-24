@@ -1,7 +1,6 @@
 package com.anonymous.HI_Vision_Mobile_App
 
 import android.util.Log
-import androidx.glance.appwidget.GlanceAppWidgetManager
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -11,7 +10,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.time.Instant
@@ -134,32 +132,9 @@ class WidgetBridgeModule(reactContext: ReactApplicationContext) : ReactContextBa
 
   private fun requestWidgetRefresh() {
     val context = appContext.applicationContext
-    val widget = NewsCardGlanceWidget()
     refreshScope.launch {
-      val manager = try {
-        GlanceAppWidgetManager(context)
-      } catch (error: Exception) {
-        Log.e(TAG, "Unable to create Glance manager", error)
-        return@launch
-      }
+      WidgetRefresher.refresh(context)
 
-      val ids = try {
-        manager.getGlanceIds(NewsCardGlanceWidget::class.java)
-      } catch (error: Exception) {
-        Log.e(TAG, "Failed to load widget ids", error)
-        return@launch
-      }
-
-      if (ids.isEmpty()) return@launch
-
-      ids.forEach { glanceId ->
-        try {
-          widget.update(context, glanceId)
-        } catch (error: Exception) {
-          Log.e(TAG, "Failed to refresh widget id=$glanceId", error)
-        }
-
-      }
     }
   }
 
