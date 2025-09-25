@@ -59,6 +59,7 @@ import hivtest from "@/assets/images/hivtest.png";
 import passwordSent from "@/assets/images/imagePasswordSent.png";
 import logo from "@/assets/images/logo.png";
 import maleImage from "@/assets/images/maleImage.png";
+import notFound from "@/assets/images/notfound.png";
 import onboarding1 from "@/assets/images/onboarding1.png";
 import onboarding2 from "@/assets/images/onboarding2.png";
 import onboarding3 from "@/assets/images/onboarding3.png";
@@ -95,6 +96,7 @@ export const images = {
   symptoms,
   avatarPlaceholder,
   success,
+  notFound,
 };
 
 export const icons = {
@@ -458,14 +460,14 @@ export const menuSections = [
         hasArrow: true,
         iconColor: "#6D28D9", // tím đậm
       },
-      {
-        id: "darkmode",
-        title: "Dark Mode",
-        icon: "moon-outline",
-        isToggle: true,
-        toggleValue: false,
-        iconColor: "#0F172A", // đen
-      },
+      // {
+      //   id: "darkmode",
+      //   title: "Dark Mode",
+      //   icon: "moon-outline",
+      //   isToggle: true,
+      //   toggleValue: false,
+      //   iconColor: "#0F172A", // đen
+      // },
     ],
   },
   {
@@ -718,7 +720,11 @@ export const healthServices = [
     iconColor: "#FFFFFF",
     backgroundColor: "#8B5CF6",
     gradientColors: ["#8B5CF6", "#7C3AED"],
-    onPress: () => console.log("Tiêm Vắc xin"),
+    onPress: () =>
+      router.push({
+        pathname: "/coming-soon",
+        params: { feature: "Tiêm Vắc\nxin", eta: "Soon" },
+      }),
   },
   {
     id: "6",
@@ -727,7 +733,11 @@ export const healthServices = [
     iconColor: "#FFFFFF",
     backgroundColor: "#F59E0B",
     gradientColors: ["#F59E0B", "#D97706"],
-    onPress: () => console.log("Đơn của tôi"),
+    onPress: () =>
+      router.push({
+        pathname: "/coming-soon",
+        params: { feature: "Đơn của\n tôi", eta: "Soon" },
+      }),
   },
   {
     id: "7",
@@ -736,7 +746,11 @@ export const healthServices = [
     iconColor: "#FFFFFF",
     backgroundColor: "#EF4444",
     gradientColors: ["#EF4444", "#DC2626"],
-    onPress: () => console.log("Tìm bác sĩ"),
+    onPress: () =>
+      router.push({
+        pathname: "/coming-soon",
+        params: { feature: "Tìm bác sĩ\n theo khoa", eta: "Soon" },
+      }),
   },
 ];
 

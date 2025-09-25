@@ -25,7 +25,6 @@ export default function ProductDetailsScreen() {
     product?: string;
   }>();
 
-  // Lấy product từ params (đã encode ở màn list)
   const product: Product | null = useMemo(() => {
     try {
       if (!params?.product) return null;
@@ -219,18 +218,20 @@ export default function ProductDetailsScreen() {
       </ScrollView>
 
       {/* Bottom Action Bar */}
-      {!modalVisible && ( // ⬅ ẩn đi khi modal mở
-        <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4">
-          <TouchableOpacity
-            onPress={() => setModalVisible(true)}
-            className="bg-blue-600 rounded-2xl py-4 px-6 shadow-lg flex-row items-center justify-center"
-          >
-            <Text className="text-white text-lg font-semibold">
-              Thêm vào giỏ
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      {/* Bottom Action Bar */}
+      <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4">
+        <TouchableOpacity
+          onPress={() =>
+            router.push({
+              pathname: "/coming-soon",
+              params: { feature: "Add to Cart", eta: "Soon" }, // tuỳ bạn: "Q4/2025"
+            })
+          }
+          className="bg-blue-600 rounded-2xl py-4 px-6 shadow-lg flex-row items-center justify-center"
+        >
+          <Text className="text-white text-lg font-semibold">Thêm vào giỏ</Text>
+        </TouchableOpacity>
+      </View>
 
       <AddToCartModal
         visible={modalVisible}
