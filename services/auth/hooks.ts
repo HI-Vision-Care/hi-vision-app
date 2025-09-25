@@ -15,7 +15,6 @@ export const useSignIn = () => {
       if (data?.token) {
         await AsyncStorage.setItem("token", data.token);
       }
-      // Có thể invalidate cache hoặc fetch profile ở đây nếu muốn
     },
     onError: (error) => {
       console.error("SignIn failed:", error.message);

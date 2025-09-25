@@ -15,19 +15,21 @@ export interface Appointment extends AppointmentForm {
 
 export interface AppointmentRequest {
   patientID: string;
-  serviceID: string;
+  facilityID: string;
+  serviceID: number;
   doctorID: string;
-  appointmentDate: string; // ISO string, ví dụ: "2025-06-28T12:44:00.866Z"
+  appointmentDate: string;
   isAnonymous: boolean;
   note: string;
 }
 
 export interface AppointmentForm {
+  facilityID: string;
   serviceID: number;
   doctorID: string;
+  slot: string;
   appointmentDate: string;
   isAnonymous: boolean;
-  slot: string;
   note: string;
 }
 

@@ -18,8 +18,6 @@ const CARD_MARGIN = 0;
 const HORIZONTAL_PADDING = 0;
 const cardWidth = (width / 1.6 - HORIZONTAL_PADDING - CARD_MARGIN) / 2;
 
-// If your constants use plain strings for icon names, accept both.
-// (This avoids a mismatch when the imported data is typed loosely.)
 interface HealthService {
   id: string;
   title: string;
