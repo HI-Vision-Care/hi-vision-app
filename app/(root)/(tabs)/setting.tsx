@@ -1,10 +1,8 @@
-import { DepositButton, WithDrawButton } from "@/components";
 import { featureCards, images, menuSections } from "@/constants";
 import { usePatientProfile } from "@/hooks/usePatientId";
 import { useDeleteAccount } from "@/services/patient/hooks";
 import { useCreateWallet, useWalletByAccountId } from "@/services/wallet/hooks";
 import { Account, FeatureCard, MenuItem, MenuSection } from "@/types/type";
-import { formatVND } from "@/utils/format";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
@@ -351,7 +349,7 @@ const Setting = () => {
           </View>
 
           {/* Wallet Card */}
-          <View className="px-4 mb-6">
+          {/* <View className="px-4 mb-6">
             <View
               className="rounded-3xl p-6 flex-row items-center justify-between"
               style={{
@@ -414,7 +412,7 @@ const Setting = () => {
                 </View>
               )}
             </View>
-          </View>
+          </View> */}
 
           {/* Feature Cards Section */}
           <View className="px-4 mb-8">

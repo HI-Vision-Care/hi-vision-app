@@ -44,7 +44,7 @@ const AppointmentDetail = () => {
           Alert.alert("Appointment cancelled successfully!");
           router.back(); // hoặc refetch data, hoặc điều hướng lại
         },
-        onError: (error) => {
+        onError: (error: any) => {
           Alert.alert(
             "Cancel Failed",
             error?.message || "An error occurred, please try again."
@@ -225,6 +225,84 @@ const AppointmentDetail = () => {
           </View>
         </View>
 
+        {/* Service Tests Section */}
+        {appointment.medicalService.testItems &&
+          appointment.medicalService.testItems.length > 0 && (
+            <View className="bg-white mx-4 mt-4 rounded-lg shadow-sm border border-gray-200">
+              <View className="p-4 border-b border-gray-100">
+                <View className="flex-row items-center">
+                  <FontAwesome5 name="vials" size={20} color="#8b5cf6" />
+                  <Text className="text-lg font-semibold text-gray-900 ml-2">
+                    Included Tests
+                  </Text>
+                </View>
+                <Text className="text-sm text-gray-600 mt-1">
+                  {appointment.medicalService.testItems.length} test
+                  {appointment.medicalService.testItems.length !== 1
+                    ? "s"
+                    : ""}{" "}
+                  included in this service
+                </Text>
+              </View>
+              <View className="p-4">
+                {appointment.medicalService.testItems.map(
+                  (test: any, index: number) => (
+                    <View
+                      key={index}
+                      className={`${
+                        index > 0 ? "mt-3 pt-3 border-t border-gray-100" : ""
+                      }`}
+                    >
+                      <View className="flex-row items-start">
+                        <View className="w-8 h-8 bg-purple-100 rounded-full items-center justify-center mr-3 mt-1">
+                          <FontAwesome5
+                            name="microscope"
+                            size={14}
+                            color="#8b5cf6"
+                          />
+                        </View>
+                        <View className="flex-1">
+                          <View className="flex-row items-center justify-between mb-1">
+                            <Text className="text-base font-semibold text-gray-900 flex-1">
+                              {test.testName}
+                            </Text>
+                          </View>
+                          <Text className="text-sm text-gray-600 leading-5 mb-2">
+                            {test.testDescription}
+                          </Text>
+                          <View className="flex-row items-center justify-between bg-gray-50 rounded-lg p-2">
+                            <View className="flex-row items-center">
+                              <FontAwesome5
+                                name="ruler"
+                                size={12}
+                                color="#6b7280"
+                              />
+                              <Text className="text-xs text-gray-600 ml-1">
+                                Unit: {test.unit || "N/A"}
+                              </Text>
+                            </View>
+                            {test.referenceRange && (
+                              <View className="flex-row items-center">
+                                <FontAwesome5
+                                  name="chart-line"
+                                  size={12}
+                                  color="#6b7280"
+                                />
+                                <Text className="text-xs text-gray-600 ml-1">
+                                  Ref: {test.referenceRange}
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+                  )
+                )}
+              </View>
+            </View>
+          )}
+
         {/* Medical Record Section */}
         {!isMedicalLoading && (
           <>
@@ -233,8 +311,8 @@ const AppointmentDetail = () => {
               <View className="bg-white mx-4 mt-4 rounded-lg border border-red-200 p-4 flex-row items-center">
                 <Ionicons name="alert-circle" size={20} color="#ef4444" />
                 <Text className="ml-2 text-red-700 flex-1">
-                  {medicalError.response?.data?.message ||
-                    medicalError.message ||
+                  {(medicalError as any)?.response?.data?.message ||
+                    medicalError?.message ||
                     "Đã xảy ra lỗi khi lấy hồ sơ khám bệnh."}
                 </Text>
               </View>
@@ -316,28 +394,31 @@ const AppointmentDetail = () => {
               {labResults.map((result, index) => (
                 <View
                   key={`${result.recordId}_${index}`}
-                  className={`${index > 0 ? "mt-4 pt-4 border-t border-gray-100" : ""
-                    }`}
+                  className={`${
+                    index > 0 ? "mt-4 pt-4 border-t border-gray-100" : ""
+                  }`}
                 >
                   <View className="flex-row items-center justify-between mb-2">
                     <Text className="text-base font-medium text-gray-900 flex-1">
                       {result.testType}
                     </Text>
                     <View
-                      className={`px-2 py-1 rounded-full ${result.resultText === "Normal"
+                      className={`px-2 py-1 rounded-full ${
+                        result.resultText === "Normal"
                           ? "bg-green-100"
                           : result.resultText === "Slightly Elevated"
-                            ? "bg-yellow-100"
-                            : "bg-red-100"
-                        }`}
+                          ? "bg-yellow-100"
+                          : "bg-red-100"
+                      }`}
                     >
                       <Text
-                        className={`text-xs font-medium ${result.resultText === "Normal"
+                        className={`text-xs font-medium ${
+                          result.resultText === "Normal"
                             ? "text-green-800"
                             : result.resultText === "Slightly Elevated"
-                              ? "text-yellow-800"
-                              : "text-red-800"
-                          }`}
+                            ? "text-yellow-800"
+                            : "text-red-800"
+                        }`}
                       >
                         {result.resultText}
                       </Text>
@@ -388,7 +469,8 @@ const AppointmentDetail = () => {
       <View className="bg-white border-t border-gray-200 px-4 py-3 ">
         <View className="flex-row space-x-3">
           {/* Cancel Appointment: chỉ cho phép nếu chưa cancelled */}
-          {appointment.status?.toLowerCase?.() !== "cancelled" && appointment.status?.toLowerCase?.() !== "ongoing" &&
+          {appointment.status?.toLowerCase?.() !== "cancelled" &&
+            appointment.status?.toLowerCase?.() !== "ongoing" &&
             appointment.status?.toLowerCase?.() !== "completed" && (
               <TouchableOpacity
                 className="flex-1 bg-red-600 py-3 rounded-lg ml-3"

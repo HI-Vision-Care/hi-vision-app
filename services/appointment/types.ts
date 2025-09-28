@@ -3,12 +3,14 @@
 export interface Account {
   id: string;
   username: string;
-  name: string;
-  email: string;
+  "e-mail": string;
   phone: string;
   avatar: string;
   role: string;
   isDeleted: boolean;
+  authorities?: {
+    authority: string;
+  }[];
 }
 
 export interface Patient {
@@ -20,27 +22,56 @@ export interface Patient {
   medNo: string;
   medDate: string;
   medFac: string;
+  underlyingDiseases: string[];
 }
 
 export interface Doctor {
   doctorID: string;
-  account: Account;
   name: string;
   gender: string;
+  "e-mail": string;
+  phone: string;
   specialty: string;
   degrees: string;
-  img?: string | null;
+  avatar: string;
+}
+
+export interface TestItem {
+  testName: string;
+  testDescription: string;
+  unit: string;
+  referenceRange: string;
+}
+
+export interface MedicalService {
+  serviceID: number;
+  name: string;
+  description: string;
+  price: number;
+  type: string;
+  specialty: string;
+  isActive: boolean;
+  isRequireDoctor: boolean;
+  isOnline: boolean;
+  createAt: string;
+  img: string;
+  testItems: TestItem[];
 }
 
 export interface AppointmentDetail {
   appointmentID: string;
   patient: Patient;
   doctor: Doctor;
-  createAt: string;
-  appointmentDate: Date;
-  slot: string;
-  paymentStatus: string;
+  medicalService: MedicalService;
+  facility: null;
+  appointmentDate: string;
+  slot: null;
+  isAnonymous: boolean;
+  isRecordCreated: boolean;
+  isPrescriptionCreated: boolean | null;
+  note: string;
+  urlLink: string;
   status: string;
-  medicalService: { name: string };
-  // Thêm các trường khác nếu backend trả về
+  paymentStatus: string;
+  createAt: string;
 }
