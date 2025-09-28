@@ -209,8 +209,9 @@ const ClinicDetail: React.FC = () => {
                       router.push({
                         pathname: "/book-service",
                         params: {
-                          doctorId: String(item.doctorID), // id bác sĩ
-                          specialty: item.specialty || "", // để màn sau load đúng danh sách
+                          doctorId: String(item.doctorID),
+                          specialty: item.specialty || "",
+                          facilityId: String(id), // để màn sau load đúng danh sách
                         },
                       })
                     }
@@ -252,6 +253,23 @@ const ClinicDetail: React.FC = () => {
                         {sv.description}
                       </Text>
                     )}
+                    <Pressable
+                      className="bg-blue-600 rounded-lg py-2 mt-3"
+                      onPress={() =>
+                        router.push({
+                          pathname: "/book-service",
+                          params: {
+                            data: encodeURIComponent(JSON.stringify(sv)),
+                            facilityId: String(id),
+                            specialty: sv?.specialty || "",
+                          },
+                        })
+                      }
+                    >
+                      <Text className="text-white text-[12px] text-center">
+                        Book this service
+                      </Text>
+                    </Pressable>
                   </View>
                 )}
               />

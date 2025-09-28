@@ -59,6 +59,7 @@ import hivtest from "@/assets/images/hivtest.png";
 import passwordSent from "@/assets/images/imagePasswordSent.png";
 import logo from "@/assets/images/logo.png";
 import maleImage from "@/assets/images/maleImage.png";
+import notFound from "@/assets/images/notfound.png";
 import onboarding1 from "@/assets/images/onboarding1.png";
 import onboarding2 from "@/assets/images/onboarding2.png";
 import onboarding3 from "@/assets/images/onboarding3.png";
@@ -95,6 +96,7 @@ export const images = {
   symptoms,
   avatarPlaceholder,
   success,
+  notFound,
 };
 
 export const icons = {
@@ -458,14 +460,14 @@ export const menuSections = [
         hasArrow: true,
         iconColor: "#6D28D9", // tím đậm
       },
-      {
-        id: "darkmode",
-        title: "Dark Mode",
-        icon: "moon-outline",
-        isToggle: true,
-        toggleValue: false,
-        iconColor: "#0F172A", // đen
-      },
+      // {
+      //   id: "darkmode",
+      //   title: "Dark Mode",
+      //   icon: "moon-outline",
+      //   isToggle: true,
+      //   toggleValue: false,
+      //   iconColor: "#0F172A", // đen
+      // },
     ],
   },
   {
@@ -688,7 +690,7 @@ export const healthServices = [
     backgroundColor: "#10B981",
     gradientColors: ["#10B981", "#059669"],
     onPress: () => {
-      router.replace("/(medicine-reminder)/medicine-calendar");
+      router.push("/(medicine-reminder)/medicine-calendar");
     },
   },
   {
@@ -699,35 +701,56 @@ export const healthServices = [
     backgroundColor: "#0EA5E9",
     gradientColors: ["#0EA5E9", "#0369A1"],
     onPress: () => {
-      router.replace("/(clinics)/clinics");
+      router.push("/(clinics)/clinics");
     },
   },
   {
     id: "4",
+    title: "Sản Phẩm",
+    icon: "bag",
+    iconColor: "#FFFFFF",
+    backgroundColor: "#22C55E", // green-500
+    gradientColors: ["#22C55E", "#16A34A"], // → green-600
+    onPress: () => router.push("/(product)/products"),
+  },
+  {
+    id: "5",
     title: "Tiêm Vắc\nxin",
     icon: "shield-checkmark",
     iconColor: "#FFFFFF",
     backgroundColor: "#8B5CF6",
     gradientColors: ["#8B5CF6", "#7C3AED"],
-    onPress: () => console.log("Tiêm Vắc xin"),
+    onPress: () =>
+      router.push({
+        pathname: "/coming-soon",
+        params: { feature: "Tiêm Vắc\nxin", eta: "Soon" },
+      }),
   },
   {
-    id: "5",
+    id: "6",
     title: "Đơn của\ntôi",
     icon: "receipt",
     iconColor: "#FFFFFF",
     backgroundColor: "#F59E0B",
     gradientColors: ["#F59E0B", "#D97706"],
-    onPress: () => console.log("Đơn của tôi"),
+    onPress: () =>
+      router.push({
+        pathname: "/coming-soon",
+        params: { feature: "Đơn của\n tôi", eta: "Soon" },
+      }),
   },
   {
-    id: "6",
+    id: "7",
     title: "Tìm bác sĩ\ntheo khoa",
     icon: "people",
     iconColor: "#FFFFFF",
     backgroundColor: "#EF4444",
     gradientColors: ["#EF4444", "#DC2626"],
-    onPress: () => console.log("Tìm bác sĩ"),
+    onPress: () =>
+      router.push({
+        pathname: "/coming-soon",
+        params: { feature: "Tìm bác sĩ\n theo khoa", eta: "Soon" },
+      }),
   },
 ];
 

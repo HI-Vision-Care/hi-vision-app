@@ -1,10 +1,8 @@
-import { DepositButton, WithDrawButton } from "@/components";
 import { featureCards, images, menuSections } from "@/constants";
 import { usePatientProfile } from "@/hooks/usePatientId";
 import { useDeleteAccount } from "@/services/patient/hooks";
 import { useCreateWallet, useWalletByAccountId } from "@/services/wallet/hooks";
 import { Account, FeatureCard, MenuItem, MenuSection } from "@/types/type";
-import { formatVND } from "@/utils/format";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
@@ -50,9 +48,19 @@ const Setting = () => {
 
   const { mutate: deleteAccount } = useDeleteAccount();
 
+  const openComingSoon = (feature: string, eta = "Soon") =>
+    router.push({ pathname: "/coming-soon", params: { feature, eta } });
+
   const handleMenuPress = (itemId: string) => {
     console.log("Menu pressed:", itemId);
     if (itemId === "personal") router.push("/personalinfo");
+
+    if (itemId === "notification") return openComingSoon("Notification");
+    if (itemId === "language") return openComingSoon("Language");
+    if (itemId === "preferences") return router.push("/preferences");
+    if (itemId === "about") return router.push("/about");
+    if (itemId === "help") return router.push("/help");
+    if (itemId === "contact") return router.push("/contact");
     // Add other navigation cases here
   };
 
@@ -218,9 +226,6 @@ const Setting = () => {
       {/* Section Header */}
       <View className="flex-row justify-between items-center px-6 mb-3">
         <Text className="text-lg font-bold text-gray-800">{section.title}</Text>
-        <TouchableOpacity className="bg-gray-100 rounded-full p-2">
-          <Ionicons name="ellipsis-horizontal" size={20} color="#64748B" />
-        </TouchableOpacity>
       </View>
 
       {/* Section Items */}
@@ -339,18 +344,12 @@ const Setting = () => {
                     </View>
                   </View>
                 </View>
-                <TouchableOpacity
-                  className="w-12 h-12 rounded-xl justify-center items-center"
-                  style={{ backgroundColor: "rgba(255, 255, 255, 0.2)" }}
-                >
-                  <Ionicons name="pencil-outline" size={22} color="#fff" />
-                </TouchableOpacity>
               </View>
             </View>
           </View>
 
           {/* Wallet Card */}
-          <View className="px-4 mb-6">
+          {/* <View className="px-4 mb-6">
             <View
               className="rounded-3xl p-6 flex-row items-center justify-between"
               style={{
@@ -413,7 +412,7 @@ const Setting = () => {
                 </View>
               )}
             </View>
-          </View>
+          </View> */}
 
           {/* Feature Cards Section */}
           <View className="px-4 mb-8">

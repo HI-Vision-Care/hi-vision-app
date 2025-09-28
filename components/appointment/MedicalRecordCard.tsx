@@ -269,13 +269,13 @@ const MedicalRecordCard: React.FC<{
                   <View className="flex-row items-center mb-2">
                     <Ionicons name="mail" size={14} color="#0F67FE" />
                     <Text className="text-sm text-gray-600 ml-2 flex-1">
-                      {record.doctor.account.email}
+                      {record.doctor.email}
                     </Text>
                   </View>
                   <View className="flex-row items-center">
                     <Ionicons name="call" size={14} color="#0F67FE" />
                     <Text className="text-sm text-gray-600 ml-2">
-                      {record.doctor.account.phone}
+                      {record.doctor.phone}
                     </Text>
                   </View>
                 </View>

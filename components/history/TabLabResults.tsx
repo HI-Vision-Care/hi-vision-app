@@ -4,13 +4,13 @@ import { format } from "date-fns";
 import {
   ActivityIndicator,
   Dimensions,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type LabResult = {
   recordId: string;
@@ -776,4 +776,5 @@ const LabResultsPage: React.FC = () => {
   );
 };
 
-export default LabResultsPage;
+export default TabLabResults;
+export { LabResultsPage };

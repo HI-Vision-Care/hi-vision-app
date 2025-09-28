@@ -16,8 +16,8 @@ import {
   useBookAppointment,
   useGetWorkShiftsWeek,
 } from "@/services/booking-services/hooks";
+import { useFacility as useFacilityDetail } from "@/services/clinics/hooks";
 import { Doctor } from "@/services/doctor/types";
-import { useDoctorsBySpecialty } from "@/services/medical-services/hooks";
 import { useTransferToAppointment } from "@/services/transaction/hooks";
 import { useWalletByAccountId } from "@/services/wallet/hooks";
 import { Service } from "@/types/type";
@@ -53,37 +53,65 @@ export default function BookingScreen() {
     "PAY_LATER"
   );
 
-  const { data, doctorId, specialty } = useLocalSearchParams<{
-    data?: string;
-    doctorId?: string;
-    specialty?: string;
-  }>();
+  const { data, doctorId, specialty, facilityId: facilityIdParam } =
+    useLocalSearchParams<{
+      data?: string;
+      doctorId?: string;
+      specialty?: string;
+      facilityId?: string;
+    }>();
+
+  const facilityId = facilityIdParam
+    ? String(facilityIdParam)
+    : undefined;
+
+  const {
+    data: facilityDetail,
+    isLoading: facilityLoading,
+    error: facilityError,
+  } = useFacilityDetail(facilityId);
+
   const [isAnonymous, setIsAnonymous] = useState(false);
   const initialService: Service | null = data
     ? JSON.parse(decodeURIComponent(data))
     : null;
 
   // Ưu tiên specialty từ service; nếu không có thì dùng specialty truyền qua params
-  const specialtyParam = initialService?.specialty || specialty || "";
-
+  // Do not filter by specialty here; show all unless service preselected
+  const specialtyParam = "";
   const [selectedService, setSelectedService] = useState<Service | null>(
     initialService
   );
+
+  // Lấy list từ facility, có thể lọc theo specialty nếu được truyền
+  const servicesFromFacility: Service[] = useMemo(() => {
+    const raw = facilityDetail?.medicalServices ?? [];
+    const list = Array.isArray(raw) ? raw : [];
+    const mapped = list.map((s) => ({
+      serviceID: s.serviceID,
+      name: s.name,
+      price: s.price,
+      description: s.description,
+      specialty: s.specialty,
+      type: s.type,
+      isActive: s.isActive,
+      // ...bổ sung field nào bạn dùng trong ServiceSelection
+    })) as unknown as Service[];
+    return mapped;
+  }, [facilityDetail]);
   const [selectedDay, setSelectedDay] = useState<string>(() => {
     const today = new Date();
     const todayName = weekDays[today.getDay()];
     return todayName;
   });
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
-
   const [note, setNote] = useState("");
 
-  // Bác sĩ
-  const {
-    data: doctors,
-    isLoading: doctorsLoading,
-    error: doctorsError,
-  } = useDoctorsBySpecialty(specialtyParam);
+  // Doctors from facility (ensure correct facility-scoped list)
+  const doctors: Doctor[] | undefined = useMemo(() => {
+    const raw = (facilityDetail as any)?.doctors ?? [];
+    return Array.isArray(raw) ? (raw as Doctor[]) : [];
+  }, [facilityDetail]);
 
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
 
@@ -257,6 +285,7 @@ export default function BookingScreen() {
     }
     // ---- CHỈ KHI ĐỦ TIỀN MỚI TẠO BOOKING ----
     const payload = {
+      facilityID: String(facilityId || ""),
       serviceID: selectedService.serviceID,
       doctorID: selectedDoctor.doctorID,
       appointmentDate: toLocalISODate(selectedDate),
@@ -328,14 +357,14 @@ export default function BookingScreen() {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <ChooseDoctor
           doctors={doctors}
-          isLoading={doctorsLoading}
-          error={doctorsError as Error | null}
+          isLoading={facilityLoading}
+          error={facilityError || null}
           selectedDoctor={selectedDoctor}
           onSelectDoctor={setSelectedDoctor}
         />
 
         <ServiceSelection
-          services={selectedService ? [selectedService] : []}
+          services={selectedService ? [selectedService] : servicesFromFacility}
           selectedServiceId={selectedService?.serviceID ?? null}
           onSelect={setSelectedService}
         />

@@ -83,7 +83,13 @@ const MedicalHistory = () => {
           isLoading={isLoadingLabResults}
           isError={isErrorLabResults}
           error={errorLabResults}
-          labResults={labResults}
+          labResults={labResults?.map((result) => ({
+            ...result,
+            resultText: null,
+            unit: null,
+            referenceRange: null,
+            performedBy: null,
+          }))}
         />
       );
     return null;
