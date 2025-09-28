@@ -12,6 +12,7 @@ object WidgetStorage {
   const val KEY_MEDICATION_CONFIRMED_SCHEDULE = "medication_confirmed_schedule"
   const val KEY_MEDICATION_CONFIRMED_AT = "medication_confirmed_at"
   const val KEY_MEDICATION_ACTIVE_ISO = "medication_active_iso"
+  const val KEY_MEDICATION_HISTORY = "medication_confirmed_history"
   const val MODE_BLOG = "blog"
   const val MODE_MEDICATION = "medication"
 }

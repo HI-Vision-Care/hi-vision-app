@@ -1,16 +1,23 @@
 package com.anonymous.HI_Vision_Mobile_App
 
 import android.util.Log
-import androidx.glance.appwidget.GlanceAppWidgetManager
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import java.time.Instant
 
 class WidgetBridgeModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
   private val appContext: ReactApplicationContext = reactContext
+  private val refreshScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
   override fun getName(): String = "WidgetBridge"
 
@@ -49,6 +56,47 @@ class WidgetBridgeModule(reactContext: ReactApplicationContext) : ReactContextBa
     requestWidgetRefresh()
   }
 
+  @ReactMethod
+  fun recordMedicationConfirmation(scheduleIso: String, confirmedAtIso: String?) {
+    if (scheduleIso.isBlank()) {
+      Log.w(TAG, "recordMedicationConfirmation received blank scheduleIso")
+      return
+    }
+
+    val confirmedIso = confirmedAtIso?.takeIf { it.isNotBlank() } ?: Instant.now().toString()
+    val prefs = appContext.widgetPrefs
+
+    prefs.edit()
+      .putString(WidgetStorage.KEY_MEDICATION_CONFIRMED_SCHEDULE, scheduleIso)
+      .putString(WidgetStorage.KEY_MEDICATION_CONFIRMED_AT, confirmedIso)
+      .putString(WidgetStorage.KEY_MEDICATION_ACTIVE_ISO, scheduleIso)
+      .apply()
+
+    appendConfirmationHistory(prefs, scheduleIso, confirmedIso)
+
+    prefs.getString(WidgetStorage.KEY_MEDICATION_JSON, null)?.let {
+      WidgetRefreshScheduler.scheduleFromPayload(appContext, it)
+    }
+
+    requestWidgetRefresh()
+  }
+
+  @ReactMethod
+  fun getMedicationConfirmedHistory(promise: Promise) {
+    val history = loadConfirmationHistory(appContext.widgetPrefs)
+    val array = Arguments.createArray()
+    history.forEach { entry ->
+      array.pushString(entry.scheduleIso)
+    }
+    promise.resolve(array)
+  }
+
+  @ReactMethod
+  fun clearMedicationConfirmedHistory(promise: Promise) {
+    clearConfirmationHistory(appContext.widgetPrefs)
+    promise.resolve(null)
+  }
+
   private fun maybeResetConfirmation(payloadJson: String) {
     val prefs = appContext.widgetPrefs
     val confirmedIso = prefs.getString(WidgetStorage.KEY_MEDICATION_CONFIRMED_SCHEDULE, null) ?: return
@@ -84,17 +132,28 @@ class WidgetBridgeModule(reactContext: ReactApplicationContext) : ReactContextBa
   }
 
   private fun requestWidgetRefresh() {
-    val manager = GlanceAppWidgetManager(appContext)
-    val widget = NewsCardGlanceWidget()
-    GlobalScope.launch {
-      val ids = manager.getGlanceIds(NewsCardGlanceWidget::class.java)
-      ids.forEach { glanceId ->
-        widget.update(appContext, glanceId)
-      }
+    val context = appContext.applicationContext
+    refreshScope.launch {
+      WidgetRefresher.refresh(context)
+
     }
+  }
+
+  override fun onCatalystInstanceDestroy() {
+    super.onCatalystInstanceDestroy()
+    refreshScope.cancel()
   }
 
   companion object {
     private const val TAG = "WidgetBridgeModule"
+  }
+
+  private fun resolveDispatcher(): CoroutineDispatcher {
+    return try {
+      Dispatchers.Main.immediate
+    } catch (error: IllegalStateException) {
+      Log.w(TAG, "Main dispatcher unavailable, falling back to Default", error)
+      Dispatchers.Default
+    }
   }
 }

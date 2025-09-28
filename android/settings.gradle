@@ -1,4 +1,19 @@
 pluginManagement {
+  repositories {
+    google()
+    mavenCentral()
+    gradlePluginPortal()
+  }
+
+  resolutionStrategy {
+    eachPlugin {
+      if (requested.id.id.startsWith("org.jetbrains.kotlin") && requested.version == "2.1.20") {
+        useVersion("2.0.21")
+        because("Kotlin 2.1.20 artifacts currently target class file version 68, which Gradle running on JDK 17 cannot read")
+      }
+    }
+  }
+
   def reactNativeGradlePlugin = new File(
     providers.exec {
       workingDir(rootDir)
