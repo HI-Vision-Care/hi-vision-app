@@ -22,8 +22,10 @@ import { useTransferToAppointment } from "@/services/transaction/hooks";
 import { useWalletByAccountId } from "@/services/wallet/hooks";
 import { Service } from "@/types/type";
 import { toLocalISODate, toLocalISODatee } from "@/utils/format";
+import { useFocusEffect } from "@react-navigation/native";
+import { useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -39,6 +41,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export type AvailabilityMap = Record<string, Record<string, string>>;
 
 export default function BookingScreen() {
+  const queryClient = useQueryClient();
   const { data: profile } = usePatientProfile();
   const patientId = profile?.patientID;
   const accountId = profile?.account?.id;
@@ -53,17 +56,18 @@ export default function BookingScreen() {
     "PAY_LATER"
   );
 
-  const { data, doctorId, specialty, facilityId: facilityIdParam } =
-    useLocalSearchParams<{
-      data?: string;
-      doctorId?: string;
-      specialty?: string;
-      facilityId?: string;
-    }>();
+  const {
+    data,
+    doctorId,
+    facilityId: facilityIdParam,
+  } = useLocalSearchParams<{
+    data?: string;
+    doctorId?: string;
+    specialty?: string;
+    facilityId?: string;
+  }>();
 
-  const facilityId = facilityIdParam
-    ? String(facilityIdParam)
-    : undefined;
+  const facilityId = facilityIdParam ? String(facilityIdParam) : undefined;
 
   const {
     data: facilityDetail,
@@ -76,9 +80,6 @@ export default function BookingScreen() {
     ? JSON.parse(decodeURIComponent(data))
     : null;
 
-  // Ưu tiên specialty từ service; nếu không có thì dùng specialty truyền qua params
-  // Do not filter by specialty here; show all unless service preselected
-  const specialtyParam = "";
   const [selectedService, setSelectedService] = useState<Service | null>(
     initialService
   );
@@ -176,20 +177,20 @@ export default function BookingScreen() {
   // Các slot cho ngày đang chọn
   const selectedISO = toLocalISODatee(selectedDate);
 
-  const timeSlotsList = useMemo(
-    () =>
-      shifts
-        .filter((s) => {
-          const dateStr = s.date
-            ? s.date
-            : s.startTime
-            ? s.startTime.slice(0, 10)
-            : null;
-          return dateStr === selectedISO;
-        })
-        .map((s) => s.slot),
-    [shifts, selectedISO]
-  );
+  const timeSlotsList = useMemo(() => {
+    const filtered = shifts
+      .filter((s) => {
+        const dateStr = s.date
+          ? s.date
+          : s.startTime
+          ? s.startTime.slice(0, 10)
+          : null;
+        return dateStr === selectedISO;
+      })
+      .map((s) => s.slot);
+
+    return filtered;
+  }, [shifts, selectedISO]);
 
   // Bản đồ availability status
   const availability = useMemo(() => {
@@ -234,6 +235,32 @@ export default function BookingScreen() {
       setSelectedTime(null);
     }
   }, [selectedTime, timeSlotsList]);
+
+  // Refresh data when page comes into focus to ensure fresh data
+  useFocusEffect(
+    useCallback(() => {
+      // Invalidate and refetch facility data
+      if (facilityId) {
+        queryClient.invalidateQueries({
+          queryKey: ["facility", facilityId],
+        });
+      }
+
+      // Invalidate and refetch work shifts data
+      if (selectedDoctor?.doctorID) {
+        queryClient.invalidateQueries({
+          queryKey: ["workShiftsWeek"],
+        });
+      }
+
+      // Invalidate and refetch wallet data
+      if (accountId) {
+        queryClient.invalidateQueries({
+          queryKey: ["wallet", accountId],
+        });
+      }
+    }, [facilityId, selectedDoctor?.doctorID, accountId, queryClient])
+  );
 
   // Đặt lịch
   const handleBooking = () => {
@@ -364,7 +391,7 @@ export default function BookingScreen() {
         />
 
         <ServiceSelection
-          services={selectedService ? [selectedService] : servicesFromFacility}
+          services={servicesFromFacility}
           selectedServiceId={selectedService?.serviceID ?? null}
           onSelect={setSelectedService}
         />

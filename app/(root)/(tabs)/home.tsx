@@ -11,7 +11,8 @@ import {
   MetricCarousel,
 } from "@components";
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useCallback } from "react";
 import {
   ScrollView,
   StatusBar,
@@ -22,18 +23,36 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Home = () => {
-  const { data: profile } = usePatientProfile();
+  const { data: profile, refetch: refetchProfile } = usePatientProfile();
   const patientId = profile?.patientID;
 
-  const { data: appointments = [] } = useGetAppointmentByPatientId(
-    patientId || ""
-  );
+  const { data: appointments = [], refetch: refetchAppointments } =
+    useGetAppointmentByPatientId(patientId || "");
 
   const latestAppointment = appointments.length
     ? appointments[appointments.length - 1]
     : null;
 
   useSyncWidgetWithBlog(patientId);
+
+  // Refresh data when page comes into focus to ensure fresh data
+  useFocusEffect(
+    useCallback(() => {
+      console.log("🔄 Home screen focused - refreshing data...");
+
+      // Refresh patient profile data
+      if (profile?.patientID) {
+        console.log("🔄 Refreshing patient profile");
+        refetchProfile();
+      }
+
+      // Refresh appointments data
+      if (patientId) {
+        console.log("🔄 Refreshing appointments for patient:", patientId);
+        refetchAppointments();
+      }
+    }, [profile?.patientID, patientId, refetchProfile, refetchAppointments])
+  );
 
   return (
     <>
@@ -44,10 +63,8 @@ const Home = () => {
         barStyle="light-content"
       />
 
-      {/* Chỉ safe cho top, nền full header */}
       <HeaderHome />
 
-      {/* Phần content còn lại safe cho left/right/bottom */}
       <SafeAreaView
         edges={["left", "right", "bottom"]}
         className="flex-1 bg-[#f2f5f9]"
@@ -76,7 +93,6 @@ const Home = () => {
           {/* Metrics Cards */}
           <MetricCarousel />
 
-          {/* Nút cập nhật Widget */}
           {/* <UpdateWidgetButton /> */}
 
           {/* Fitness & Activity Tracker Section */}

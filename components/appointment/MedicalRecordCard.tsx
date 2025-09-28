@@ -21,10 +21,8 @@ interface MedicalRecord {
   };
   doctor: {
     name: string;
-    account: {
-      email: string;
-      phone: string;
-    };
+    email: string;
+    phone: string;
   };
   slot?: string;
 }
