@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -23,11 +23,35 @@ const Stats = () => {
   const patientAccountId = profile?.account.id;
   const { data: posts, isLoading, isError, error, refetch } = useGetBlogPosts(patientAccountId);        
   const [refreshing, setRefreshing] = useState(false);
+  const ALL_TOPIC = 'Tất cả';
+  const [selectedTopic, setSelectedTopic] = useState<string>(ALL_TOPIC);
 
   // Đảm bảo newest blog lên đầu (nếu backend không sort sẵn)
   const orderedPosts = posts?.slice().sort(
     (a, b) => new Date(b.createAt).getTime() - new Date(a.createAt).getTime()
   ) || [];
+
+  // Build dynamic category list (topics) from backend data, prepend "Tất cả"
+  const topics = useMemo(() => {
+    const set = new Set<string>();
+    for (const p of orderedPosts) {
+      if (p.topic) set.add(p.topic);
+    }
+    return [ALL_TOPIC, ...Array.from(set)];
+  }, [orderedPosts]);
+
+  // Ensure selected topic is valid; default to "Tất cả"
+  useEffect(() => {
+    if (!topics.includes(selectedTopic)) {
+      setSelectedTopic(ALL_TOPIC);
+    }
+  }, [topics]);
+
+  // Filter posts by selected topic (if any)
+  const filteredPosts = useMemo(() => {
+    if (selectedTopic === ALL_TOPIC) return orderedPosts;
+    return orderedPosts.filter((p) => p.topic === selectedTopic);
+  }, [orderedPosts, selectedTopic]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -51,8 +75,8 @@ const Stats = () => {
     );
   }
 
-  const featured = orderedPosts.length > 0 ? orderedPosts[0] : null;
-  const list = orderedPosts.length > 1 ? orderedPosts.slice(1) : [];
+  const featured = filteredPosts.length > 0 ? filteredPosts[0] : null;
+  const list = filteredPosts.length > 1 ? filteredPosts.slice(1) : [];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -83,8 +107,44 @@ const Stats = () => {
             />
           }
         >
-          {/* Category Tabs */}
-          <View style={styles.tabContainer}>
+          {/* Category Tabs (horizontal) */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.tabContainer}
+          >
+            {topics.map((topic) => {
+              const active = topic === selectedTopic;
+              return (
+                <TouchableOpacity
+                  key={topic}
+                  style={[styles.tab, active && styles.activeTab]}
+                  onPress={() => setSelectedTopic(topic)}
+                >
+                  <Text style={[styles.tabText, active && styles.activeTabText]}>
+                    {topic}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+          <View style={[styles.tabContainer, { display: "none" }]}>
+            {topics.map((topic) => {
+              const active = topic === selectedTopic;
+              return (
+                <TouchableOpacity
+                  key={topic}
+                  style={[styles.tab, active && styles.activeTab]}
+                  onPress={() => setSelectedTopic(topic)}
+                >
+                  <Text style={[styles.tabText, active && styles.activeTabText]}>
+                    {topic}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          <View style={[styles.tabContainer, { display: "none" }]}>
             <TouchableOpacity style={[styles.tab, styles.activeTab]}>
               <Text style={[styles.tabText, styles.activeTabText]}>Bừng Sáng</Text>
             </TouchableOpacity>

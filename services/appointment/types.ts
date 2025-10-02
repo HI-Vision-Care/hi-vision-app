@@ -3,7 +3,7 @@
 export interface Account {
   id: string;
   username: string;
-  "e-mail": string;
+  email: string;
   phone: string;
   avatar: string;
   role: string;
@@ -29,7 +29,7 @@ export interface Doctor {
   doctorID: string;
   name: string;
   gender: string;
-  "e-mail": string;
+  email: string;
   phone: string;
   specialty: string;
   degrees: string;
@@ -58,14 +58,26 @@ export interface MedicalService {
   testItems: TestItem[];
 }
 
+export interface AppointmentFacility {
+  name: string;
+  address: string;
+  phone: string;
+  des: string;
+  img: string;
+  time: string;
+  rating: string;
+  latitude: string;
+  longitude: string;
+}
+
 export interface AppointmentDetail {
   appointmentID: string;
   patient: Patient;
   doctor: Doctor;
   medicalService: MedicalService;
-  facility: null;
+  facility: AppointmentFacility;
   appointmentDate: string;
-  slot: null;
+  slot: string;
   isAnonymous: boolean;
   isRecordCreated: boolean;
   isPrescriptionCreated: boolean | null;
