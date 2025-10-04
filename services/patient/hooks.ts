@@ -42,11 +42,11 @@ export const useUploadAccountAvatar = () =>
   useMutation({
     mutationFn: ({
       accountId,
-      uri,
+      imageUrl,
     }: {
       accountId: string;
-      uri: string;
-    }) => uploadAccountAvatar(accountId, uri),
+      imageUrl: string;
+    }) => uploadAccountAvatar(accountId, imageUrl),
   });
 
 export const useDeleteAccount = () => {

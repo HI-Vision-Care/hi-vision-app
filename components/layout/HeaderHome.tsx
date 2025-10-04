@@ -115,8 +115,8 @@ const HeaderHome = () => {
               {profileLoading
                 ? "Loading..."
                 : profileError
-                  ? "Error"
-                  : `Hi, ${name}! 👋`}
+                ? "Error"
+                : `Hi, ${name}! 👋`}
             </Text>
             <View className="flex-row items-center mt-1">
               <View className="flex-row items-center">
@@ -129,10 +129,6 @@ const HeaderHome = () => {
                 <Text className="text-blue-400 text-sm font-semibold ml-1">
                   88%
                 </Text>
-              </View>
-              <View className="flex-row items-center ml-4">
-                <Ionicons name="star" size={16} color="#FCD34D" />
-                <Text className="text-gray-300 text-sm ml-1">Pro Member</Text>
               </View>
             </View>
           </View>

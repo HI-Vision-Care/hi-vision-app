@@ -38,30 +38,3 @@ export const getLabResults = async (
   const res = await axios.get(`/patient/lab-results/${patientId}`);
   return res.data;
 };
-
-// Upload account avatar (image file)
-export const uploadAccountAvatar = async (
-  accountId: string,
-  fileUri: string
-): Promise<any> => {
-  const formData = new FormData();
-  // Infer filename and mime from uri (basic)
-  const filename = fileUri.split("/").pop() || "avatar.jpg";
-  const ext = filename.split(".").pop()?.toLowerCase();
-  const mime = ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg";
-
-  formData.append("file", {
-    // @ts-ignore - React Native FormData file type
-    uri: fileUri,
-    name: filename,
-    type: mime,
-  });
-
-  const res = await axios.post(`/account/upload-avatar/${accountId}`,
-    formData,
-    {
-      headers: { "Content-Type": "multipart/form-data" },
-    }
-  );
-  return res.data;
-};
