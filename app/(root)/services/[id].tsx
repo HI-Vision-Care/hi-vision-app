@@ -10,14 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import {
-  FlatList,
-  Image,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { FlatList, Image, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ServiceDetail() {
@@ -266,7 +259,7 @@ export default function ServiceDetail() {
       </ScrollView>
 
       {/* Enhanced Booking Button */}
-      <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-4">
+      {/* <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-4">
         <View className="bg-gray-50 rounded-2xl p-1">
           <TouchableOpacity
             onPress={handleBookAppointment}
@@ -311,7 +304,7 @@ export default function ServiceDetail() {
             Please check back later for doctor availability
           </Text>
         )}
-      </View>
+      </View> */}
     </SafeAreaView>
   );
 }

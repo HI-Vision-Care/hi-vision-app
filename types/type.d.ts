@@ -218,6 +218,17 @@ export interface MedicalRecord {
   };
   appointmentDate?: date;
   slot: string;
+  facility?: {
+    name: string;
+    address?: string;
+    phone?: string;
+    des?: string;
+    img?: string;
+    time?: string;
+    rating?: string;
+    latitude?: string;
+    longitude?: string;
+  };
 }
 
 export interface LabResult {
@@ -258,3 +269,4 @@ export interface TestItemProps {
   };
   index: number;
 }
+

@@ -69,7 +69,11 @@ const Home = () => {
         edges={["left", "right", "bottom"]}
         className="flex-1 bg-[#f2f5f9]"
       >
-        <ScrollView className="flex-1 px-4 pt-6">
+        <ScrollView
+          className="flex-1 px-4 pt-6"
+          contentContainerStyle={{ paddingBottom: 100 }}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Health Service Swiper */}
           <HealthServicesSwiper />
 
@@ -106,6 +110,9 @@ const Home = () => {
 
           {/* Medication Management Section */}
           <MedicationSection />
+
+          {/* Extra spacing to prevent bottom nav overlap */}
+          <View className="h-1" />
         </ScrollView>
       </SafeAreaView>
     </>
