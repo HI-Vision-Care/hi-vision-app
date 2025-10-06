@@ -12,6 +12,31 @@ import kotlinx.coroutines.withContext
 object WidgetRefresher {
   private const val TAG = "WidgetRefresher"
 
+  // Force refresh widget ngay lập tức
+  suspend fun forceRefresh(context: Context) {
+    val appContext = context.applicationContext
+    try {
+      val widget = NewsCardGlanceWidget()
+      val manager = GlanceAppWidgetManager(appContext)
+      val ids = manager.getGlanceIds(NewsCardGlanceWidget::class.java)
+      
+      if (ids.isNotEmpty()) {
+        Log.d(TAG, "Force refreshing ${ids.size} widget instances")
+        ids.forEach { glanceId ->
+          try {
+            // Force update bằng cách gọi widget.update trực tiếp
+            widget.update(appContext, glanceId)
+            Log.d(TAG, "Force refreshed widget id=$glanceId")
+          } catch (error: Exception) {
+            Log.e(TAG, "Failed to force refresh widget id=$glanceId", error)
+          }
+        }
+      }
+    } catch (error: Exception) {
+      Log.e(TAG, "Failed to force refresh widgets", error)
+    }
+  }
+
   suspend fun refresh(context: Context) {
     val appContext = context.applicationContext
     val dispatcher = resolveDispatcher()
@@ -35,11 +60,17 @@ object WidgetRefresher {
         return@withContext
       }
 
-      if (ids.isEmpty()) return@withContext
+      if (ids.isEmpty()) {
+        Log.d(TAG, "No widget instances found to refresh")
+        return@withContext
+      }
 
+      Log.d(TAG, "Refreshing ${ids.size} widget instances")
+      
       ids.forEach { glanceId ->
         try {
           widget.update(appContext, glanceId)
+          Log.d(TAG, "Successfully refreshed widget id=$glanceId")
         } catch (error: Exception) {
           if (error is CancellationException) throw error
           Log.e(TAG, "Failed to refresh widget id=$glanceId", error)

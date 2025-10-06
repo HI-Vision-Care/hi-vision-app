@@ -9,8 +9,11 @@ type WidgetBridgeType = {
   ) => void;
   getMedicationConfirmedHistory?: () => Promise<string[]>;
   clearMedicationConfirmedHistory?: () => Promise<void>;
+  forceRefreshWidget?: () => void;
 };
 
-const NativeWidgetBridge = NativeModules.WidgetBridge as WidgetBridgeType | undefined;
+const NativeWidgetBridge = NativeModules.WidgetBridge as
+  | WidgetBridgeType
+  | undefined;
 
 export const WidgetBridge: WidgetBridgeType | undefined = NativeWidgetBridge;

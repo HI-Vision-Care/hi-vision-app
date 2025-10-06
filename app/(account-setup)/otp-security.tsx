@@ -2,15 +2,11 @@ import { icons } from "@/constants";
 import { OtpCode } from "@components";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
+import { Image, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import {
-  Image,
   SafeAreaView,
-  StatusBar,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 const OtpSecurity: React.FC = () => {
   const router = useRouter();

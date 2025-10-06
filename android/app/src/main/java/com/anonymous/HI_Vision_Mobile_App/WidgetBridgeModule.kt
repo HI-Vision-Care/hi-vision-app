@@ -66,6 +66,8 @@ class WidgetBridgeModule(reactContext: ReactApplicationContext) : ReactContextBa
     val confirmedIso = confirmedAtIso?.takeIf { it.isNotBlank() } ?: Instant.now().toString()
     val prefs = appContext.widgetPrefs
 
+    Log.d(TAG, "Recording medication confirmation: scheduleIso=$scheduleIso, confirmedAt=$confirmedIso")
+
     prefs.edit()
       .putString(WidgetStorage.KEY_MEDICATION_CONFIRMED_SCHEDULE, scheduleIso)
       .putString(WidgetStorage.KEY_MEDICATION_CONFIRMED_AT, confirmedIso)
@@ -73,12 +75,16 @@ class WidgetBridgeModule(reactContext: ReactApplicationContext) : ReactContextBa
       .apply()
 
     appendConfirmationHistory(prefs, scheduleIso, confirmedIso)
+    Log.d(TAG, "Confirmation saved to preferences and history")
 
     prefs.getString(WidgetStorage.KEY_MEDICATION_JSON, null)?.let {
       WidgetRefreshScheduler.scheduleFromPayload(appContext, it)
+      Log.d(TAG, "Widget refresh scheduled")
     }
 
+    // Force refresh widget ngay lập tức
     requestWidgetRefresh()
+    Log.d(TAG, "Widget refresh requested immediately")
   }
 
   @ReactMethod
@@ -95,6 +101,26 @@ class WidgetBridgeModule(reactContext: ReactApplicationContext) : ReactContextBa
   fun clearMedicationConfirmedHistory(promise: Promise) {
     clearConfirmationHistory(appContext.widgetPrefs)
     promise.resolve(null)
+  }
+
+  @ReactMethod
+  fun forceRefreshWidget() {
+    Log.d(TAG, "Force refresh widget requested from React Native")
+    val context = appContext.applicationContext
+    refreshScope.launch(Dispatchers.Main.immediate) {
+      try {
+        WidgetRefresher.forceRefresh(context)
+        Log.d(TAG, "Widget force refreshed from React Native")
+      } catch (error: Exception) {
+        Log.e(TAG, "Failed to force refresh widget from React Native", error)
+        // Fallback
+        try {
+          WidgetRefresher.refresh(context)
+        } catch (fallbackError: Exception) {
+          Log.e(TAG, "Failed to refresh widget with fallback from React Native", fallbackError)
+        }
+      }
+    }
   }
 
   private fun maybeResetConfirmation(payloadJson: String) {
@@ -133,9 +159,26 @@ class WidgetBridgeModule(reactContext: ReactApplicationContext) : ReactContextBa
 
   private fun requestWidgetRefresh() {
     val context = appContext.applicationContext
-    refreshScope.launch {
-      WidgetRefresher.refresh(context)
-
+    // Sử dụng Dispatchers.Main.immediate để refresh ngay lập tức
+    refreshScope.launch(Dispatchers.Main.immediate) {
+      try {
+        // Thử force refresh trước
+        WidgetRefresher.forceRefresh(context)
+        Log.d(TAG, "Widget force refreshed successfully")
+      } catch (error: Exception) {
+        Log.e(TAG, "Failed to force refresh widget", error)
+        // Fallback: thử normal refresh
+        try {
+          WidgetRefresher.refresh(context)
+          Log.d(TAG, "Widget refreshed successfully with fallback")
+        } catch (fallbackError: Exception) {
+          Log.e(TAG, "Failed to refresh widget with fallback", fallbackError)
+          // Final fallback: thử lại với Dispatchers.Default
+          refreshScope.launch(Dispatchers.Default) {
+            WidgetRefresher.refresh(context)
+          }
+        }
+      }
     }
   }
 

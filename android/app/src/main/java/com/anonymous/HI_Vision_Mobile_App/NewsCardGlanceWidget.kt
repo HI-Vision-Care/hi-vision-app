@@ -182,7 +182,7 @@ class NewsCardGlanceWidget : GlanceAppWidget() {
 
   @Composable
   private fun MedicationLayout(data: MedicationWidgetData, launchIntent: Intent, isWide: Boolean) {
-    val padding = if (isWide) 16.dp else 12.dp
+    val padding = if (isWide) 12.dp else 8.dp
     val zone = data.zoneId
     val now = Instant.now()
     val nextEntry = data.next
@@ -211,7 +211,7 @@ class NewsCardGlanceWidget : GlanceAppWidget() {
     val statusColor = statusColorForState(state)
     val indicatorColor = indicatorColorForState(state)
     val dueTimeLabel = formatTimeLabel(nextTime, zone)
-    val showButton = !data.isConfirmed && (state == DoseState.WINDOW || state == DoseState.MISSED)
+    // Removed showButton logic - confirmation button no longer displayed in widget
     val medicineLabel = nextEntry.medicineName ?: "thuốc"
 
     val primaryMessage = when (state) {
@@ -293,7 +293,7 @@ class NewsCardGlanceWidget : GlanceAppWidget() {
           fontSize = if (isWide) 15.sp else 14.sp
         ),
         maxLines = 2,
-        modifier = GlanceModifier.padding(top = 10.dp)
+        modifier = GlanceModifier.padding(top = 6.dp)
       )
 
       secondaryMessage?.let {
@@ -302,10 +302,10 @@ class NewsCardGlanceWidget : GlanceAppWidget() {
           style = TextStyle(
             color = ColorProvider(Color(0xFF1F2937)),
             fontWeight = FontWeight.Normal,
-            fontSize = 12.sp
+            fontSize = 11.sp
           ),
-          maxLines = 2,
-          modifier = GlanceModifier.padding(top = 4.dp)
+          maxLines = 1,
+          modifier = GlanceModifier.padding(top = 2.dp)
         )
       }
 
@@ -315,10 +315,10 @@ class NewsCardGlanceWidget : GlanceAppWidget() {
           style = TextStyle(
             color = ColorProvider(Color(0xFF1E3A8A)),
             fontWeight = FontWeight.Normal,
-            fontSize = 12.sp
+            fontSize = 10.sp
           ),
-          maxLines = 2,
-          modifier = GlanceModifier.padding(top = 4.dp)
+          maxLines = 1,
+          modifier = GlanceModifier.padding(top = 2.dp)
         )
       }
 
@@ -328,47 +328,36 @@ class NewsCardGlanceWidget : GlanceAppWidget() {
           style = TextStyle(
             color = ColorProvider(Color(0xFF1E3A8A)),
             fontWeight = FontWeight.Normal,
-            fontSize = 12.sp
+            fontSize = 10.sp
           ),
-          maxLines = if (isWide) 2 else 1,
-          modifier = GlanceModifier.padding(top = 4.dp)
+          maxLines = 1,
+          modifier = GlanceModifier.padding(top = 2.dp)
         )
       }
 
-      if (showButton) {
-        val confirmParams = actionParametersOf(
-          ConfirmDoseAction.DOSE_ISO_PARAM to (nextEntry.iso ?: ""),
-        )
-        Box(
-          contentAlignment = Alignment.Center,
-          modifier = GlanceModifier
-            .padding(top = 12.dp)
-            .fillMaxWidth()
-            .height(if (isWide) 42.dp else 38.dp)
-            .background(ColorProvider(Color(0xFF2563EB)))
-            .clickable(actionRunCallback<ConfirmDoseAction>(confirmParams))
-        ) {
-          Text(
-            text = "Đã uống liều hôm nay",
-            style = TextStyle(
-              color = ColorProvider(Color.White),
-              fontWeight = FontWeight.Bold,
-              fontSize = 13.sp
-            ),
-            maxLines = 1
-          )
-        }
-      }
+      // Removed confirmation button - confirmation now handled in app only
+      
+      // Compact status info
+      Text(
+        text = if (data.isConfirmed) "✅ Đã xác nhận" else "💡 Mở app để xác nhận",
+        style = TextStyle(
+          color = if (data.isConfirmed) ColorProvider(Color(0xFF2E7D32)) else ColorProvider(Color(0xFF1976D2)),
+          fontWeight = FontWeight.Medium,
+          fontSize = 9.sp
+        ),
+        maxLines = 1,
+        modifier = GlanceModifier.padding(top = 4.dp)
+      )
 
       Text(
-        text = "Tổng lịch: ${data.totalSchedules}",
+        text = "📅 Tổng lịch: ${data.totalSchedules}",
         style = TextStyle(
           color = ColorProvider(Color(0xFF1F2937)),
           fontWeight = FontWeight.Medium,
-          fontSize = 11.sp
+          fontSize = 9.sp
         ),
         maxLines = 1,
-        modifier = GlanceModifier.padding(top = 12.dp)
+        modifier = GlanceModifier.padding(top = 1.dp)
       )
     }
   }
@@ -442,37 +431,26 @@ class NewsCardGlanceWidget : GlanceAppWidget() {
       val confirmedIso = prefs.getString(WidgetStorage.KEY_MEDICATION_CONFIRMED_SCHEDULE, null)
       val confirmedAtPref = prefs.getString(WidgetStorage.KEY_MEDICATION_CONFIRMED_AT, null)?.let { parseInstant(it) }
 
+      // Simplified confirmation logic - check both current confirmation and history
       val historyMatch = loadConfirmationHistory(prefs).firstOrNull { entry ->
-        val entryIso = entry.scheduleIso
-        val entryInstant = runCatching { Instant.parse(entryIso) }.getOrNull()
-        when {
-          entryIso.isBlank() -> false
-          nextEntry.iso != null -> entryIso == nextEntry.iso
-          nextEntry.time != null && entryInstant != null -> entryInstant == nextEntry.time
-          else -> false
-        }
+        entry.scheduleIso == nextEntry.iso
       }
 
-      val confirmedIsoInstant = confirmedIso?.let { runCatching { Instant.parse(it) }.getOrNull() }
-      val nextIsoInstant = nextEntry.iso?.let { runCatching { Instant.parse(it) }.getOrNull() }
+      // Check if current dose is confirmed
+      val currentDoseConfirmed = confirmedIso == nextEntry.iso
 
-      val keyMatches = when {
-        confirmedIsoInstant != null && nextEntry.time != null -> confirmedIsoInstant == nextEntry.time
-        confirmedIsoInstant != null && nextIsoInstant != null -> confirmedIsoInstant == nextIsoInstant
-        confirmedIso != null && nextEntry.iso != null -> confirmedIso == nextEntry.iso
-        else -> false
-      }
-
-      val recentConfirmation = when {
-        confirmedAtPref != null && nextEntry.time != null ->
-          confirmedAtPref.isAfter(nextEntry.time.minus(Duration.ofHours(12)))
-        confirmedAtPref != null -> confirmedAtPref.isAfter(Instant.now().minus(Duration.ofHours(12)))
-        else -> false
-      }
-
-      val isConfirmed = keyMatches || historyMatch != null || recentConfirmation
+      // Check if there's a recent confirmation for this dose
+      val isConfirmed = currentDoseConfirmed || historyMatch != null
+      
+      // Debug logging
+      android.util.Log.d("WidgetConfirmation", "nextEntry.iso=${nextEntry.iso}")
+      android.util.Log.d("WidgetConfirmation", "confirmedIso=$confirmedIso")
+      android.util.Log.d("WidgetConfirmation", "currentDoseConfirmed=$currentDoseConfirmed")
+      android.util.Log.d("WidgetConfirmation", "historyMatch=$historyMatch")
+      android.util.Log.d("WidgetConfirmation", "isConfirmed=$isConfirmed")
+      
       val confirmedAt = historyMatch?.confirmedAtIso?.let { parseInstant(it) }
-        ?: confirmedAtPref
+        ?: if (currentDoseConfirmed) confirmedAtPref else null
 
       val summary = json.optJSONObject("summary")
       val totalSchedules = summary?.optInt("totalUpcoming", previewItems.size)
@@ -731,94 +709,9 @@ class NewsCardGlanceWidget : GlanceAppWidget() {
   }
 }
 
-class ConfirmDoseAction : ActionCallback {
-  override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-    val prefs = context.widgetPrefs
-    val isoFromParams = parameters[DOSE_ISO_PARAM]?.takeIf { it.isNotBlank() }
-    val storedActiveIso = prefs.getString(WidgetStorage.KEY_MEDICATION_ACTIVE_ISO, null)
-    val isoToConfirm = isoFromParams ?: storedActiveIso ?: resolveActiveDoseIso(prefs)
+// Removed ConfirmDoseAction class - confirmation now handled in app only
 
-    if (isoToConfirm.isNullOrBlank()) {
-      Log.w(CONFIRM_LOG_TAG, "Unable to resolve active medication schedule for confirmation")
-      return
-    }
-
-    val nowIso = Instant.now().toString()
-
-    prefs.edit().also { editor ->
-      editor.putString(WidgetStorage.KEY_MEDICATION_CONFIRMED_SCHEDULE, isoToConfirm)
-      editor.putString(WidgetStorage.KEY_MEDICATION_CONFIRMED_AT, nowIso)
-      if (storedActiveIso != isoToConfirm) {
-        editor.putString(WidgetStorage.KEY_MEDICATION_ACTIVE_ISO, isoToConfirm)
-      }
-    }.apply()
-
-    appendConfirmationHistory(prefs, isoToConfirm, nowIso)
-
-    prefs.getString(WidgetStorage.KEY_MEDICATION_JSON, null)?.let {
-      WidgetRefreshScheduler.scheduleFromPayload(context.applicationContext, it)
-    }
-
-    val appContext = context.applicationContext
-    WidgetRefresher.refresh(appContext)
-  }
-
-  companion object {
-    private const val CONFIRM_LOG_TAG = "ConfirmDoseAction"
-    internal val DOSE_ISO_PARAM = ActionParameters.Key<String>("dose_iso")
-  }
-}
-
-private fun resolveActiveDoseIso(prefs: SharedPreferences): String? {
-  val raw = prefs.getString(WidgetStorage.KEY_MEDICATION_JSON, null) ?: return null
-  val json = runCatching { JSONObject(raw) }.getOrNull() ?: return null
-  val now = Instant.now()
-
-  val preview = json.optJSONArray("preview")
-  if (preview != null && preview.length() > 0) {
-    val earlyWindow = Duration.ofHours(2)
-    val lateWindow = Duration.ofHours(12)
-    var recentIso: String? = null
-    var recentInstant: Instant? = null
-    var upcomingIso: String? = null
-    var upcomingInstant: Instant? = null
-
-    for (index in 0 until preview.length()) {
-      val item = preview.optJSONObject(index) ?: continue
-      val iso = item.optString("timeISO").takeIf { it.isNotBlank() } ?: continue
-      val instant = runCatching { Instant.parse(iso) }.getOrNull() ?: continue
-
-      if (instant.isBefore(now)) {
-        val lateDiff = Duration.between(instant, now)
-        if (lateDiff <= lateWindow) {
-          if (recentInstant == null || instant.isAfter(recentInstant)) {
-            recentInstant = instant
-            recentIso = iso
-          }
-        }
-      } else {
-        val futureDiff = Duration.between(now, instant)
-        if (upcomingInstant == null || instant.isBefore(upcomingInstant)) {
-          upcomingInstant = instant
-          upcomingIso = iso
-        }
-        if (futureDiff <= earlyWindow) {
-          // User can confirm up to ~1 hour early, so prefer the upcoming dose when we're still before it.
-          return iso
-        }
-      }
-    }
-
-    if (upcomingIso != null && upcomingInstant != null && now.isBefore(upcomingInstant)) {
-      return upcomingIso
-    }
-
-    if (recentIso != null) return recentIso
-    if (upcomingIso != null) return upcomingIso
-  }
-
-  return json.optJSONObject("next")?.optString("timeISO")?.takeIf { it.isNotBlank() }
-}
+// Removed resolveActiveDoseIso function - no longer needed after removing confirmation button
 
 /* ====================== Helpers ====================== */
 
