@@ -2,7 +2,7 @@
   "expo": {
     "name": "HI_Vision_Mobile_App",
     "slug": "hi-vision",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",
     "scheme": "hivisionmobileapp",
@@ -24,12 +24,14 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.anonymous.HI_Vision_Mobile_App",
+      "permissions": ["CAMERA", "INTERNET", "READ_EXTERNAL_STORAGE"],
       "splash": {
         "image": "./assets/images/logo.png",
         "resizeMode": "contain",
         "backgroundColor": "#ffffff"
       }
     },
+    "versionCode": 4,
     "web": {
       "bundler": "metro",
       "output": "static",
