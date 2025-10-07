@@ -21,12 +21,17 @@ interface MedicalRecord {
   };
   doctor: {
     name: string;
-    account: {
-      email: string;
-      phone: string;
-    };
+    email: string;
+    phone: string;
   };
-  slot?: string;
+    slot?: string;
+  facility?: {
+    name: string;
+    address?: string;
+    phone?: string;
+    latitude?: string;
+    longitude?: string;
+  };
 }
 
 const getPaymentConfig = (status: string) => {
@@ -70,9 +75,10 @@ const MedicalRecordCard: React.FC<{
   const utcDateString = record.appointmentDate ?? "";
   const datePart = utcDateString.slice(0, 10);
   const timePart = utcDateString.slice(11, 16);
+  
   const formatted = datePart.split("-").reverse().join("/") + " " + timePart;
-
-  // Status config
+  const isOnline = !!record.urlLink;
+// Status config
   const getStatusConfig = (status: string) => {
     const configs = {
       completed: {
@@ -253,6 +259,15 @@ const MedicalRecordCard: React.FC<{
                 </Text>
               </View>
             )}
+
+            {!isOnline && record.facility?.name && (
+              <View className="flex-row items-center mb-1">
+                <Ionicons name="location-outline" size={14} color="#666" />
+                <Text className="text-sm text-gray-600 ml-1" numberOfLines={1}>
+                  {record.facility.name}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -361,7 +376,49 @@ const MedicalRecordCard: React.FC<{
                   </View>
                 </View>
               )}
-
+              {/* Location */}
+              {!isOnline && record.facility?.name && (
+                <View>
+                  <Text className="text-sm font-medium text-gray-700 mb-2">Location</Text>
+                  <View className="bg-gray-50 rounded-lg p-3">
+                    <View className="flex-row items-center justify-between">
+                      <View className="flex-1 mr-2">
+                        <View className="flex-row items-center">
+                          <Ionicons name="business-outline" size={14} color="#0F67FE" />
+                          <Text className="text-sm text-gray-700 ml-2" numberOfLines={1}>
+                            {record.facility?.name}
+                          </Text>
+                        </View>
+                        {!!record.facility?.address && (
+                          <Text className="text-xs text-gray-500 ml-6 mt-1" numberOfLines={2}>
+                            {record.facility?.address}
+                          </Text>
+                        )}
+                      </View>
+                      <Pressable
+                        onPress={() => {
+                          const lat = record.facility?.latitude;
+                          const lng = record.facility?.longitude;
+                          let url = '';
+                          if (lat && lng) {
+                            url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${lat},${lng}`)}`;
+                          } else if (record.facility?.address) {
+                            url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(record.facility.address)}`;
+                          }
+                          if (url) {
+                            Linking.openURL(url);
+                          }
+                        }}
+                        className="flex-row items-center bg-blue-100 px-3 py-2 rounded-lg"
+                        accessibilityLabel="Get directions"
+                      >
+                        <Ionicons name="navigate" size={16} color="#2563EB" />
+                        <Text className="text-blue-700 ml-2 font-semibold">Directions</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                </View>
+              )}
               {/* Record Metadata */}
               <View className="bg-gray-50 rounded-lg p-3">
                 <Text className="text-xs font-medium text-gray-500 mb-2">
@@ -417,3 +474,5 @@ const MedicalRecordCard: React.FC<{
 };
 
 export default MedicalRecordCard;
+
+

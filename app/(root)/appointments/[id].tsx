@@ -6,9 +6,9 @@ import capitalize from "@/utils/capitalize";
 import { formatVietnameseDate } from "@/utils/format";
 import { FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import React from "react";
 import {
   Alert,
+  Linking,
   ScrollView,
   StatusBar,
   Text,
@@ -96,6 +96,26 @@ const AppointmentDetail = () => {
     }
   };
 
+  const isOnline =
+    !!appointment?.urlLink || appointment?.medicalService?.isOnline === true;
+
+  const openDirections = () => {
+    const lat = appointment?.facility?.latitude;
+    const lng = appointment?.facility?.longitude;
+    let url = "";
+    if (lat && lng) {
+      url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        `${lat},${lng}`
+      )}`;
+    } else if (appointment?.facility?.address) {
+      url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        appointment.facility.address
+      )}`;
+    }
+    if (url) {
+      Linking.openURL(url);
+    }
+  };
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
@@ -176,25 +196,67 @@ const AppointmentDetail = () => {
               </View>
             )}
 
+            {/* Facility */}
+            {!isOnline && appointment.facility?.name && (
+              <View className="flex-row items-center justify-between">
+                <View className="flex-1">
+                  <View className="flex-row items-center">
+                    <Ionicons
+                      name="business-outline"
+                      size={20}
+                      color="#6b7280"
+                    />
+                    <Text
+                      className="text-gray-900 ml-3 flex-1"
+                      numberOfLines={1}
+                    >
+                      {appointment.facility.name}
+                    </Text>
+                  </View>
+                  {appointment.facility.address && (
+                    <Text
+                      className="text-sm text-gray-500 ml-8 mt-1"
+                      numberOfLines={2}
+                    >
+                      {appointment.facility.address}
+                    </Text>
+                  )}
+                </View>
+                <TouchableOpacity
+                  className="ml-3 bg-blue-100 px-3 py-2 rounded-lg"
+                  onPress={openDirections}
+                  accessibilityLabel="Get directions"
+                >
+                  <View className="flex-row items-center">
+                    <Ionicons name="navigate" size={16} color="#2563EB" />
+                    <Text className="text-blue-700 ml-2 font-semibold">
+                      Directions
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            )}
+
             {/* Online Status */}
             <View className="flex-row items-center">
               <Ionicons
-                name={appointment.isOnline ? "videocam" : "location-outline"}
+                name={isOnline ? "videocam" : "location-outline"}
                 size={20}
                 color="#6b7280"
               />
               <Text className="text-gray-900 ml-3 flex-1">
-                {appointment.isOnline
-                  ? "Online Consultation"
-                  : "In-Person Visit"}
+                {isOnline ? "Online Consultation" : "In-Person Visit"}
               </Text>
             </View>
 
             {/* URL Link (if online) */}
-            {appointment.isOnline && appointment.urlLink && (
+            {isOnline && appointment.urlLink && (
               <View className="flex-row items-center">
                 <Ionicons name="link-outline" size={20} color="#6b7280" />
-                <TouchableOpacity className="ml-3 flex-1">
+                <TouchableOpacity
+                  className="ml-3 flex-1"
+                  onPress={() => Linking.openURL(appointment.urlLink)}
+                >
                   <Text className="text-blue-600 underline" numberOfLines={1}>
                     {appointment.urlLink}
                   </Text>

@@ -136,10 +136,6 @@ const HeaderHome = () => {
                   88%
                 </Text>
               </View>
-              <View className="flex-row items-center ml-4">
-                <Ionicons name="star" size={16} color="#FCD34D" />
-                <Text className="text-gray-300 text-sm ml-1">Pro Member</Text>
-              </View>
             </View>
           </View>
         </View>
