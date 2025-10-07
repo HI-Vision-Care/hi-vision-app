@@ -713,45 +713,45 @@ export const healthServices = [
     gradientColors: ["#22C55E", "#16A34A"], // → green-600
     onPress: () => router.push("/(product)/products"),
   },
-  {
-    id: "5",
-    title: "Tiêm Vắc\nxin",
-    icon: "shield-checkmark",
-    iconColor: "#FFFFFF",
-    backgroundColor: "#8B5CF6",
-    gradientColors: ["#8B5CF6", "#7C3AED"],
-    onPress: () =>
-      router.push({
-        pathname: "/coming-soon",
-        params: { feature: "Tiêm Vắc\nxin", eta: "Soon" },
-      }),
-  },
-  {
-    id: "6",
-    title: "Đơn của\ntôi",
-    icon: "receipt",
-    iconColor: "#FFFFFF",
-    backgroundColor: "#F59E0B",
-    gradientColors: ["#F59E0B", "#D97706"],
-    onPress: () =>
-      router.push({
-        pathname: "/coming-soon",
-        params: { feature: "Đơn của\n tôi", eta: "Soon" },
-      }),
-  },
-  {
-    id: "7",
-    title: "Tìm bác sĩ\ntheo khoa",
-    icon: "people",
-    iconColor: "#FFFFFF",
-    backgroundColor: "#EF4444",
-    gradientColors: ["#EF4444", "#DC2626"],
-    onPress: () =>
-      router.push({
-        pathname: "/coming-soon",
-        params: { feature: "Tìm bác sĩ\n theo khoa", eta: "Soon" },
-      }),
-  },
+  // {
+  //   id: "5",
+  //   title: "Tiêm Vắc\nxin",
+  //   icon: "shield-checkmark",
+  //   iconColor: "#FFFFFF",
+  //   backgroundColor: "#8B5CF6",
+  //   gradientColors: ["#8B5CF6", "#7C3AED"],
+  //   onPress: () =>
+  //     router.push({
+  //       pathname: "/coming-soon",
+  //       params: { feature: "Tiêm Vắc\nxin", eta: "Soon" },
+  //     }),
+  // },
+  // {
+  //   id: "6",
+  //   title: "Đơn của\ntôi",
+  //   icon: "receipt",
+  //   iconColor: "#FFFFFF",
+  //   backgroundColor: "#F59E0B",
+  //   gradientColors: ["#F59E0B", "#D97706"],
+  //   onPress: () =>
+  //     router.push({
+  //       pathname: "/coming-soon",
+  //       params: { feature: "Đơn của\n tôi", eta: "Soon" },
+  //     }),
+  // },
+  // {
+  //   id: "7",
+  //   title: "Tìm bác sĩ\ntheo khoa",
+  //   icon: "people",
+  //   iconColor: "#FFFFFF",
+  //   backgroundColor: "#EF4444",
+  //   gradientColors: ["#EF4444", "#DC2626"],
+  //   onPress: () =>
+  //     router.push({
+  //       pathname: "/coming-soon",
+  //       params: { feature: "Tìm bác sĩ\n theo khoa", eta: "Soon" },
+  //     }),
+  // },
 ];
 
 export const quickAmounts = [

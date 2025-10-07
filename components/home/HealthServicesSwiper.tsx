@@ -135,9 +135,6 @@ const HealthServicesSwiperBase: React.FC = () => {
           <Text style={styles.headerText}>Dịch vụ sức khỏe</Text>
           <Text style={styles.subHeaderText}>Chăm sóc sức khỏe toàn diện</Text>
         </View>
-        <TouchableOpacity style={styles.moreButton}>
-          <Ionicons name="ellipsis-horizontal" size={20} color="#6B7280" />
-        </TouchableOpacity>
       </View>
 
       <Animated.FlatList<HealthService>

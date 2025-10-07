@@ -1,6 +1,10 @@
 import { HeaderBack } from "@/components";
 import { usePatientProfile } from "@/hooks/usePatientId";
-import { useUpdatePatientProfile, useUploadAccountAvatar } from "@/services/patient/hooks";
+import {
+  useUpdatePatientProfile,
+  useUploadAccountAvatar,
+} from "@/services/patient/hooks";
+import { useUploadImage } from "@/services/storage/hooks";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
@@ -25,7 +29,6 @@ type MedicalData = {
   medNo: string;
   medDate: string;
   medFac: string;
-  underlyingDiseases: string;
 };
 
 export default function PersonalInfo() {
@@ -42,7 +45,6 @@ export default function PersonalInfo() {
     medNo: "",
     medDate: "",
     medFac: "",
-    underlyingDiseases: "",
   });
   const [focusedField, setFocusedField] = useState<string>("");
   const [avatarUri, setAvatarUri] = useState<string | undefined>(undefined);
@@ -50,6 +52,7 @@ export default function PersonalInfo() {
 
   const updateMutation = useUpdatePatientProfile();
   const uploadAvatarMutation = useUploadAccountAvatar();
+  const uploadImageMutation = useUploadImage();
 
   useEffect(() => {
     if (!profile) return;
@@ -62,11 +65,6 @@ export default function PersonalInfo() {
       medNo: profile.medNo || "",
       medDate: (profile.medDate || "").slice(0, 10),
       medFac: profile.medFac || "",
-      underlyingDiseases:
-        (profile.patientDiseases || [])
-          .map((pd) => pd?.disease?.name)
-          .filter(Boolean)
-          .join(", ") || "",
     });
     setAvatarUri(profile.account?.avatar || undefined);
   }, [profile]);
@@ -118,6 +116,18 @@ export default function PersonalInfo() {
     if (!patientId) return Alert.alert("Profile", "Missing patient id");
     setSaving(true);
     try {
+      // Upload avatar if changed and get URL
+      let avatarUrl = profile?.account?.avatar; // Keep existing avatar if no change
+
+      if (avatarUri && avatarUri !== profile?.account?.avatar) {
+        // Upload image to Supabase Storage
+        const uploadResult = await uploadImageMutation.mutateAsync({
+          imageUri: avatarUri,
+          folder: "avatars",
+        });
+      }
+
+      // Update profile with avatar URL included
       await updateMutation.mutateAsync({
         patientId,
         payload: {
@@ -127,12 +137,10 @@ export default function PersonalInfo() {
           medNo: data.medNo,
           medDate: parseISO(data.medDate),
           medFac: data.medFac,
-          underlyingDiseases: data.underlyingDiseases,
+          avatar: avatarUrl, // Include avatar URL in profile update
         },
       });
-      if (avatarUri && accountId) {
-        await uploadAvatarMutation.mutateAsync({ accountId, uri: avatarUri });
-      }
+
       Alert.alert("Success", "Profile updated");
     } catch (e: any) {
       Alert.alert("Update failed", e?.message || "Please try again");
@@ -227,40 +235,65 @@ export default function PersonalInfo() {
 
           <View className="px-6">
             {/* Personal */}
-            <Text className="text-blue-900 text-lg font-bold mb-4">Personal Details</Text>
-            {Field("Full Name", data.fullName, "fullName", (
-              <Ionicons name="person-circle-outline" size={20} color="#3b82f6" />
-            ))}
-            {Field("Email Address", data.email, "email", (
+            <Text className="text-blue-900 text-lg font-bold mb-4">
+              Personal Details
+            </Text>
+            {Field(
+              "Full Name",
+              data.fullName,
+              "fullName",
+              <Ionicons
+                name="person-circle-outline"
+                size={20}
+                color="#3b82f6"
+              />
+            )}
+            {Field(
+              "Email Address",
+              data.email,
+              "email",
               <Ionicons name="mail-outline" size={20} color="#3b82f6" />
-            ))}
-            {Field("Phone Number", data.phoneNumber, "phoneNumber", (
+            )}
+            {Field(
+              "Phone Number",
+              data.phoneNumber,
+              "phoneNumber",
               <Ionicons name="call-outline" size={20} color="#3b82f6" />
-            ))}
-            {Field("Date of Birth", data.dateOfBirth, "dateOfBirth", (
+            )}
+            {Field(
+              "Date of Birth",
+              data.dateOfBirth,
+              "dateOfBirth",
               <Ionicons name="calendar-outline" size={20} color="#3b82f6" />
-            ))}
-            {Field("Gender", data.gender, "gender", (
+            )}
+            {Field(
+              "Gender",
+              data.gender,
+              "gender",
               <Ionicons name="male-female-outline" size={20} color="#3b82f6" />
-            ))}
+            )}
 
             {/* Medical */}
-            <Text className="text-blue-900 text-lg font-bold mt-4 mb-4">Medical Information</Text>
-            {Field("Medical Number", data.medNo, "medNo", (
-              <Ionicons name="medkit-outline" size={20} color="#3b82f6" />
-            ))}
-            {Field("Medical Date", data.medDate, "medDate", (
-              <Ionicons name="time-outline" size={20} color="#3b82f6" />
-            ))}
-            {Field("Medical Facility", data.medFac, "medFac", (
-              <Ionicons name="business-outline" size={20} color="#3b82f6" />
-            ))}
+            <Text className="text-blue-900 text-lg font-bold mt-4 mb-4">
+              Medical Information
+            </Text>
             {Field(
-              "Underlying Diseases",
-              data.underlyingDiseases,
-              "underlyingDiseases",
-              <Ionicons name="document-text-outline" size={20} color="#3b82f6" />,
-              { multiline: true }
+              "Medical Number",
+              data.medNo,
+              "medNo",
+              <Ionicons name="medkit-outline" size={20} color="#3b82f6" />
+            )}
+            {Field(
+              "Medical Date",
+              data.medDate,
+              "medDate",
+              <Ionicons name="time-outline" size={20} color="#3b82f6" />
+            )}
+            {Field(
+              "Medical Facility",
+              data.medFac,
+              "medFac",
+              <Ionicons name="business-outline" size={20} color="#3b82f6" />
             )}
 
             {/* Save */}
@@ -274,19 +307,26 @@ export default function PersonalInfo() {
               ) : (
                 <Ionicons name="save-outline" size={18} color="#fff" />
               )}
-              <Text className="text-white text-lg font-bold ml-2">Save Profile</Text>
+              <Text className="text-white text-lg font-bold ml-2">
+                Save Profile
+              </Text>
             </TouchableOpacity>
 
             {/* Disclaimer */}
             <View className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-8">
               <View className="flex-row items-start">
-                <Ionicons name="information-circle-outline" size={20} color="#2563eb" />
+                <Ionicons
+                  name="information-circle-outline"
+                  size={20}
+                  color="#2563eb"
+                />
                 <View className="flex-1 ml-3">
                   <Text className="text-blue-900 font-semibold text-sm mb-1">
                     Medical Information Notice
                   </Text>
                   <Text className="text-blue-800 text-xs leading-5">
-                    Your information is confidential. Ensure it’s accurate and up-to-date.
+                    Your information is confidential. Ensure it’s accurate and
+                    up-to-date.
                   </Text>
                 </View>
               </View>
@@ -297,4 +337,3 @@ export default function PersonalInfo() {
     </>
   );
 }
-
