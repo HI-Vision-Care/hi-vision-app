@@ -77,12 +77,18 @@ const HeaderHome = () => {
 
         {/* Notification and Logout icons */}
         <View className="flex-row items-center">
-          <View className="relative mr-4">
+          <TouchableOpacity
+            className="relative mr-4"
+            onPress={() => {
+              router.push("/(root)/notifications");
+            }}
+            activeOpacity={0.7}
+          >
             <Ionicons name="notifications-outline" size={24} color="white" />
             <View className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full items-center justify-center">
               <Text className="text-white text-xs font-bold">1</Text>
             </View>
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -115,8 +121,8 @@ const HeaderHome = () => {
               {profileLoading
                 ? "Loading..."
                 : profileError
-                  ? "Error"
-                  : `Hi, ${name}! 👋`}
+                ? "Error"
+                : `Hi, ${name}! 👋`}
             </Text>
             <View className="flex-row items-center mt-1">
               <View className="flex-row items-center">
