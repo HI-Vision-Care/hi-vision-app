@@ -53,7 +53,6 @@ const Notifications = () => {
   const handleNotificationPress = (notification: NotificationItem) => {
     if (!notification.isRead) {
       // Mark as read logic here
-      console.log("Marking notification as read:", notification.id);
     }
 
     // Handle navigation based on notification type

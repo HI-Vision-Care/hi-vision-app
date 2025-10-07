@@ -47,7 +47,6 @@ export default function RootLayout() {
     // Lắng nghe action xác nhận
     const subscription = listenArvConfirm((doseTime) => {
       // Có thể hiện Toast hoặc reload calendar tại đây nếu muốn
-      console.log("Đã xác nhận ARV cho:", doseTime);
     });
     return () => subscription.remove();
   }, []);

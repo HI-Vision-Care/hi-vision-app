@@ -38,17 +38,13 @@ const Home = () => {
   // Refresh data when page comes into focus to ensure fresh data
   useFocusEffect(
     useCallback(() => {
-      console.log("🔄 Home screen focused - refreshing data...");
-
       // Refresh patient profile data
       if (profile?.patientID) {
-        console.log("🔄 Refreshing patient profile");
         refetchProfile();
       }
 
       // Refresh appointments data
       if (patientId) {
-        console.log("🔄 Refreshing appointments for patient:", patientId);
         refetchAppointments();
       }
     }, [profile?.patientID, patientId, refetchProfile, refetchAppointments])

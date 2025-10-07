@@ -1,6 +1,10 @@
 // api.ts
 import axios from "@/config/axios";
-import { ConsultationMessage, ConsultationRequest, ConsultationRequire } from "./types";
+import {
+  ConsultationMessage,
+  ConsultationRequest,
+  ConsultationRequire,
+} from "./types";
 
 // Đặt các hàm gọi API ở đây
 
@@ -19,7 +23,9 @@ export async function bookConsultationWithAccount(
   body: ConsultationRequest
 ): Promise<ConsultationRequest> {
   const { data } = await axios.post<ConsultationRequest>(
-    `/appointment/book-consultation-with-account/${encodeURIComponent(patientId)}`,
+    `/appointment/book-consultation-with-account/${encodeURIComponent(
+      patientId
+    )}`,
     body
   );
   return data;
@@ -28,12 +34,15 @@ export async function bookConsultationWithAccount(
 export async function getConsultationRequire(
   patientID: string
 ): Promise<ConsultationRequire> {
-  const response = await axios.get<ConsultationRequire>(`/consultation/require/${patientID}`);
-  console.log("axios response:", response.data);
+  const response = await axios.get<ConsultationRequire>(
+    `/consultation/require/${patientID}`
+  );
   return response.data;
 }
 
-export async function getConsultationMessages(patientID: string): Promise<ConsultationMessage[]> {
+export async function getConsultationMessages(
+  patientID: string
+): Promise<ConsultationMessage[]> {
   const res = await axios.get(`/consultation/message-patient/${patientID}`);
   return res.data;
 }

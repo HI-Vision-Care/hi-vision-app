@@ -29,13 +29,11 @@ const ForgotPassword: React.FC = () => {
       // TODO: Gọi API gửi mail lần đầu
     } else {
       // TODO: Xử lý 2FA / Google / SMS
-      console.log("Reset bằng:", selectedOption);
     }
   };
 
   const handleResendCode = () => {
     // TODO: Gọi API resend code
-    console.log("Re-send code đến:", emailToSend);
   };
 
   return (

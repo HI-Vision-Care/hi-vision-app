@@ -52,7 +52,6 @@ const Setting = () => {
     router.push({ pathname: "/coming-soon", params: { feature, eta } });
 
   const handleMenuPress = (itemId: string) => {
-    console.log("Menu pressed:", itemId);
     if (itemId === "personal") router.push("/personalinfo");
 
     if (itemId === "notification") return openComingSoon("Notification");
