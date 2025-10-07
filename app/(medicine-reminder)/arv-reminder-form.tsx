@@ -1,20 +1,13 @@
 "use client"
 
 import React, { useState } from "react"
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Alert,
-  ScrollView,
-  Platform,
-  StyleSheet,
-  TextInput,
-} from "react-native"
+import { View, Text, TouchableOpacity, Alert, ScrollView, Platform, StyleSheet, TextInput } from "react-native"
 import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker"
 import { SafeAreaView } from "react-native-safe-area-context"
 import * as Notifications from 'expo-notifications'
-import { scheduleArvNotifications } from "../../services/notification/arv-notification"
+import { createMedicationPlan } from "@/services/medication/scheduler"
+import { requestNotificationPermissions } from "@/services/notification/prep-notification"
+import { WidgetManager } from "@/native/WidgetManager"
 
 // Configure notification behavior
 Notifications.setNotificationHandler({
@@ -45,18 +38,6 @@ export default function ARVReminderForm() {
     if (sel) setDoseTime(sel)
   }
 
-  // Generate daily schedule for multiple days
-  const generateDailySchedule = (startDate: Date, timeOfDay: Date, days: number) => {
-    const scheduleList = []
-    for (let i = 0; i < days; i++) {
-      const scheduleDate = new Date(startDate)
-      scheduleDate.setDate(startDate.getDate() + i)
-      scheduleDate.setHours(timeOfDay.getHours(), timeOfDay.getMinutes(), 0, 0)
-      scheduleList.push(scheduleDate)
-    }
-    return scheduleList
-  }
-
   // Add schedule
   const handleAdd = async () => {
     setIsLoading(true)
@@ -80,14 +61,32 @@ export default function ARVReminderForm() {
     }
 
     try {
-      // Generate daily schedules
-      const newSchedules = generateDailySchedule(startDate, doseTime, days)
-      // Schedule notifications for each day
-      for (const scheduleDate of newSchedules) {
-        if (scheduleDate > new Date()) {
-          await scheduleArvNotifications(scheduleDate, false)
-        }
+      if (!(await requestNotificationPermissions())) {
+        setIsLoading(false)
+        return
       }
+
+      await createMedicationPlan({
+        name: `Lịch ARV ${startDate.toLocaleDateString("vi-VN")}`,
+        medicineName: "ARV",
+        regimenType: "arv",
+        notes: "Lịch nhắc ARV tạo nhanh",
+        startDate,
+        totalDays: days,
+        slots: [
+          {
+            slot: "evening",
+            time: doseTime,
+            note: "Nhắc uống ARV",
+            quantity: 1,
+          },
+        ],
+      })
+
+      if (Platform.OS === "android") {
+        WidgetManager.requestPinWidget()
+      }
+
       Alert.alert(
         "✅ Đã lưu",
         `Đã tạo lịch nhắc ARV cho ${days} ngày\nBắt đầu: ${startDate.toLocaleDateString("vi-VN")}\nGiờ uống: ${doseTime.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}`

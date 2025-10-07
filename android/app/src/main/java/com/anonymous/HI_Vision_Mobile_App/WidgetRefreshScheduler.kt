@@ -1,7 +1,6 @@
 package com.anonymous.HI_Vision_Mobile_App
 
 import android.content.Context
-import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
@@ -18,10 +17,7 @@ class MedicationWidgetRefreshWorker(
   params: WorkerParameters
 ) : CoroutineWorker(appContext, params) {
   override suspend fun doWork(): Result {
-    val manager = GlanceAppWidgetManager(applicationContext)
-    val widget = NewsCardGlanceWidget()
-    val ids = manager.getGlanceIds(NewsCardGlanceWidget::class.java)
-    ids.forEach { glanceId -> widget.update(applicationContext, glanceId) }
+    WidgetRefresher.refresh(applicationContext)
     return Result.success()
   }
 }
