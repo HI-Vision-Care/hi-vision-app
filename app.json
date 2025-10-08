@@ -2,7 +2,7 @@
   "expo": {
     "name": "Hi-Vision",
     "slug": "hi-vision",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",
     "scheme": "hivisionmobileapp",
@@ -31,7 +31,7 @@
         "backgroundColor": "#ffffff"
       }
     },
-    "versionCode": 4,
+    "versionCode": 5,
     "web": {
       "bundler": "metro",
       "output": "static",
