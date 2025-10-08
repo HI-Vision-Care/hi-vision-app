@@ -18,7 +18,8 @@
     "goodEvening": "Chào buổi tối",
     "currentLanguage": "VI",
     "greeting": "Xin chào",
-    "searchPlaceholder": "Tìm kiếm asklepios..."
+    "searchPlaceholder": "Tìm kiếm asklepios...",
+    "locale": "vi"
   },
   "notifications": {
     "title": "Thông báo",
@@ -214,5 +215,23 @@
     "privacy": "Quyền riêng tư",
     "terms": "Điều khoản dịch vụ",
     "gold": "Thành viên Vàng"
+  },
+  "stats": {
+    "title": "Trang tin tức",
+    "allTopics": "Tất cả",
+    "loadError": "Lỗi tải bài viết",
+    "categories": {
+      "bright": "Bừng Sáng",
+      "healthy": "Sống khoẻ",
+      "nutrition": "Dinh dưỡng"
+    }
+  },
+  "menu": {
+    "title": "Dịch vụ Y tế",
+    "subtitle": "Chọn từ các dịch vụ chăm sóc sức khỏe có sẵn của chúng tôi trên các chuyên khoa",
+    "loadingServices": "Đang tải dịch vụ...",
+    "unableToLoadServices": "Không thể tải dịch vụ",
+    "checkConnectionMessage": "Vui lòng kiểm tra kết nối và thử lại.",
+    "noServicesAvailable": "Hiện tại không có dịch vụ nào"
   }
 }

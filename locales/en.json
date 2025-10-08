@@ -18,7 +18,8 @@
     "goodEvening": "Good evening",
     "currentLanguage": "EN",
     "greeting": "Hi",
-    "searchPlaceholder": "Search asklepios..."
+    "searchPlaceholder": "Search asklepios...",
+    "locale": "en"
   },
   "notifications": {
     "title": "Notifications",
@@ -197,5 +198,23 @@
     "privacy": "Privacy",
     "terms": "Terms of Service",
     "gold": "Gold Membership"
+  },
+  "stats": {
+    "title": "News",
+    "allTopics": "All",
+    "loadError": "Error loading articles",
+    "categories": {
+      "bright": "Bright",
+      "healthy": "Healthy Living",
+      "nutrition": "Nutrition"
+    }
+  },
+  "menu": {
+    "title": "Medical Services",
+    "subtitle": "Choose from our available healthcare services across specialties",
+    "loadingServices": "Loading services...",
+    "unableToLoadServices": "Unable to Load Services",
+    "checkConnectionMessage": "Please check your connection and try again.",
+    "noServicesAvailable": "No services available at the moment"
   }
 }
