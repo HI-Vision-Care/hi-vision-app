@@ -1,4 +1,5 @@
 import { usePatientProfile } from "@/hooks/usePatientId";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useGetAppointmentByPatientId } from "@/services/appointment/hooks";
 import { useSyncWidgetWithBlog } from "@/services/blog/hooks";
 import {
@@ -23,6 +24,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Home = () => {
+  const { t, isReady } = useTranslation();
   const { data: profile, refetch: refetchProfile } = usePatientProfile();
   const patientId = profile?.patientID;
 
@@ -54,6 +56,21 @@ const Home = () => {
     }, [profile?.patientID, patientId, refetchProfile, refetchAppointments])
   );
 
+  if (!isReady) {
+    return (
+      <SafeAreaView
+        style={{
+          flex: 1,
+          backgroundColor: "#f2f5f9",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Text>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <>
       {/* Cho StatusBar xuyên thấu nền */}
@@ -74,11 +91,16 @@ const Home = () => {
           contentContainerStyle={{ paddingBottom: 100 }}
           showsVerticalScrollIndicator={false}
         >
+          {/* Language Switcher for testing */}
+          {/* <View className="mb-4">
+            <LanguageSwitcher />
+          </View> */}
+
           {/* Health Service Swiper */}
           <HealthServicesSwiper />
 
           <ChatbotSectionHeader
-            title="Appointment Scheduled For You"
+            title={t("home.appointmentScheduled")}
             onHelpPress={() => console.log("Help tapped")}
           />
 
@@ -87,10 +109,12 @@ const Home = () => {
           {/* Smart Health Metrics */}
           <View className="flex-row justify-between items-center mb-4">
             <Text className="text-gray-900 text-lg font-semibold">
-              Smart Health Metrics
+              {t("home.smartHealthMetrics")}
             </Text>
             <TouchableOpacity>
-              <Text className="text-blue-500 text-sm font-medium">See All</Text>
+              <Text className="text-blue-500 text-sm font-medium">
+                {t("home.seeAll")}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -102,7 +126,7 @@ const Home = () => {
           {/* Fitness & Activity Tracker Section */}
           <View className="flex-row justify-between items-center mb-4">
             <Text className="text-gray-900 text-lg font-semibold">
-              Fitness & Activity Tracker
+              {t("home.fitnessActivityTracker")}
             </Text>
             <Ionicons name="ellipsis-horizontal" size={20} color="#9CA3AF" />
           </View>

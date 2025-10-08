@@ -1,4 +1,5 @@
 import { icons, images } from "@/constants";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useGetPatientProfile } from "@/services/patient/hooks";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -22,6 +23,7 @@ interface JWTPayload {
 }
 
 const HeaderHome = () => {
+  const { t, language, isReady } = useTranslation();
   const [accountId, setAccountId] = useState<string>();
 
   useEffect(() => {
@@ -48,7 +50,22 @@ const HeaderHome = () => {
   const avatarUri = profile?.account?.avatar
     ? profile.account.avatar
     : images.avatarPlaceholder;
-  const name = profile?.name ?? "Guest";
+  const name = profile?.name ?? t("common.guest");
+
+  if (!isReady) {
+    return (
+      <SafeAreaView
+        edges={["top"]}
+        className="bg-[#242e49] px-4 pb-6 rounded-3xl"
+      >
+        <View className="flex-row justify-between items-center mb-4 mt-4">
+          <View className="flex-row items-center">
+            <Text className="text-gray-400 text-sm">{t("common.loading")}</Text>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView
@@ -66,12 +83,15 @@ const HeaderHome = () => {
             style={{ tintColor: "white" }}
           />
           <Text className="text-gray-400 text-sm ml-2">
-            {new Date().toLocaleDateString("en-US", {
-              weekday: "short", // Tue
-              day: "2-digit", // 25
-              month: "short", // Jan
-              year: "numeric", // 2025
-            })}
+            {new Date().toLocaleDateString(
+              language === "vi" ? "vi-VN" : "en-US",
+              {
+                weekday: "short", // Tue / T2
+                day: "2-digit", // 25
+                month: "short", // Jan / Th1
+                year: "numeric", // 2025
+              }
+            )}
           </Text>
         </View>
 
@@ -119,10 +139,10 @@ const HeaderHome = () => {
           <View className="ml-3 flex-1">
             <Text className="text-white text-lg font-bold">
               {profileLoading
-                ? "Loading..."
+                ? t("common.loading")
                 : profileError
-                ? "Error"
-                : `Hi, ${name}! 👋`}
+                ? t("common.error")
+                : `${t("common.greeting")}, ${name}! 👋`}
             </Text>
             <View className="flex-row items-center mt-1">
               <View className="flex-row items-center">
@@ -151,7 +171,7 @@ const HeaderHome = () => {
           style={{ tintColor: "gray" }}
         />
         <TextInput
-          placeholder="Search asklepios..."
+          placeholder={t("common.searchPlaceholder")}
           placeholderTextColor="#9CA3AF"
           className="flex-1 ml-3 text-white"
         />

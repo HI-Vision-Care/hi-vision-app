@@ -1,4 +1,5 @@
 import { icons, images } from "@/constants";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useGoogleAuth } from "@/services/auth/google-auth";
 import { useSignIn } from "@/services/auth/hooks";
 import { CustomButton, InputField } from "@components";
@@ -18,6 +19,7 @@ import {
 } from "react-native-safe-area-context";
 
 const SignIn: React.FC = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const insets = useSafeAreaInsets();
@@ -30,8 +32,8 @@ const SignIn: React.FC = () => {
       router.replace("/(root)/(tabs)/home");
     } catch (err: any) {
       Alert.alert(
-        "Sign In Failed",
-        err.message || "Please check the information again."
+        t("auth.signInFailed"),
+        err.message || t("auth.checkInfoAgain")
       );
     }
   };
@@ -62,7 +64,9 @@ const SignIn: React.FC = () => {
               resizeMode="contain"
             />
           </View>
-          <Text className="text-white text-2xl font-semibold">Sign In</Text>
+          <Text className="text-white text-2xl font-semibold">
+            {t("auth.signIn")}
+          </Text>
         </View>
       </View>
 
@@ -70,9 +74,9 @@ const SignIn: React.FC = () => {
       <View className="flex-1 px-6 py-8">
         {/* Input Email */}
         <InputField
-          label="Email Address"
+          label={t("auth.emailAddress")}
           icon={icons.email}
-          placeholder="Enter your email"
+          placeholder={t("auth.enterEmail")}
           keyboardType="email-address"
           autoCapitalize="none"
           value={email}
@@ -81,9 +85,9 @@ const SignIn: React.FC = () => {
 
         {/* Input Password */}
         <InputField
-          label="Password"
+          label={t("auth.password")}
           icon={icons.password}
-          placeholder="Enter your password"
+          placeholder={t("auth.enterPassword")}
           secureTextEntry={true}
           value={password}
           onChangeText={setPassword}
@@ -95,14 +99,14 @@ const SignIn: React.FC = () => {
             onPress={() => router.push("/(auth)/forgot-password")}
           >
             <Text className="text-red-500 font-medium underline text-sm">
-              Forgot Password?
+              {t("auth.forgotPassword")}
             </Text>
           </TouchableOpacity>
         </View>
 
         {/* Sign In Button */}
         <CustomButton
-          title="Sign In"
+          title={t("auth.signIn")}
           onPress={handleSignIn}
           variant="primary"
           className="mb-6 mx-0 shadow-lg"
@@ -119,7 +123,7 @@ const SignIn: React.FC = () => {
         {/* OR Divider */}
         <View className="flex-row items-center mb-6">
           <View className="flex-1 h-px bg-gray-300" />
-          <Text className="mx-4 text-gray-500 text-sm">OR</Text>
+          <Text className="mx-4 text-gray-500 text-sm">{t("auth.or")}</Text>
           <View className="flex-1 h-px bg-gray-300" />
         </View>
 
@@ -143,11 +147,11 @@ const SignIn: React.FC = () => {
         {/* Sign Up Link */}
         <View className="flex-row justify-center mb-8">
           <Text className="text-gray-600 text-base">
-            Don&apos;t have an account?{" "}
+            {t("auth.noAccount")}{" "}
           </Text>
           <TouchableOpacity onPress={() => router.push("/(auth)/sign-up")}>
             <Text className="text-red-500 font-medium underline text-base">
-              Sign Up
+              {t("auth.signUp")}
             </Text>
           </TouchableOpacity>
         </View>

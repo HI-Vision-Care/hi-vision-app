@@ -1,4 +1,5 @@
 import { icons, images } from "@/constants";
+import { useTranslation } from "@/hooks/useTranslation";
 import { CustomButton } from "@components";
 import { router } from "expo-router";
 import React from "react";
@@ -6,6 +7,8 @@ import { Image, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const GetStarted = () => {
+  const { t } = useTranslation();
+
   return (
     <SafeAreaView className="flex-1 bg-gray-50 relative">
       <StatusBar barStyle="dark-content" />
@@ -26,7 +29,7 @@ const GetStarted = () => {
         {/* Welcome Text */}
         <View className="items-center mb-12">
           <Text className="text-3xl font-bold text-gray-900 text-center mb-2">
-            Welcome to
+            {t("auth.welcomeTo")}
           </Text>
           <Text className="text-3xl font-bold text-center">
             <Text className="text-blue-500">HI</Text>
@@ -45,7 +48,7 @@ const GetStarted = () => {
 
         {/* Get Started Button (dùng CustomButton) */}
         <CustomButton
-          title="Get Started"
+          title={t("auth.getStarted")}
           onPress={() => router.replace("/(auth)/welcome")}
           variant="primary"
           className="mb-4 mx-6 shadow-lg"
@@ -61,11 +64,11 @@ const GetStarted = () => {
         {/* Sign In Link */}
         <View className="flex-row justify-center mb-8">
           <Text className="text-gray-600 text-base font-Jakarta">
-            Already have an account?{" "}
+            {t("auth.haveAccount")}{" "}
           </Text>
           <TouchableOpacity onPress={() => router.push("/(auth)/sign-in")}>
             <Text className="text-red-500 font-medium underline text-base">
-              Sign In
+              {t("auth.signIn")}
             </Text>
           </TouchableOpacity>
         </View>

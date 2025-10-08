@@ -1,4 +1,5 @@
 import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
+import "@/i18n"; // Import i18n configuration
 import {
   listenArvConfirm,
   registerArvNotificationActions,

@@ -1,16 +1,25 @@
+import { useTranslation } from "@/hooks/useTranslation";
 import { Ionicons } from "@expo/vector-icons";
 import { Text, TouchableOpacity, View } from "react-native";
 
 const MedicationSection = () => {
+  const { t, isReady } = useTranslation();
+
+  if (!isReady) {
+    return null; // Hoặc loading spinner
+  }
+
   return (
     <>
       {/* Header */}
       <View className="flex-row justify-between items-center mb-4">
         <Text className="text-gray-900 text-lg font-semibold">
-          Medication Management
+          {t("home.medicationManagement")}
         </Text>
         <TouchableOpacity>
-          <Text className="text-blue-500 text-sm font-medium">See All</Text>
+          <Text className="text-blue-500 text-sm font-medium">
+            {t("home.seeAll")}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -20,7 +29,9 @@ const MedicationSection = () => {
         <View className="flex-row items-center justify-between mb-4">
           <View>
             <Text className="text-gray-900 text-3xl font-bold">205</Text>
-            <Text className="text-gray-600 text-sm">Medications</Text>
+            <Text className="text-gray-600 text-sm">
+              {t("home.medications")}
+            </Text>
           </View>
           <TouchableOpacity className="w-12 h-12 bg-blue-600 rounded-full items-center justify-center">
             <Ionicons name="add" size={24} color="white" />
@@ -50,15 +61,15 @@ const MedicationSection = () => {
         <View className="flex-row justify-between">
           <View className="flex-row items-center">
             <View className="w-3 h-3 bg-blue-500 rounded-full mr-2" />
-            <Text className="text-gray-600 text-xs">Taken</Text>
+            <Text className="text-gray-600 text-xs">{t("home.taken")}</Text>
           </View>
           <View className="flex-row items-center">
             <View className="w-3 h-3 bg-red-500 rounded-full mr-2" />
-            <Text className="text-gray-600 text-xs">Missed</Text>
+            <Text className="text-gray-600 text-xs">{t("home.missed")}</Text>
           </View>
           <View className="flex-row items-center">
             <View className="w-3 h-3 bg-gray-400 rounded-full mr-2" />
-            <Text className="text-gray-600 text-xs">Skipped</Text>
+            <Text className="text-gray-600 text-xs">{t("home.skipped")}</Text>
           </View>
         </View>
       </View>

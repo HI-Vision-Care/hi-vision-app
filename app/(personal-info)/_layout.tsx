@@ -8,6 +8,7 @@ export default function SettingLayout() {
       <Stack.Screen name="history" options={{ headerShown: false }} />
       <Stack.Screen name="personalinfo" options={{ headerShown: false }} />
       <Stack.Screen name="preferences" options={{ headerShown: false }} />
+      <Stack.Screen name="language" options={{ headerShown: false }} />
       <Stack.Screen name="about" options={{ headerShown: false }} />
       <Stack.Screen name="terms" options={{ headerShown: false }} />
       <Stack.Screen name="privacy" options={{ headerShown: false }} />

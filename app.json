@@ -24,7 +24,11 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.anonymous.HI_Vision_Mobile_App",
-      "permissions": ["CAMERA", "INTERNET", "READ_EXTERNAL_STORAGE"],
+      "permissions": [
+        "CAMERA",
+        "INTERNET",
+        "READ_EXTERNAL_STORAGE"
+      ],
       "splash": {
         "image": "./assets/images/logo.png",
         "resizeMode": "contain",
@@ -50,7 +54,8 @@
       ],
       "expo-font",
       "expo-web-browser",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true

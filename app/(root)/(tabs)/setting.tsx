@@ -56,7 +56,7 @@ const Setting = () => {
     if (itemId === "personal") router.push("/personalinfo");
 
     if (itemId === "notification") return openComingSoon("Notification");
-    if (itemId === "language") return openComingSoon("Language");
+    if (itemId === "language") return router.push("/language"); // Chuyển đến màn hình language chuyên dụng
     if (itemId === "preferences") return router.push("/preferences");
     if (itemId === "about") return router.push("/about");
     if (itemId === "help") return router.push("/help");

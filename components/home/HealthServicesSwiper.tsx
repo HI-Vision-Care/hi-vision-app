@@ -1,4 +1,5 @@
-import { healthServices } from "@/constants";
+import { getHealthServices } from "@/constants/healthServices";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Ionicons } from "@expo/vector-icons";
 import React, { memo, useCallback, useRef } from "react";
 import {
@@ -29,8 +30,16 @@ interface HealthService {
 }
 
 const HealthServicesSwiperBase: React.FC = () => {
+  const { t, isReady } = useTranslation();
   const flatListRef = useRef<FlatList<HealthService> | null>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
+
+  if (!isReady) {
+    return null;
+  }
+
+  // Get health services with translations
+  const healthServices = getHealthServices(t);
 
   // Keep listener in case you want side-effects later; it’s noop now and cheap.
   const onScroll = useCallback((_: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -132,15 +141,17 @@ const HealthServicesSwiperBase: React.FC = () => {
     <View style={styles.wrapper}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerText}>Dịch vụ sức khỏe</Text>
-          <Text style={styles.subHeaderText}>Chăm sóc sức khỏe toàn diện</Text>
+          <Text style={styles.headerText}>{t("home.healthServices")}</Text>
+          <Text style={styles.subHeaderText}>
+            {t("home.comprehensiveHealthcare")}
+          </Text>
         </View>
       </View>
 
       <Animated.FlatList<HealthService>
         ref={flatListRef}
         // If your imported constant has loose typing, the cast narrows it to our item type.
-        data={healthServices as unknown as HealthService[]}
+        data={healthServices}
         keyExtractor={(item) => item.id}
         horizontal
         showsHorizontalScrollIndicator={false}

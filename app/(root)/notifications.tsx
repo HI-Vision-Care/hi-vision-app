@@ -1,3 +1,4 @@
+import { useTranslation } from "@/hooks/useTranslation";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
@@ -21,6 +22,8 @@ interface NotificationItem {
 }
 
 const Notifications = () => {
+  const { t, isReady } = useTranslation();
+
   // Empty notifications array - will be populated from API
   const notifications: NotificationItem[] = [];
 
@@ -65,18 +68,33 @@ const Notifications = () => {
         router.push("/(root)/appointments" as any);
         break;
       case "system":
-        Alert.alert("Thông báo hệ thống", notification.message);
+        Alert.alert(t("notifications.systemAlert"), notification.message);
         break;
     }
   };
 
   const markAllAsRead = () => {
     Alert.alert(
-      "Đánh dấu đã đọc",
-      "Tất cả thông báo đã được đánh dấu là đã đọc",
-      [{ text: "OK" }]
+      t("notifications.markAllRead"),
+      t("notifications.markAllReadMessage"),
+      [{ text: t("common.confirm") }]
     );
   };
+
+  if (!isReady) {
+    return (
+      <SafeAreaView
+        style={{
+          flex: 1,
+          backgroundColor: "#F8FAFC",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Text>{t("common.loading")}</Text>
+      </SafeAreaView>
+    );
+  }
 
   const renderNotificationItem = ({ item }: { item: NotificationItem }) => (
     <TouchableOpacity
@@ -197,10 +215,10 @@ const Notifications = () => {
               }}
             >
               {item.type === "medication"
-                ? "Thuốc"
+                ? t("notifications.medication")
                 : item.type === "appointment"
-                ? "Lịch hẹn"
-                : "Hệ thống"}
+                ? t("notifications.appointment")
+                : t("notifications.system")}
             </Text>
           </View>
 
@@ -268,7 +286,7 @@ const Notifications = () => {
                 marginBottom: 2,
               }}
             >
-              Thông báo
+              {t("notifications.title")}
             </Text>
             <Text
               style={{
@@ -278,10 +296,10 @@ const Notifications = () => {
               }}
             >
               {notifications.length === 0
-                ? "Chưa có thông báo nào"
-                : `${
-                    notifications.filter((n) => !n.isRead).length
-                  } thông báo mới`}
+                ? t("notifications.noNotifications")
+                : t("notifications.newNotifications", {
+                    count: notifications.filter((n) => !n.isRead).length,
+                  })}
             </Text>
           </View>
 
@@ -331,7 +349,7 @@ const Notifications = () => {
                     color: "#374151",
                   }}
                 >
-                  Tất cả thông báo
+                  {t("notifications.allNotifications")}
                 </Text>
                 <Text
                   style={{
@@ -340,7 +358,9 @@ const Notifications = () => {
                     fontWeight: "500",
                   }}
                 >
-                  {notifications.length} thông báo
+                  {t("notifications.totalNotifications", {
+                    count: notifications.length,
+                  })}
                 </Text>
               </View>
             }
@@ -399,7 +419,7 @@ const Notifications = () => {
                 textAlign: "center",
               }}
             >
-              Chưa có thông báo nào
+              {t("notifications.noNotifications")}
             </Text>
 
             <Text
@@ -411,9 +431,7 @@ const Notifications = () => {
                 marginBottom: 32,
               }}
             >
-              Bạn sẽ nhận được thông báo khi có{"\n"}
-              lịch nhắc uống thuốc, lịch hẹn bác sĩ{"\n"}
-              hoặc cập nhật từ hệ thống
+              {t("notifications.emptyStateDescription")}
             </Text>
 
             <TouchableOpacity
@@ -444,7 +462,7 @@ const Notifications = () => {
                   marginLeft: 8,
                 }}
               >
-                Tạo lịch nhắc thuốc
+                {t("notifications.createReminder")}
               </Text>
             </TouchableOpacity>
           </View>

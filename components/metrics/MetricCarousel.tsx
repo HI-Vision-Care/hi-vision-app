@@ -1,9 +1,16 @@
 // MetricCarousel.tsx
+import { useTranslation } from "@/hooks/useTranslation";
 import React from "react";
 import { ScrollView, Text, View } from "react-native";
 import MetricCard from "./MetricCard"; // hoặc "@/components/MetricCard" tuỳ path của bạn
 
 const MetricCarousel = () => {
+  const { t, isReady } = useTranslation();
+
+  if (!isReady) {
+    return null;
+  }
+
   return (
     <View>
       <ScrollView
@@ -17,7 +24,7 @@ const MetricCarousel = () => {
         {/* Heart Rate */}
         <MetricCard
           color="blue"
-          title="Heart Rate"
+          title={t("home.heartRate")}
           icon="heart"
           value="78.2"
           unit="BPM"
@@ -34,7 +41,7 @@ const MetricCarousel = () => {
         {/* Blood Pressure */}
         <MetricCard
           color="red"
-          title="Blood Pressure"
+          title={t("home.bloodPressure")}
           icon="pulse"
           value="120"
           unit="mmHg"
@@ -42,7 +49,7 @@ const MetricCarousel = () => {
           <View className="items-center">
             <View className="bg-white/20 rounded-lg px-4 py-1.5 mb-1">
               <Text className="text-white text-xs font-bold tracking-wide">
-                NORMAL
+                {t("home.normal")}
               </Text>
             </View>
             <View className="w-16 h-1 bg-white/30 rounded-full mt-2">
@@ -54,7 +61,7 @@ const MetricCarousel = () => {
         {/* Sleep (giờ sẽ ra màu cyan như Figma) */}
         <MetricCard
           color="teal"
-          title="Sleep"
+          title={t("home.sleep")}
           icon="moon"
           value="87"
           unit="hrs"
@@ -71,7 +78,7 @@ const MetricCarousel = () => {
         {/* Oxygen Level */}
         <MetricCard
           color="emerald"
-          title="Oxygen Level"
+          title={t("home.oxygenLevel")}
           icon="fitness"
           value="98"
           unit="%"
