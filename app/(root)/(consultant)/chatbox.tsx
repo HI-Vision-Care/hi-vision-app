@@ -58,7 +58,6 @@ const ChatBox = () => {
   }, [chatID]);
 
   useEffect(() => {
-    console.log("ChatBox mounted with chatID:", chatID);
     if (chatID) fetch();
     // Chỉ chạy khi chatID thay đổi, không đưa fetch vào dependency nếu fetch là một function bất biến
   }, [chatID]);
@@ -107,7 +106,6 @@ const ChatBox = () => {
     // };
 
     // client.onWebSocketClose = (evt) => {
-    //   console.log("ℹ WebSocket closed", evt);
     //   setConnected(false);
     // };
 

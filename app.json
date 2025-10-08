@@ -31,7 +31,7 @@
         "backgroundColor": "#ffffff"
       }
     },
-    "versionCode": 5,
+    "versionCode": 6,
     "web": {
       "bundler": "metro",
       "output": "static",
@@ -50,7 +50,15 @@
       ],
       "expo-font",
       "expo-web-browser",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "hi-vision-app",
+          "organization": "fpt-university-gr"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

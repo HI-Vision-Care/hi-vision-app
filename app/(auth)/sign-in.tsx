@@ -1,17 +1,11 @@
 import { icons, images } from "@/constants";
 import { useGoogleAuth } from "@/services/auth/google-auth";
 import { useSignIn } from "@/services/auth/hooks";
+import { authErrorHandler } from "@/utils/error-handler";
 import { CustomButton, InputField } from "@components";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import {
-  Alert,
-  Image,
-  StatusBar,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Image, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -29,10 +23,7 @@ const SignIn: React.FC = () => {
       await login({ email, password }); // token đã được lưu bởi hook!
       router.replace("/(root)/(tabs)/home");
     } catch (err: any) {
-      Alert.alert(
-        "Sign In Failed",
-        err.message || "Please check the information again."
-      );
+      authErrorHandler(err);
     }
   };
 

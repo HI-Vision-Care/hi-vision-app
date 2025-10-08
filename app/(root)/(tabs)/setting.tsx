@@ -3,10 +3,12 @@ import { usePatientProfile } from "@/hooks/usePatientId";
 import { useDeleteAccount } from "@/services/patient/hooks";
 import { useCreateWallet, useWalletByAccountId } from "@/services/wallet/hooks";
 import { Account, FeatureCard, MenuItem, MenuSection } from "@/types/type";
+import { authErrorHandler } from "@/utils/error-handler";
+import { DeleteAccountModal } from "@components";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import {
   Image,
   ScrollView,
@@ -20,6 +22,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const Setting = () => {
   const { data: profile } = usePatientProfile();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const account = profile?.account as Account | undefined;
   const accountId = profile?.account?.id;
@@ -46,13 +49,29 @@ const Setting = () => {
     }
   };
 
-  const { mutate: deleteAccount } = useDeleteAccount();
+  const { mutate: deleteAccount, isLoading: isDeletingAccount } =
+    useDeleteAccount();
+
+  const handleDeleteAccount = () => {
+    if (accountId) {
+      deleteAccount(accountId, {
+        onSuccess: async () => {
+          await AsyncStorage.removeItem("token");
+          router.replace("/(auth)/sign-in");
+        },
+        onError: (error) => {
+          authErrorHandler(error);
+        },
+      });
+    } else {
+      console.error("No accountId found for deleteAccount");
+    }
+  };
 
   const openComingSoon = (feature: string, eta = "Soon") =>
     router.push({ pathname: "/coming-soon", params: { feature, eta } });
 
   const handleMenuPress = (itemId: string) => {
-    console.log("Menu pressed:", itemId);
     if (itemId === "personal") router.push("/personalinfo");
 
     if (itemId === "notification") return openComingSoon("Notification");
@@ -160,16 +179,7 @@ const Setting = () => {
         if (item.id === "signout") {
           handleLogout();
         } else if (item.id === "delete") {
-          if (accountId) {
-            deleteAccount(accountId, {
-              onSuccess: async () => {
-                await AsyncStorage.removeItem("token");
-                router.replace("/(auth)/sign-in");
-              },
-            });
-          } else {
-            console.error("No accountId found for deleteAccount");
-          }
+          setShowDeleteModal(true);
         } else {
           handleMenuPress(item.id);
         }
@@ -430,6 +440,15 @@ const Setting = () => {
           {/* Bottom Spacing */}
           <View className="h-[120px]" />
         </ScrollView>
+
+        {/* Delete Account Modal */}
+        <DeleteAccountModal
+          visible={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleDeleteAccount}
+          userName={name}
+          isLoading={isDeletingAccount}
+        />
       </SafeAreaView>
     </>
   );

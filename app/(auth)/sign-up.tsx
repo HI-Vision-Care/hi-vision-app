@@ -2,6 +2,10 @@ import { icons, images } from "@/constants";
 import { useGoogleAuth } from "@/services/auth/google-auth";
 import { useSignUp } from "@/services/auth/hooks";
 import {
+  authErrorHandler,
+  validationErrorHandler,
+} from "@/utils/error-handler";
+import {
   isValidEmail,
   isValidPassword,
   isValidPhone,
@@ -9,14 +13,7 @@ import {
 import { CustomButton, InputField } from "@components";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import {
-  Alert,
-  Image,
-  StatusBar,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Image, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -37,21 +34,28 @@ const SignUp: React.FC = () => {
 
   const handleSignUp = async () => {
     if (!isValidEmail(email)) {
-      setErrorMessage("Invalid email address.");
+      const errorMsg = "Invalid email address.";
+      setErrorMessage(errorMsg);
+      validationErrorHandler(errorMsg);
       return;
     }
     if (!isValidPassword(password)) {
-      setErrorMessage(
-        "Password must be at least 8 characters and contain no spaces."
-      );
+      const errorMsg =
+        "Password must be at least 8 characters and contain no spaces.";
+      setErrorMessage(errorMsg);
+      validationErrorHandler(errorMsg);
       return;
     }
     if (password !== confirmPassword) {
-      setErrorMessage("Passwords do not match.");
+      const errorMsg = "Passwords do not match.";
+      setErrorMessage(errorMsg);
+      validationErrorHandler(errorMsg);
       return;
     }
     if (!isValidPhone(phone)) {
-      setErrorMessage("Invalid phone number. Only digits, 9 to 11 characters.");
+      const errorMsg = "Invalid phone number. Only digits, 9 to 11 characters.";
+      setErrorMessage(errorMsg);
+      validationErrorHandler(errorMsg);
       return;
     }
     setErrorMessage("");
@@ -60,7 +64,7 @@ const SignUp: React.FC = () => {
       await signUp({ email, password, phone });
       router.replace("/(onboarding)/patient-name");
     } catch (error: any) {
-      Alert.alert("Error", error.message);
+      authErrorHandler(error);
     }
   };
 

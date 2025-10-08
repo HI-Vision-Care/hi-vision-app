@@ -1,6 +1,6 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { Alert, Platform } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { WidgetBridge } from "@/native/WidgetBridge";
 
@@ -144,7 +144,6 @@ export function listenArvConfirm(onConfirm: (doseTime: string) => void): {
           if (!arr.includes(doseTime)) {
             arr.push(doseTime);
             await AsyncStorage.setItem("confirmedDoses", JSON.stringify(arr));
-            console.log("Confirmed doses saved:", arr);
             try {
               WidgetBridge?.recordMedicationConfirmation?.(
                 doseTime,
@@ -206,8 +205,6 @@ export async function cancelAllArvNotifications(): Promise<void> {
         notification.identifier
       );
     }
-
-    console.log(`Canceled ${arvNotifications.length} ARV notifications`);
   } catch (error) {
     console.error("Error canceling ARV notifications:", error);
   }
