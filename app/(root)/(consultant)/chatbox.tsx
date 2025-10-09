@@ -28,8 +28,7 @@ interface Message {
 }
 
 const WS_ENDPOINT =
-  process.env.EXPO_PUBLIC_WS_ENDPOINT ||
-  "https://hivisionapi.azurewebsites.net/HiVision/ws";
+  process.env.EXPO_PUBLIC_WS_ENDPOINT || "https://hivision.io.vn/HiVision/ws";
 
 const ChatBox = () => {
   const [connected, setConnected] = useState(false);

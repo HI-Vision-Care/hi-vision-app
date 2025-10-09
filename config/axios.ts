@@ -3,9 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
 const api = axios.create({
-  baseURL:
-    process.env.EXPO_PUBLIC_API_URL ||
-    "https://hivisionapi.azurewebsites.net/HiVision",
+  baseURL: process.env.EXPO_PUBLIC_API_URL || "https://hivision.io.vn/HiVision",
   headers: { "Content-Type": "application/json" },
   timeout: 10000,
 });

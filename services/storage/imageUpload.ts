@@ -57,7 +57,9 @@ export const uploadImageToStorage = async (
     }
 
     // 6) Tạo URL đúng từ Supabase project
-    const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+    const supabaseUrl =
+      process.env.EXPO_PUBLIC_SUPABASE_URL ||
+      "https://lbijtyumwpjnmqrrmtpe.supabase.co";
     const correctUrl = `${supabaseUrl}/storage/v1/object/public/${bucket}/${objectKey}`;
 
     return {
