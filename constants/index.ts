@@ -407,13 +407,13 @@ export const menuItems = [
 
 export const featureCards = [
   { id: "gold", title: "Gold", icon: "trophy-outline" }, // 👑
-  {
-    id: "activity-history",
-    title: "Activity history",
-    icon: "calendar-outline", // 📅
-    hasBadge: true,
-    badgeCount: 1,
-  },
+  // {
+  //   id: "activity-history",
+  //   title: "Activity history",
+  //   icon: "calendar-outline", // 📅
+  //   hasBadge: true,
+  //   badgeCount: 1,
+  // },
 ];
 
 export const menuSections = [
@@ -693,19 +693,19 @@ export const healthServices = [
       router.push("/(medicine-reminder)/medicine-calendar");
     },
   },
+  // {
+  //   id: "3",
+  //   title: "Phòng\nkhám",
+  //   icon: "business", // có thể thay bằng "medkit", "home", "hospital" nếu muốn
+  //   iconColor: "#FFFFFF",
+  //   backgroundColor: "#0EA5E9",
+  //   gradientColors: ["#0EA5E9", "#0369A1"],
+  //   onPress: () => {
+  //     router.push("/(clinics)/clinics");
+  //   },
+  // },
   {
     id: "3",
-    title: "Phòng\nkhám",
-    icon: "business", // có thể thay bằng "medkit", "home", "hospital" nếu muốn
-    iconColor: "#FFFFFF",
-    backgroundColor: "#0EA5E9",
-    gradientColors: ["#0EA5E9", "#0369A1"],
-    onPress: () => {
-      router.push("/(clinics)/clinics");
-    },
-  },
-  {
-    id: "4",
     title: "Sản Phẩm",
     icon: "bag",
     iconColor: "#FFFFFF",
