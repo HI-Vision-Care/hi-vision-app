@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "@/hooks/useTranslation";
 import { WidgetBridge } from "@/native/WidgetBridge";
 import { clearAllMedicationPlans } from "@/services/medication/scheduler";
 import { loadMedicationPlans } from "@/services/medication/storage";
@@ -47,6 +48,7 @@ type DayData = {
 };
 
 const MedicineCalendar = () => {
+  const { t } = useTranslation();
   const today = useMemo(() => new Date(), []);
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => {
     // Tính ngày đầu tuần (Thứ 2)
@@ -79,9 +81,15 @@ const MedicineCalendar = () => {
     const weekEndTime = weekEnd.getTime();
 
     if (todayTime >= weekStartTime && todayTime <= weekEndTime) {
-      return `Tuần này, ${startStr} - ${endStr}`;
+      return t("medicine.medicineCalendar.thisWeek", {
+        startDate: startStr,
+        endDate: endStr,
+      });
     } else {
-      return `${startStr} - ${endStr}`;
+      return t("medicine.medicineCalendar.weekRange", {
+        startDate: startStr,
+        endDate: endStr,
+      });
     }
   }, [currentWeekStart, today]);
 
@@ -104,7 +112,7 @@ const MedicineCalendar = () => {
             );
           }
         } catch (error) {
-          console.warn("Không thể đồng bộ xác nhận từ widget:", error);
+          console.warn(t("medicine.medicineCalendar.cannotSyncWidget"), error);
         }
       }
 
@@ -115,7 +123,10 @@ const MedicineCalendar = () => {
 
       setConfirmedDoses(uniqueSorted);
     } catch (error) {
-      console.error("Error loading confirmed doses:", error);
+      console.error(
+        t("medicine.medicineCalendar.errorLoadingConfirmed"),
+        error
+      );
       setConfirmedDoses([]);
     }
   }, []);
@@ -203,7 +214,10 @@ const MedicineCalendar = () => {
 
       setDayData(weekData);
     } catch (error) {
-      console.error("Error loading medication data:", error);
+      console.error(
+        t("medicine.medicineCalendar.errorLoadingMedication"),
+        error
+      );
     }
   }, [confirmedDoses, selectedDate, currentWeekStart, today]);
 
@@ -250,28 +264,34 @@ const MedicineCalendar = () => {
 
   const handleClearAll = useCallback(() => {
     Alert.alert(
-      "Xóa tất cả lịch",
-      "Bạn chắc chắn muốn xóa toàn bộ kế hoạch uống thuốc?",
+      t("medicine.medicineCalendar.deleteAllScheduleTitle"),
+      t("medicine.medicineCalendar.deleteAllScheduleMessage"),
       [
-        { text: "Hủy", style: "cancel" },
+        { text: t("medicine.medicineCalendar.cancel"), style: "cancel" },
         {
-          text: "Xóa",
+          text: t("medicine.medicineCalendar.delete"),
           style: "destructive",
           onPress: async () => {
             try {
               await clearAllMedicationPlans();
               await loadConfirmedDoses();
               await generateWeekData();
-              Alert.alert("Đã xóa", "Tất cả kế hoạch uống thuốc đã được xóa.");
+              Alert.alert(
+                t("medicine.medicineCalendar.deleted"),
+                t("medicine.medicineCalendar.allPlansDeleted")
+              );
             } catch (error) {
               console.error("Failed to clear medication plans", error);
-              Alert.alert("Lỗi", "Không thể xóa kế hoạch. Vui lòng thử lại.");
+              Alert.alert(
+                t("medicine.medicineCalendar.error"),
+                t("medicine.medicineCalendar.cannotDeletePlans")
+              );
             }
           },
         },
       ]
     );
-  }, [generateWeekData, loadConfirmedDoses]);
+  }, [generateWeekData, loadConfirmedDoses, t]);
 
   const handleConfirmDose = useCallback(
     async (doseIso: string) => {
@@ -310,10 +330,16 @@ const MedicineCalendar = () => {
         setConfirmedDoses(newConfirmedDoses);
         await generateWeekData();
 
-        Alert.alert("✅ Đã xác nhận", "Đã ghi nhận bạn đã uống thuốc!");
+        Alert.alert(
+          t("medicine.medicineCalendar.confirmed"),
+          t("medicine.medicineCalendar.doseConfirmed")
+        );
       } catch (error) {
         console.error("Error confirming dose:", error);
-        Alert.alert("Lỗi", "Không thể xác nhận. Vui lòng thử lại.");
+        Alert.alert(
+          t("medicine.medicineCalendar.error"),
+          t("medicine.medicineCalendar.cannotConfirm")
+        );
       }
     },
     [confirmedDoses, generateWeekData]
@@ -378,7 +404,7 @@ const MedicineCalendar = () => {
           <Text style={{ fontSize: 24, color: "white" }}>🏠</Text>
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: "bold", color: "white" }}>
-          Lịch uống thuốc
+          {t("medicine.medicineCalendar.title")}
         </Text>
         <TouchableOpacity
           style={{
@@ -550,7 +576,7 @@ const MedicineCalendar = () => {
                 marginBottom: 8,
               }}
             >
-              Ngày này chưa có lịch nhắc uống thuốc
+              {t("medicine.medicineCalendar.noScheduleToday")}
             </Text>
             <Text
               style={{
@@ -560,11 +586,7 @@ const MedicineCalendar = () => {
                 marginBottom: 32,
               }}
             >
-              Hãy{" "}
-              <Text style={{ color: "#3B82F6", fontWeight: "600" }}>
-                Tạo lịch nhắc uống thuốc
-              </Text>{" "}
-              mới
+              {t("medicine.medicineCalendar.createNewReminder")}
             </Text>
             <TouchableOpacity
               style={{
@@ -581,7 +603,7 @@ const MedicineCalendar = () => {
               onPress={handleCreateReminder}
             >
               <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>
-                Tạo lịch nhắc
+                {t("medicine.medicineCalendar.createReminder")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -612,8 +634,10 @@ const MedicineCalendar = () => {
                   marginBottom: 12,
                 }}
               >
-                📊 Tổng quan ngày {selectedDayData.date}/
-                {selectedDayData.month + 1}
+                {t("medicine.medicineCalendar.overview", {
+                  date: selectedDayData.date,
+                  month: selectedDayData.month + 1,
+                })}
               </Text>
               <View
                 style={{ flexDirection: "row", justifyContent: "space-around" }}
@@ -628,7 +652,9 @@ const MedicineCalendar = () => {
                   >
                     {selectedDayData.confirmedCount}
                   </Text>
-                  <Text style={{ fontSize: 12, color: "#666" }}>Đã uống</Text>
+                  <Text style={{ fontSize: 12, color: "#666" }}>
+                    {t("medicine.medicineCalendar.taken")}
+                  </Text>
                 </View>
                 <View style={{ alignItems: "center" }}>
                   <Text
@@ -640,7 +666,9 @@ const MedicineCalendar = () => {
                   >
                     {selectedDayData.pendingCount}
                   </Text>
-                  <Text style={{ fontSize: 12, color: "#666" }}>Chờ uống</Text>
+                  <Text style={{ fontSize: 12, color: "#666" }}>
+                    {t("medicine.medicineCalendar.pending")}
+                  </Text>
                 </View>
                 <View style={{ alignItems: "center" }}>
                   <Text
@@ -652,7 +680,9 @@ const MedicineCalendar = () => {
                   >
                     {selectedDayData.events.length}
                   </Text>
-                  <Text style={{ fontSize: 12, color: "#666" }}>Tổng cộng</Text>
+                  <Text style={{ fontSize: 12, color: "#666" }}>
+                    {t("medicine.medicineCalendar.total")}
+                  </Text>
                 </View>
               </View>
             </View>
@@ -679,7 +709,7 @@ const MedicineCalendar = () => {
                   marginBottom: 16,
                 }}
               >
-                📅 Lịch trình chi tiết
+                {t("medicine.medicineCalendar.detailedSchedule")}
               </Text>
               {selectedDayData.events.map((event, index) => {
                 const colors = getEventColor(event.type);
@@ -759,7 +789,13 @@ const MedicineCalendar = () => {
                               color: colors.text,
                             }}
                           >
-                            {event.type.toUpperCase()}
+                            {event.type === "confirmed"
+                              ? t(
+                                  "medicine.medicineCalendar.taken"
+                                ).toUpperCase()
+                              : t(
+                                  "medicine.medicineCalendar.pending"
+                                ).toUpperCase()}
                           </Text>
                         </View>
                       </View>
@@ -815,7 +851,7 @@ const MedicineCalendar = () => {
                                 color: "#2E7D32",
                               }}
                             >
-                              Đã uống
+                              {t("medicine.medicineCalendar.taken")}
                             </Text>
                           </TouchableOpacity>
                         </View>
@@ -843,7 +879,7 @@ const MedicineCalendar = () => {
               onPress={handleCreateReminder}
             >
               <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>
-                ➕ Thêm lịch nhắc mới
+                {t("medicine.medicineCalendar.addNewReminder")}
               </Text>
             </TouchableOpacity>
 
@@ -863,7 +899,7 @@ const MedicineCalendar = () => {
               onPress={handleClearAll}
             >
               <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>
-                🗑️ Xóa hết lịch
+                {t("medicine.medicineCalendar.clearAllSchedule")}
               </Text>
             </TouchableOpacity>
 

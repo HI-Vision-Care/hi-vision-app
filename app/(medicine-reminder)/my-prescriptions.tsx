@@ -1,5 +1,6 @@
 "use client";
 import { usePatientProfile } from "@/hooks/usePatientId";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useGetArvPrescription } from "@/services/prescription/hooks";
 import { ScrollView, StatusBar, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -27,7 +28,7 @@ const LoadingSkeleton = () => (
 );
 
 // Empty State Component với typography cải thiện
-const EmptyState = () => (
+const EmptyState = ({ t }: any) => (
   <View className="flex-1 items-center justify-center px-6">
     <View className="items-center mb-8">
       {/* Medicine Icon lớn hơn */}
@@ -38,11 +39,10 @@ const EmptyState = () => (
       </View>
 
       <Text className="text-2xl font-bold text-gray-900 text-center mb-4">
-        Chưa có đơn thuốc ARV
+        {t("medicine.myPrescriptions.noArvPrescriptions")}
       </Text>
       <Text className="text-base text-gray-600 text-center leading-6 mb-8 font-medium">
-        Bạn chưa có đơn thuốc ARV nào được kê.{"\n"}
-        Vui lòng liên hệ bác sĩ để được tư vấn.
+        {t("medicine.myPrescriptions.noPrescriptionsMessage")}
       </Text>
     </View>
 
@@ -52,33 +52,34 @@ const EmptyState = () => (
         <View className="w-10 h-10 bg-blue-500 rounded-full items-center justify-center mr-4">
           <Text className="text-white text-lg">💡</Text>
         </View>
-        <Text className="text-blue-900 font-bold text-lg">Gợi ý</Text>
+        <Text className="text-blue-900 font-bold text-lg">
+          {t("medicine.myPrescriptions.suggestion")}
+        </Text>
       </View>
       <Text className="text-blue-800 text-base leading-6 font-medium">
-        Thêm lịch nhắc nhở để không bỏ lỡ việc uống thuốc hàng ngày khi có đơn
-        thuốc mới.
+        {t("medicine.myPrescriptions.suggestionText")}
       </Text>
     </View>
   </View>
 );
 
 // Error State Component
-const ErrorState = () => (
+const ErrorState = ({ t }: any) => (
   <View className="flex-1 items-center justify-center px-8">
     <View className="w-20 h-20 bg-red-100 rounded-full items-center justify-center mb-6">
       <Text className="text-red-500 text-3xl">⚠️</Text>
     </View>
     <Text className="text-lg font-semibold text-red-600 text-center mb-2">
-      Không thể tải đơn thuốc
+      {t("medicine.myPrescriptions.cannotLoadPrescriptions")}
     </Text>
     <Text className="text-sm text-gray-500 text-center">
-      Vui lòng thử lại sau hoặc liên hệ hỗ trợ
+      {t("medicine.myPrescriptions.tryAgainLater")}
     </Text>
   </View>
 );
 
 // Prescription Card Component
-const PrescriptionCard = ({ prescription, arvList }: any) => (
+const PrescriptionCard = ({ prescription, arvList, t }: any) => (
   <View className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-4">
     {/* Header với date nổi bật */}
     <View className="bg-white px-6 py-5 border-b border-gray-100">
@@ -88,7 +89,7 @@ const PrescriptionCard = ({ prescription, arvList }: any) => (
         </View>
         <View className="flex-1">
           <Text className="text-gray-500 text-sm font-medium mb-1">
-            Ngày kê đơn
+            {t("medicine.myPrescriptions.prescriptionDate")}
           </Text>
           <Text className="text-gray-900 font-bold text-lg">
             {new Date(prescription.date).toLocaleDateString("vi-VN")}
@@ -106,7 +107,7 @@ const PrescriptionCard = ({ prescription, arvList }: any) => (
         </View>
         <View className="flex-1">
           <Text className="text-green-700 text-sm font-semibold mb-1">
-            Bác sĩ kê đơn
+            {t("medicine.myPrescriptions.prescribedBy")}
           </Text>
           <Text className="text-gray-900 font-bold text-lg">
             {prescription.prescribeBy}
@@ -117,7 +118,9 @@ const PrescriptionCard = ({ prescription, arvList }: any) => (
       {/* Medicine List với typography nổi bật */}
       <View>
         <Text className="text-gray-900 font-bold text-xl mb-5">
-          Danh sách thuốc ARV ({arvList?.length || 0} loại)
+          {t("medicine.myPrescriptions.arvMedicineList", {
+            count: arvList?.length || 0,
+          })}
         </Text>
 
         {!arvList || arvList.length === 0 ? (
@@ -125,7 +128,7 @@ const PrescriptionCard = ({ prescription, arvList }: any) => (
             <View className="flex-row items-center">
               <Text className="text-orange-500 text-xl mr-3">ℹ️</Text>
               <Text className="text-orange-800 font-medium flex-1">
-                Đơn thuốc này chưa có thuốc ARV được kê.
+                {t("medicine.myPrescriptions.noArvInPrescription")}
               </Text>
             </View>
           </View>
@@ -159,7 +162,7 @@ const PrescriptionCard = ({ prescription, arvList }: any) => (
                     <View className="space-y-3">
                       <View>
                         <Text className="text-gray-600 text-sm font-semibold mb-1">
-                          Liều dùng:
+                          {t("medicine.myPrescriptions.dosage")}
                         </Text>
                         <Text className="text-gray-900 text-base font-bold">
                           {arv.rcmDosage}
@@ -167,7 +170,7 @@ const PrescriptionCard = ({ prescription, arvList }: any) => (
                       </View>
                       <View>
                         <Text className="text-gray-600 text-sm font-semibold mb-1">
-                          Đường dùng:
+                          {t("medicine.myPrescriptions.route")}
                         </Text>
                         <Text className="text-gray-900 text-base font-bold">
                           {arv.admRoute}
@@ -186,6 +189,7 @@ const PrescriptionCard = ({ prescription, arvList }: any) => (
 );
 
 export default function MyPrescriptions() {
+  const { t } = useTranslation();
   const { data: profile, isLoading: loadingProfile } = usePatientProfile();
   const patientId = profile?.patientID;
 
@@ -207,10 +211,10 @@ export default function MyPrescriptions() {
           <View className="w-10 h-10" />
           <View className="items-center">
             <Text className="text-2xl font-bold text-white mb-1">
-              Đơn thuốc ARV
+              {t("medicine.myPrescriptions.title")}
             </Text>
             <Text className="text-blue-100 text-base font-medium">
-              Quản lý đơn thuốc của bạn
+              {t("medicine.myPrescriptions.subtitle")}
             </Text>
           </View>
           <View className="w-10 h-10" />
@@ -221,12 +225,12 @@ export default function MyPrescriptions() {
       <View className="flex-1 bg-gray-50">
         {isLoading && <LoadingSkeleton />}
 
-        {isError && <ErrorState />}
+        {isError && <ErrorState t={t} />}
 
         {!isLoading &&
           !isError &&
           (!prescriptionData || !prescriptionData.prescription) && (
-            <EmptyState />
+            <EmptyState t={t} />
           )}
 
         {!isLoading &&
@@ -240,6 +244,7 @@ export default function MyPrescriptions() {
               <PrescriptionCard
                 prescription={prescriptionData.prescription}
                 arvList={prescriptionData.arvList}
+                t={t}
               />
 
               {/* Footer Info với typography nổi bật */}
@@ -247,7 +252,7 @@ export default function MyPrescriptions() {
                 <View className="flex-row items-center">
                   <Text className="text-yellow-600 text-xl mr-3">💡</Text>
                   <Text className="text-yellow-800 text-base font-bold flex-1">
-                    Nhớ uống thuốc đúng giờ và theo chỉ định của bác sĩ
+                    {t("medicine.myPrescriptions.rememberTakeMedication")}
                   </Text>
                 </View>
               </View>

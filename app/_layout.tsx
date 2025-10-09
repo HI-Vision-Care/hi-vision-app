@@ -1,4 +1,5 @@
 import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
+import { useTranslation } from "@/hooks/useTranslation";
 import "@/i18n"; // Import i18n configuration
 import {
   listenArvConfirm,
@@ -30,6 +31,7 @@ Notifications.setNotificationHandler({
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const { t } = useTranslation();
   const queryClient = new QueryClient();
   const [loaded] = useFonts({
     "Jakarta-Bold": require("../assets/fonts/PlusJakartaSans-Bold.ttf"),
@@ -48,7 +50,7 @@ export default function RootLayout() {
     // Lắng nghe action xác nhận
     const subscription = listenArvConfirm((doseTime) => {
       // Có thể hiện Toast hoặc reload calendar tại đây nếu muốn
-      console.log("Đã xác nhận ARV cho:", doseTime);
+      console.log(t("app.arvConfirmed"), doseTime);
     });
     return () => subscription.remove();
   }, []);
@@ -59,8 +61,8 @@ export default function RootLayout() {
       const { status } = await Notifications.requestPermissionsAsync();
       if (status !== "granted") {
         Alert.alert(
-          "Thiếu quyền",
-          "Ứng dụng cần quyền gửi thông báo để nhắc uống thuốc hoạt động"
+          t("app.missingPermission"),
+          t("app.notificationPermissionRequired")
         );
       }
 

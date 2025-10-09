@@ -4,6 +4,7 @@ import {
   PreparationInstructions,
   WhatToExpect,
 } from "@/components";
+import { useTranslation } from "@/hooks/useTranslation";
 import { DetailItemProps, TestItemProps } from "@/types/type";
 import { formatVND } from "@/utils/format";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,6 +15,7 @@ import { FlatList, Image, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ServiceDetail() {
+  const { t } = useTranslation();
   const { data, image } = useLocalSearchParams<{
     id: string;
     data?: string;
@@ -32,10 +34,10 @@ export default function ServiceDetail() {
               <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
             </View>
             <Text className="text-gray-800 text-xl font-bold mb-2">
-              Service Not Found
+              {t("services.serviceNotFound")}
             </Text>
             <Text className="text-gray-500 text-center leading-6">
-              The requested service could not be loaded. Please try again.
+              {t("services.serviceNotFoundMessage")}
             </Text>
           </View>
         </View>
@@ -89,12 +91,14 @@ export default function ServiceDetail() {
       <View className="flex-row flex-wrap gap-2">
         <View className="bg-white px-3 py-1 rounded-full border border-gray-200">
           <Text className="text-gray-600 text-xs">
-            <Text className="font-medium">Unit:</Text> {item.unit}
+            <Text className="font-medium">{t("services.unit")}:</Text>{" "}
+            {item.unit}
           </Text>
         </View>
         <View className="bg-white px-3 py-1 rounded-full border border-gray-200">
           <Text className="text-gray-600 text-xs">
-            <Text className="font-medium">Range:</Text> {item.referenceRange}
+            <Text className="font-medium">{t("services.range")}:</Text>{" "}
+            {item.referenceRange}
           </Text>
         </View>
       </View>
@@ -103,7 +107,7 @@ export default function ServiceDetail() {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
-      <HeaderBack title="Service Details" />
+      <HeaderBack title={t("services.serviceDetails")} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -145,7 +149,7 @@ export default function ServiceDetail() {
           <View className="bg-white rounded-3xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
             <View className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-100">
               <Text className="text-gray-800 text-xl font-bold">
-                Service Information
+                {t("services.serviceInformation")}
               </Text>
             </View>
 
@@ -154,7 +158,7 @@ export default function ServiceDetail() {
                 icon="card-outline"
                 iconColor="#10b981"
                 iconBg="bg-green-100"
-                label="Service Price"
+                label={t("services.servicePrice")}
                 value={formatVND(service.price)}
                 valueColor="text-green-600"
               />
@@ -163,8 +167,8 @@ export default function ServiceDetail() {
                 icon="location-outline"
                 iconColor="#8b5cf6"
                 iconBg="bg-purple-100"
-                label="Location"
-                value="Healthcare Center"
+                label={t("services.location")}
+                value={t("services.healthcareCenter")}
               />
 
               <DetailItem
@@ -175,9 +179,11 @@ export default function ServiceDetail() {
                 }
                 iconColor={service.isActive ? "#10b981" : "#ef4444"}
                 iconBg={service.isActive ? "bg-green-100" : "bg-red-100"}
-                label="Service Status"
+                label={t("services.serviceStatus")}
                 value={
-                  service.isActive ? "Active & Available" : "Currently Inactive"
+                  service.isActive
+                    ? t("services.activeAvailable")
+                    : t("services.currentlyInactive")
                 }
                 valueColor={
                   service.isActive ? "text-green-600" : "text-red-600"
@@ -192,11 +198,11 @@ export default function ServiceDetail() {
                 iconBg={
                   service.isRequireDoctor ? "bg-orange-100" : "bg-gray-100"
                 }
-                label="Doctor Requirement"
+                label={t("services.doctorRequirement")}
                 value={
                   service.isRequireDoctor
-                    ? "Doctor Consultation Required"
-                    : "Self-Service Available"
+                    ? t("services.doctorConsultationRequired")
+                    : t("services.selfServiceAvailable")
                 }
               />
 
@@ -204,11 +210,11 @@ export default function ServiceDetail() {
                 icon={service.isOnline ? "globe-outline" : "business-outline"}
                 iconColor={service.isOnline ? "#06b6d4" : "#6366f1"}
                 iconBg={service.isOnline ? "bg-cyan-100" : "bg-indigo-100"}
-                label="Service Type"
+                label={t("services.serviceType")}
                 value={
                   service.isOnline
-                    ? "Online & In-Person Available"
-                    : "In-Person Only"
+                    ? t("services.onlineInPersonAvailable")
+                    : t("services.inPersonOnly")
                 }
               />
             </View>
@@ -220,17 +226,19 @@ export default function ServiceDetail() {
               <View className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-100">
                 <View className="flex-row items-center justify-between">
                   <Text className="text-gray-800 text-xl font-bold">
-                    Medical Tests
+                    {t("services.medicalTests")}
                   </Text>
                   <View className="bg-blue-100 px-3 py-1 rounded-full">
                     <Text className="text-blue-600 text-sm font-medium">
-                      {service.testItems.length} test
-                      {service.testItems.length > 1 ? "s" : ""}
+                      {service.testItems.length}{" "}
+                      {service.testItems.length > 1
+                        ? t("services.tests")
+                        : t("services.test")}
                     </Text>
                   </View>
                 </View>
                 <Text className="text-gray-600 text-sm mt-1">
-                  Comprehensive testing included in this service
+                  {t("services.comprehensiveTestingIncluded")}
                 </Text>
               </View>
 
