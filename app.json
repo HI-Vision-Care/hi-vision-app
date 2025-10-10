@@ -3,72 +3,32 @@
     "name": "Hi-Vision",
     "slug": "hi-vision",
     "version": "1.0.3",
-    "orientation": "portrait",
-    "icon": "./assets/images/logo.png",
-    "scheme": "hivisionmobileapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/images/logo.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+    "newArchEnabled": false,
+    "scheme": "hivisionmobileapp",
+    "android": {
+      "package": "com.anonymous.HI_Vision_Mobile_App",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "category": ["BROWSABLE", "DEFAULT"],
+          "data": [{ "scheme": "hivisionmobileapp" }]
+        }
+      ]
     },
     "ios": {
-      "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.HI-Vision-Mobile-App"
     },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logo.png",
-        "backgroundColor": "#ffffff"
-      },
-      "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.HI_Vision_Mobile_App",
-      "permissions": ["CAMERA", "INTERNET", "READ_EXTERNAL_STORAGE"],
-      "splash": {
-        "image": "./assets/images/logo.png",
-        "resizeMode": "contain",
-        "backgroundColor": "#ffffff"
-      }
-    },
-    "versionCode": 7,
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/logo.png"
     },
-    "plugins": [
-      "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/logo.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
-        }
-      ],
-      "expo-font",
-      "expo-web-browser",
-      "expo-secure-store",
-      [
-        "@sentry/react-native/expo",
-        {
-          "url": "https://sentry.io/",
-          "project": "hi-vision-app",
-          "organization": "fpt-university-gr"
-        }
-      ]
-    ],
-    "experiments": {
-      "typedRoutes": true
-    },
+    "experiments": { "typedRoutes": true },
     "extra": {
       "router": {},
-      "eas": {
-        "projectId": "6a9a627d-4091-4595-9dc7-c2a18fcad50b"
-      }
+      "eas": { "projectId": "63718a04-7fcb-4a1a-87f9-aecbf774b5e5" }
     },
-    "owner": "kimcu142"
+    "owner": "dkhoa_happy"
   }
 }
