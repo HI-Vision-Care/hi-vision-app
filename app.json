@@ -3,22 +3,7 @@
     "name": "Hi-Vision",
     "slug": "hi-vision",
     "version": "1.0.3",
-    "userInterfaceStyle": "automatic",
     "newArchEnabled": false,
-    "scheme": "hivisionmobileapp",
-    "android": {
-      "package": "com.anonymous.HI_Vision_Mobile_App",
-      "intentFilters": [
-        {
-          "action": "VIEW",
-          "category": ["BROWSABLE", "DEFAULT"],
-          "data": [{ "scheme": "hivisionmobileapp" }]
-        }
-      ]
-    },
-    "ios": {
-      "bundleIdentifier": "com.anonymous.HI-Vision-Mobile-App"
-    },
     "web": {
       "bundler": "metro",
       "output": "static",
