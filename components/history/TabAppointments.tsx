@@ -1,3 +1,4 @@
+import { useTranslation } from "@/hooks/useTranslation";
 import { MedicalRecord } from "@/types/type";
 import { ActivityIndicator, Text, View } from "react-native";
 import { MedicalRecordCard } from "../appointment";
@@ -15,25 +16,30 @@ const TabAppointments: React.FC<Props> = ({
   error,
   appointments,
 }) => {
+  const { t } = useTranslation();
   if (isLoading)
     return (
       <View className="flex-1 items-center justify-center">
         <ActivityIndicator size="large" color="#0F67FE" />
-        <Text className="text-gray-500 mt-2">Loading appointments...</Text>
+        <Text className="text-gray-500 mt-2">
+          {t("history.loadingAppointments")}
+        </Text>
       </View>
     );
   if (isError)
     return (
       <View className="flex-1 items-center justify-center">
         <Text className="text-red-500">
-          {error?.message || "Failed to load data."}
+          {error?.message || t("history.failedToLoadData")}
         </Text>
       </View>
     );
   if (!appointments || appointments.length === 0)
     return (
       <View className="flex-1 items-center justify-center mt-10">
-        <Text className="text-gray-500">No upcoming appointments.</Text>
+        <Text className="text-gray-500">
+          {t("history.noUpcomingAppointments")}
+        </Text>
       </View>
     );
   const upcoming = appointments.filter((a) =>
@@ -43,7 +49,9 @@ const TabAppointments: React.FC<Props> = ({
   if (upcoming.length === 0)
     return (
       <View className="flex-1 items-center justify-center mt-10">
-        <Text className="text-gray-500">No upcoming appointments.</Text>
+        <Text className="text-gray-500">
+          {t("history.noUpcomingAppointments")}
+        </Text>
       </View>
     );
 

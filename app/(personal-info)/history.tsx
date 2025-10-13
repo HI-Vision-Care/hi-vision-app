@@ -6,6 +6,7 @@ import {
   TabMedicalHistory,
 } from "@/components";
 import { usePatientProfile } from "@/hooks/usePatientId";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useGetAppointmentByPatientId } from "@/services/appointment/hooks";
 import { useGetLabResults } from "@/services/patient/hooks";
 import { useLocalSearchParams } from "expo-router";
@@ -15,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 // Main Component
 const MedicalHistory = () => {
+  const { t } = useTranslation();
   const params = useLocalSearchParams();
   const fromBooking = params.fromBooking === "1";
 
@@ -37,9 +39,9 @@ const MedicalHistory = () => {
   } = useGetAppointmentByPatientId(patientId as string);
 
   const tabs = [
-    { id: "appointments", title: "Appointments" },
-    { id: "history", title: "Medical History" },
-    { id: "labResults", title: "Lab Results" },
+    { id: "appointments", title: t("history.appointments") },
+    { id: "history", title: t("history.medicalHistory") },
+    { id: "labResults", title: t("history.labResults") },
   ];
 
   const renderContent = () => {
@@ -99,7 +101,7 @@ const MedicalHistory = () => {
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <SafeAreaView className="flex-1 bg-gray-50">
-        <HeaderBack title="Medical History" hideBack={fromBooking} />
+        <HeaderBack title={t("history.title")} hideBack={fromBooking} />
 
         {/* Tabs */}
         <View className="flex-row bg-white border-b border-gray-100">

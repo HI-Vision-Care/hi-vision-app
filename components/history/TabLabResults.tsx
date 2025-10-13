@@ -1,4 +1,5 @@
 import { usePatientProfile } from "@/hooks/usePatientId";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useGetLabResults } from "@/services/lab-results/hooks";
 import { format } from "date-fns";
 import {
@@ -339,6 +340,7 @@ const TabLabResults: React.FC<{
   error?: any;
   labResults?: LabResult[];
 }> = ({ isLoading, isError, error, labResults }) => {
+  const { t } = useTranslation();
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -350,10 +352,8 @@ const TabLabResults: React.FC<{
             style={{ position: "absolute", bottom: 8, right: 8 }}
           />
         </View>
-        <Text style={styles.loadingTitle}>Loading Results</Text>
-        <Text style={styles.loadingText}>
-          Fetching your latest lab results...
-        </Text>
+        <Text style={styles.loadingTitle}>{t("history.loadingResults")}</Text>
+        <Text style={styles.loadingText}>{t("history.fetchingResults")}</Text>
       </View>
     );
   }
@@ -364,9 +364,11 @@ const TabLabResults: React.FC<{
         <View style={styles.errorIcon}>
           <Text style={{ fontSize: 32, color: "white" }}>⚠️</Text>
         </View>
-        <Text style={styles.loadingTitle}>Unable to Load Results</Text>
+        <Text style={styles.loadingTitle}>
+          {t("history.unableToLoadResults")}
+        </Text>
         <Text style={styles.loadingText}>
-          {error?.message || "An unexpected error occurred"}
+          {error?.message || t("history.unexpectedError")}
         </Text>
       </View>
     );
@@ -378,10 +380,10 @@ const TabLabResults: React.FC<{
         <View style={styles.emptyIcon}>
           <Text style={{ fontSize: 32, color: "white" }}>🧪</Text>
         </View>
-        <Text style={styles.loadingTitle}>No Results Available</Text>
-        <Text style={styles.loadingText}>
-          Your lab results will appear here once available
+        <Text style={styles.loadingTitle}>
+          {t("history.noResultsAvailable")}
         </Text>
+        <Text style={styles.loadingText}>{t("history.resultsWillAppear")}</Text>
       </View>
     );
   }
@@ -496,17 +498,17 @@ const TabLabResults: React.FC<{
   const getStatusText = (status: string) => {
     switch (status) {
       case "critical":
-        return "Critical";
+        return t("history.status.critical");
       case "high":
-        return "High";
+        return t("history.status.high");
       case "low":
-        return "Low";
+        return t("history.status.low");
       case "elevated":
-        return "Elevated";
+        return t("history.status.elevated");
       case "mild":
-        return "Mild";
+        return t("history.status.mild");
       default:
-        return "Normal";
+        return t("history.status.normal");
     }
   };
 
@@ -558,17 +560,26 @@ const TabLabResults: React.FC<{
                   <Text style={{ fontSize: 24 }}>📊</Text>
                 </View>
                 <View>
-                  <Text style={styles.headerTitle}>Lab Results</Text>
+                  <Text style={styles.headerTitle}>
+                    {t("history.labResultsTitle")}
+                  </Text>
                   <Text style={styles.headerSubtitle}>
-                    {recordIds.length} record{recordIds.length !== 1 && "s"} •{" "}
-                    {labResults.length} test
-                    {labResults.length !== 1 && "s"}
+                    {recordIds.length}{" "}
+                    {recordIds.length !== 1
+                      ? t("history.records")
+                      : t("history.record")}{" "}
+                    • {labResults.length}{" "}
+                    {labResults.length !== 1
+                      ? t("history.tests")
+                      : t("history.test")}
                   </Text>
                 </View>
               </View>
             </View>
             <View style={styles.headerRight}>
-              <Text style={styles.headerDateLabel}>Last updated</Text>
+              <Text style={styles.headerDateLabel}>
+                {t("history.lastUpdated")}
+              </Text>
               <Text style={styles.headerDate}>
                 {format(
                   new Date(
@@ -594,12 +605,13 @@ const TabLabResults: React.FC<{
 
           return (
             <View key={recordId} style={styles.dateSection}>
-              <Text className="font-bold">Record header</Text>
+              <Text className="font-bold">{t("history.recordHeader")}</Text>
               {/* Record info */}
               <View style={{ marginBottom: 12, paddingHorizontal: 4 }}>
                 <Text style={{ fontSize: 14, color: "#6b7280" }}>
-                  {tests.length} test{tests.length !== 1 && "s"} •{" "}
-                  {format(new Date(latestTestDate), "MMM dd, yyyy")}
+                  {tests.length}{" "}
+                  {tests.length !== 1 ? t("history.tests") : t("history.test")}{" "}
+                  • {format(new Date(latestTestDate), "MMM dd, yyyy")}
                 </Text>
               </View>
               {/* Test results for this record */}
@@ -690,7 +702,7 @@ const TabLabResults: React.FC<{
                               { color: "#9ca3af", fontStyle: "italic" },
                             ]}
                           >
-                            No result available
+                            {t("history.noResultAvailable")}
                           </Text>
                         )}
 
@@ -700,7 +712,7 @@ const TabLabResults: React.FC<{
                               ℹ️
                             </Text>
                             <Text style={styles.referenceText}>
-                              Reference: {result.referenceRange}
+                              {t("history.reference")}: {result.referenceRange}
                             </Text>
                           </View>
                         )}
@@ -740,11 +752,9 @@ const TabLabResults: React.FC<{
             <Text style={{ fontSize: 16 }}>💡</Text>
           </View>
           <View style={styles.noteTextContainer}>
-            <Text style={styles.noteTitle}>Important Note</Text>
+            <Text style={styles.noteTitle}>{t("history.importantNote")}</Text>
             <Text style={styles.noteText}>
-              These results are for informational purposes only. Please consult
-              with your healthcare provider to discuss your results and any
-              necessary follow-up actions.
+              {t("history.importantNoteText")}
             </Text>
           </View>
         </View>
