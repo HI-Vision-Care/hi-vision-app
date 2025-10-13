@@ -3,63 +3,12 @@
     "name": "Hi-Vision",
     "slug": "hi-vision",
     "version": "1.0.3",
-    "orientation": "portrait",
-    "icon": "./assets/images/logo.png",
-    "scheme": "hivisionmobileapp",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/images/logo.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.HI-Vision-Mobile-App"
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logo.png",
-        "backgroundColor": "#ffffff"
-      },
-      "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.HI_Vision_Mobile_App",
-      "permissions": ["CAMERA", "INTERNET", "READ_EXTERNAL_STORAGE"],
-      "splash": {
-        "image": "./assets/images/logo.png",
-        "resizeMode": "contain",
-        "backgroundColor": "#ffffff"
-      }
-    },
-    "versionCode": 7,
+    "newArchEnabled": false,
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/logo.png"
     },
-    "plugins": [
-      "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/logo.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
-        }
-      ],
-      "expo-font",
-      "expo-web-browser",
-      "expo-secure-store",
-      [
-        "@sentry/react-native/expo",
-        {
-          "url": "https://sentry.io/",
-          "project": "hi-vision-app",
-          "organization": "fpt-university-gr"
-        }
-      ]
-    ],
     "experiments": {
       "typedRoutes": true
     },

@@ -1,5 +1,4 @@
 import { icons, images } from "@/constants";
-import { useGoogleAuth } from "@/services/auth/google-auth";
 import { useSignUp } from "@/services/auth/hooks";
 import {
   authErrorHandler,
@@ -67,8 +66,6 @@ const SignUp: React.FC = () => {
       authErrorHandler(error);
     }
   };
-
-  const { loginWithGoogle, ready } = useGoogleAuth();
 
   return (
     <SafeAreaView edges={["bottom"]} className="flex-1 bg-white">
@@ -205,23 +202,6 @@ const SignUp: React.FC = () => {
           <Text className="mx-4 text-gray-500 text-sm">OR</Text>
           <View className="flex-1 h-px bg-gray-300" />
         </View>
-
-        {/* Google Sign In */}
-        <TouchableOpacity
-          className="
-            w-16 h-16
-            bg-white
-            border border-gray-300
-            rounded-xl
-            items-center justify-center
-            mb-8
-            self-center
-          "
-          disabled={!ready}
-          onPress={loginWithGoogle}
-        >
-          <Text className="text-gray-700 text-2xl font-bold">G</Text>
-        </TouchableOpacity>
 
         {/* Link to Sign In */}
         <View className="flex-row justify-center mb-8 ">
