@@ -1,3 +1,4 @@
+import { useTranslation } from "@/hooks/useTranslation";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
@@ -20,9 +21,10 @@ interface PaymentSuccessModalProps {
 const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
   visible,
   onClose,
-  title = "Thanh toán thành công!",
-  subtitle = "Bạn đã đặt lịch và thanh toán thành công.",
+  title,
+  subtitle,
 }) => {
+  const { t } = useTranslation();
   const scaleValue = React.useRef(new Animated.Value(0)).current;
   const opacityValue = React.useRef(new Animated.Value(0)).current;
 
@@ -91,9 +93,11 @@ const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
                 <Ionicons name="checkmark" size={32} color="#10b981" />
               </View>
             </View>
-            <Text className="text-white text-2xl font-bold mb-2">{title}</Text>
+            <Text className="text-white text-2xl font-bold mb-2">
+              {title || t("booking.paymentSuccess")}
+            </Text>
             <Text className="text-white/90 text-center text-base">
-              {subtitle}
+              {subtitle || t("booking.paymentSuccessMessage")}
             </Text>
           </LinearGradient>
 
@@ -110,7 +114,9 @@ const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
               }}
             >
               <Ionicons name="checkmark-circle" size={20} color="white" />
-              <Text className="text-white font-bold text-lg ml-2">Đã hiểu</Text>
+              <Text className="text-white font-bold text-lg ml-2">
+                {t("booking.understood")}
+              </Text>
             </TouchableOpacity>
           </View>
         </Animated.View>

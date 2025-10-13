@@ -1,3 +1,4 @@
+import { useTranslation } from "@/hooks/useTranslation";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
@@ -27,6 +28,7 @@ const PaymentFailureModal: React.FC<PaymentFailureModalProps> = ({
   // currentBalance = "0",
   // requiredAmount = "0",
 }) => {
+  const { t } = useTranslation();
   const scaleValue = React.useRef(new Animated.Value(0)).current;
   const opacityValue = React.useRef(new Animated.Value(0)).current;
   const shakeValue = React.useRef(new Animated.Value(0)).current;
@@ -121,10 +123,10 @@ const PaymentFailureModal: React.FC<PaymentFailureModalProps> = ({
               </View>
             </View>
             <Text className="text-white text-2xl font-bold mb-2">
-              Payment Failed
+              {t("booking.paymentFailed")}
             </Text>
             <Text className="text-white/90 text-center text-base">
-              Insufficient balance to complete this transaction
+              {t("booking.insufficientBalanceToComplete")}
             </Text>
           </LinearGradient>
 
@@ -186,7 +188,7 @@ const PaymentFailureModal: React.FC<PaymentFailureModalProps> = ({
                 >
                   <Ionicons name="wallet" size={20} color="white" />
                   <Text className="text-white font-bold text-lg ml-2">
-                    Top Up Now
+                    {t("booking.topUpNow")}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -196,7 +198,7 @@ const PaymentFailureModal: React.FC<PaymentFailureModalProps> = ({
                 className="bg-gray-100 rounded-2xl py-4 px-6 flex-row items-center justify-center"
               >
                 <Text className="text-gray-700 font-semibold text-base">
-                  Try Again Later
+                  {t("booking.tryAgainLater")}
                 </Text>
               </TouchableOpacity>
             </View>

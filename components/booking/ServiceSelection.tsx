@@ -1,4 +1,5 @@
 // ServiceSelection.tsx
+import { useTranslation } from "@/hooks/useTranslation";
 import { formatVND } from "@/utils/format";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
@@ -27,6 +28,7 @@ const ServiceSelection: React.FC<ServiceSelectionProps> = ({
   selectedServiceId,
   onSelect,
 }) => {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const selectedService = services.find(
@@ -45,7 +47,7 @@ const ServiceSelection: React.FC<ServiceSelectionProps> = ({
   return (
     <View className="mx-4 mt-6">
       <Text className="text-lg font-bold text-gray-900 mb-3">
-        Select Service
+        {t("booking.selectService")}
       </Text>
 
       {/* Selected Service Display */}
@@ -90,7 +92,9 @@ const ServiceSelection: React.FC<ServiceSelectionProps> = ({
                       size={10}
                       color={selectedService.isOnline ? "#15803d" : "#c2410c"}
                     />{" "}
-                    {selectedService.isOnline ? "Online" : "In-Person"}
+                    {selectedService.isOnline
+                      ? t("booking.online")
+                      : t("booking.inPerson")}
                   </Text>
                 </View>
                 <View
@@ -117,8 +121,8 @@ const ServiceSelection: React.FC<ServiceSelectionProps> = ({
                       }
                     />{" "}
                     {selectedService.isRequireDoctor
-                      ? "Doctor Required"
-                      : "Self-Service"}
+                      ? t("booking.doctorRequired")
+                      : t("booking.selfService")}
                   </Text>
                 </View>
               </View>
@@ -132,7 +136,7 @@ const ServiceSelection: React.FC<ServiceSelectionProps> = ({
         ) : (
           <View className="flex-1">
             <Text className="text-gray-500 font-medium">
-              Tap to select a service
+              {t("booking.tapToSelectService")}
             </Text>
           </View>
         )}
@@ -204,7 +208,9 @@ const ServiceSelection: React.FC<ServiceSelectionProps> = ({
                           size={8}
                           color={service.isOnline ? "#15803d" : "#c2410c"}
                         />{" "}
-                        {service.isOnline ? "Online" : "In-Person"}
+                        {service.isOnline
+                          ? t("booking.online")
+                          : t("booking.inPerson")}
                       </Text>
                     </View>
                     <View
@@ -227,8 +233,8 @@ const ServiceSelection: React.FC<ServiceSelectionProps> = ({
                           }
                         />{" "}
                         {service.isRequireDoctor
-                          ? "Doctor Required"
-                          : "Self-Service"}
+                          ? t("booking.doctorRequired")
+                          : t("booking.selfService")}
                       </Text>
                     </View>
                   </View>

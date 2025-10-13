@@ -12,6 +12,7 @@ import {
 import TimeSlots from "@/components/booking/TimeSlot";
 import { weekDays } from "@/constants";
 import { usePatientProfile } from "@/hooks/usePatientId";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   useBookAppointment,
   useGetWorkShiftsWeek,
@@ -41,6 +42,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export type AvailabilityMap = Record<string, Record<string, string>>;
 
 export default function BookingScreen() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { data: profile } = usePatientProfile();
   const patientId = profile?.patientID;
@@ -266,24 +268,22 @@ export default function BookingScreen() {
   const handleBooking = () => {
     // Check patientId
     if (!patientId) {
-      Alert.alert("You must be logged in to book an appointment.");
+      Alert.alert(t("booking.youMustBeLoggedIn"));
       return;
     }
     // Check Service
     if (!selectedService || !selectedService.isActive) {
-      Alert.alert(
-        "Selected service is no longer available. Please choose another service."
-      );
+      Alert.alert(t("booking.serviceNoLongerAvailable"));
       return;
     }
     // Check Doctor
     if (!selectedDoctor) {
-      Alert.alert("Please select a doctor.");
+      Alert.alert(t("booking.pleaseSelectDoctor"));
       return;
     }
     // Check Date & Time
     if (!selectedDay || !selectedTime) {
-      Alert.alert("Please select a date and time slot.");
+      Alert.alert(t("booking.pleaseSelectDateAndTime"));
       return;
     }
     // Validate appointment time not in the past
@@ -292,20 +292,20 @@ export default function BookingScreen() {
     const localDate = new Date(selectedDate);
     localDate.setHours(Number(hours), Number(minutes), 0, 0);
     if (localDate < new Date()) {
-      Alert.alert("You cannot book an appointment in the past.");
+      Alert.alert(t("booking.cannotBookInPast"));
       return;
     }
     // Note length validation
     if (note.length > 255) {
-      Alert.alert("Note is too long (max 255 characters).");
+      Alert.alert(t("booking.noteTooLong"));
       return;
     }
     // ---- CHECK SỐ DƯ TRƯỚC ----
     if (paymentOption === "PAY_NOW") {
       if ((selectedService?.price ?? 0) > balance) {
         Alert.alert(
-          "Số dư không đủ",
-          "Vui lòng nạp thêm tiền để thanh toán dịch vụ này!"
+          t("booking.insufficientBalance"),
+          t("booking.insufficientBalanceMessage")
         );
         return;
       }
@@ -340,8 +340,8 @@ export default function BookingScreen() {
           if ((selectedService?.price ?? 0) > balance) {
             // Báo lỗi số dư không đủ
             Alert.alert(
-              "Số dư không đủ",
-              "Vui lòng nạp thêm tiền để thanh toán dịch vụ này!"
+              t("booking.insufficientBalance"),
+              t("booking.insufficientBalanceMessage")
             );
             return;
           }
@@ -370,9 +370,9 @@ export default function BookingScreen() {
           error?.response?.data?.message ||
           error?.response?.data?.error ||
           error?.message ||
-          "An error occurred while scheduling.";
+          t("booking.scheduleError");
 
-        Alert.alert("Schedule failed", backendMessage);
+        Alert.alert(t("booking.scheduleFailed"), backendMessage);
       },
     });
   };
@@ -380,7 +380,7 @@ export default function BookingScreen() {
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
-      <HeaderBack title="Book Appointment" />
+      <HeaderBack title={t("booking.title")} />
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <ChooseDoctor
           doctors={doctors}
@@ -397,7 +397,9 @@ export default function BookingScreen() {
         />
 
         <View className="flex-row items-center mt-4 mb-2 ml-4">
-          <Text className="text-base mr-2">Schedule anonymously</Text>
+          <Text className="text-base mr-2">
+            {t("booking.scheduleAnonymously")}
+          </Text>
           <Switch value={isAnonymous} onValueChange={setIsAnonymous} />
         </View>
 
@@ -412,17 +414,17 @@ export default function BookingScreen() {
         {!selectedDoctor ? (
           <View className="items-center py-4">
             <Text className="text-gray-500 text-center">
-              Please select a doctor to view available time slots.
+              {t("booking.pleaseSelectDoctor")}
             </Text>
           </View>
         ) : shiftsLoading ? (
           <View className="items-center py-4">
             <ActivityIndicator />
-            <Text>Loading availability...</Text>
+            <Text>{t("booking.loadingAvailability")}</Text>
           </View>
         ) : shiftsError ? (
           <Text className="text-red-500 text-center py-4">
-            Error loading schedule: {shiftsError.message}
+            {t("booking.errorLoadingSchedule")} {shiftsError.message}
           </Text>
         ) : null}
 
@@ -435,11 +437,11 @@ export default function BookingScreen() {
         />
 
         <View className="mx-4 mt-4 mb-2">
-          <Text className="text-base mb-2">Notes (optional):</Text>
+          <Text className="text-base mb-2">{t("booking.notesOptional")}</Text>
           <TextInput
             value={note}
             onChangeText={setNote}
-            placeholder="Enter notes for the appointment (if any)"
+            placeholder={t("booking.notesPlaceholder")}
             multiline
             numberOfLines={3}
             className="p-3 border rounded-xl bg-white text-base"
@@ -492,13 +494,13 @@ export default function BookingScreen() {
         }}
         title={
           successType === "payment"
-            ? "Thanh toán thành công!"
-            : "Đặt lịch thành công!"
+            ? t("booking.paymentSuccess")
+            : t("booking.bookingSuccess")
         }
         subtitle={
           successType === "payment"
-            ? "Bạn đã đặt lịch và thanh toán thành công."
-            : "Lịch hẹn của bạn đã được ghi nhận. Vui lòng thanh toán trước khi đến khám."
+            ? t("booking.paymentSuccessMessage")
+            : t("booking.bookingSuccessMessage")
         }
       />
     </SafeAreaView>
