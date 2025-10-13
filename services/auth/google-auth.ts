@@ -25,7 +25,9 @@ export function useGoogleAuth() {
     {
       // Với generic OAuth, bạn dùng 1 clientId phù hợp platform hiện tại.
       // Nếu muốn tiện hơn, dùng provider: `expo-auth-session/providers/google`
-      clientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID!, // trên Android device
+      clientId:
+        process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID! ||
+        "550800866011-qh4nbkuccqpe1cjeangkrf0bsgjitiri.apps.googleusercontent.com",
       scopes: ["openid", "email", "profile"],
       responseType: ResponseType.Code,
       usePKCE: true, // ✅ bật PKCE cho code flow
@@ -42,7 +44,9 @@ export function useGoogleAuth() {
     const tokenRes = await exchangeCodeAsync(
       {
         code: res.params.code!,
-        clientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID!,
+        clientId:
+          process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID! ||
+          "550800866011-qh4nbkuccqpe1cjeangkrf0bsgjitiri.apps.googleusercontent.com",
         redirectUri,
       },
       { tokenEndpoint: discovery.tokenEndpoint! }

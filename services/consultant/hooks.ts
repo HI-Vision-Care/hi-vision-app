@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { ConsultationRequest, ConsultationRequire } from "./types";
 import {
   bookConsultationGuest,
   bookConsultationWithAccount,
   getConsultationRequire,
 } from "./api";
+import { ConsultationRequest, ConsultationRequire } from "./types";
 
 // Hook lấy yêu cầu tư vấn
 export function useGetConsultationRequire(patientID?: string) {
@@ -18,7 +18,6 @@ export function useGetConsultationRequire(patientID?: string) {
     setError(null);
     try {
       const res = await getConsultationRequire(patientID);
-      console.log("Fetched consultation require:", res);
       setData(res);
     } catch (err) {
       setError(err);

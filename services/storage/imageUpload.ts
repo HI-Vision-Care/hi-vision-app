@@ -22,13 +22,11 @@ export const uploadImageToStorage = async (
     const storagePath = `${bucket}/${objectKey}`;
 
     // 2) Đọc file thành base64 (sử dụng legacy API)
-    console.log("📖 Reading image as base64...");
     const base64 = await FileSystem.readAsStringAsync(imageUri, {
       encoding: FileSystem.EncodingType.Base64,
     });
 
     // 3) Convert base64 thành ArrayBuffer
-    console.log("🔄 Converting base64 to ArrayBuffer...");
     const byteCharacters = atob(base64);
     const byteNumbers = new Array(byteCharacters.length);
     for (let i = 0; i < byteCharacters.length; i++) {
@@ -37,7 +35,6 @@ export const uploadImageToStorage = async (
     const byteArray = new Uint8Array(byteNumbers);
 
     // 4) Upload lên Supabase Storage
-    console.log("📤 Uploading to Supabase Storage...");
     const { data, error } = await supabase.storage
       .from(bucket)
       .upload(objectKey, byteArray, {
@@ -60,14 +57,10 @@ export const uploadImageToStorage = async (
     }
 
     // 6) Tạo URL đúng từ Supabase project
-    const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+    const supabaseUrl =
+      process.env.EXPO_PUBLIC_SUPABASE_URL ||
+      "https://lbijtyumwpjnmqrrmtpe.supabase.co";
     const correctUrl = `${supabaseUrl}/storage/v1/object/public/${bucket}/${objectKey}`;
-
-    console.log("✅ Supabase upload successful:");
-    console.log("   - Object Key:", objectKey);
-    console.log("   - Bucket:", bucket);
-    console.log("   - Generated URL:", correctUrl);
-    console.log("   - Supabase URL:", urlData.publicUrl);
 
     return {
       url: correctUrl, // Sử dụng URL được tạo thủ công
@@ -82,8 +75,6 @@ export const uploadImageToStorage = async (
 export const deleteImageFromStorage = async (
   filename: string
 ): Promise<void> => {
-  console.log("🗑️ Deleting image from Supabase:", filename);
-
   try {
     // filename dạng "avatars/xxx.jpg"
     const [bucket, ...rest] = filename.split("/");
@@ -95,8 +86,6 @@ export const deleteImageFromStorage = async (
       console.error("❌ Delete error:", error);
       throw error;
     }
-
-    console.log("✅ Delete successful");
   } catch (error) {
     console.error("❌ Delete error:", error);
     throw error;

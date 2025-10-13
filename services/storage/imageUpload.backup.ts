@@ -30,7 +30,6 @@ export const uploadImageToStorage = async (
 export const deleteImageFromStorage = async (
   filename: string
 ): Promise<void> => {
-  console.log("🗑️ Deleting image:", filename);
   // Mock delete
   await new Promise((resolve) => setTimeout(resolve, 500));
 };

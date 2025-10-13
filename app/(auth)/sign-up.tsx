@@ -3,6 +3,10 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useGoogleAuth } from "@/services/auth/google-auth";
 import { useSignUp } from "@/services/auth/hooks";
 import {
+  authErrorHandler,
+  validationErrorHandler,
+} from "@/utils/error-handler";
+import {
   isValidEmail,
   isValidPassword,
   isValidPhone,
@@ -10,14 +14,7 @@ import {
 import { CustomButton, InputField } from "@components";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import {
-  Alert,
-  Image,
-  StatusBar,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Image, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -39,19 +36,28 @@ const SignUp: React.FC = () => {
 
   const handleSignUp = async () => {
     if (!isValidEmail(email)) {
-      setErrorMessage(t("auth.invalidEmail"));
+      const errorMsg = "Invalid email address.";
+      setErrorMessage(errorMsg);
+      validationErrorHandler(errorMsg);
       return;
     }
     if (!isValidPassword(password)) {
-      setErrorMessage(t("auth.invalidPassword"));
+      const errorMsg =
+        "Password must be at least 8 characters and contain no spaces.";
+      setErrorMessage(errorMsg);
+      validationErrorHandler(errorMsg);
       return;
     }
     if (password !== confirmPassword) {
-      setErrorMessage(t("auth.passwordsNotMatch"));
+      const errorMsg = "Passwords do not match.";
+      setErrorMessage(errorMsg);
+      validationErrorHandler(errorMsg);
       return;
     }
     if (!isValidPhone(phone)) {
-      setErrorMessage(t("auth.invalidPhone"));
+      const errorMsg = "Invalid phone number. Only digits, 9 to 11 characters.";
+      setErrorMessage(errorMsg);
+      validationErrorHandler(errorMsg);
       return;
     }
     setErrorMessage("");
@@ -60,11 +66,9 @@ const SignUp: React.FC = () => {
       await signUp({ email, password, phone });
       router.replace("/(onboarding)/patient-name");
     } catch (error: any) {
-      Alert.alert(t("common.error"), error.message);
+      authErrorHandler(error);
     }
   };
-
-  const { loginWithGoogle, ready } = useGoogleAuth();
 
   return (
     <SafeAreaView edges={["bottom"]} className="flex-1 bg-white">
@@ -203,23 +207,6 @@ const SignUp: React.FC = () => {
           <Text className="mx-4 text-gray-500 text-sm">{t("auth.or")}</Text>
           <View className="flex-1 h-px bg-gray-300" />
         </View>
-
-        {/* Google Sign In */}
-        <TouchableOpacity
-          className="
-            w-16 h-16
-            bg-white
-            border border-gray-300
-            rounded-xl
-            items-center justify-center
-            mb-8
-            self-center
-          "
-          disabled={!ready}
-          onPress={loginWithGoogle}
-        >
-          <Text className="text-gray-700 text-2xl font-bold">G</Text>
-        </TouchableOpacity>
 
         {/* Link to Sign In */}
         <View className="flex-row justify-center mb-8 ">
