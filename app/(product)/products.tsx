@@ -1,10 +1,11 @@
 import SkeletonCard from "@/components/products/SkeletonCard";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useGetProducts } from "@/services/product/hooks";
 import { Product } from "@/services/product/types";
 import { formatVND } from "@/utils/format";
 import { router } from "expo-router";
 import { Search, ShoppingBag } from "lucide-react-native";
-import React, { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -21,11 +22,19 @@ const { width: screenWidth } = Dimensions.get("window");
 const cardWidth = (screenWidth - 48) / 2; // 2 cột với padding ngang
 
 export default function ProductListingScreen() {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("Tất cả");
+  const [selectedCategory, setSelectedCategory] = useState(
+    t("products.allCategories")
+  );
 
   const { data, isLoading, error, refetch, isRefetching } =
     useGetProducts(true);
+
+  // Cập nhật selectedCategory khi ngôn ngữ thay đổi
+  useEffect(() => {
+    setSelectedCategory(t("products.allCategories"));
+  }, [t]);
 
   // Danh mục
   const categories = useMemo(() => {
@@ -34,8 +43,8 @@ export default function ProductListingScreen() {
       const name = p.category?.categoryName?.trim();
       if (name) names.add(name);
     });
-    return ["Tất cả", ...Array.from(names)];
-  }, [data]);
+    return [t("products.allCategories"), ...Array.from(names)];
+  }, [data, t]);
 
   // Lọc sản phẩm
   const filteredProducts = useMemo(() => {
@@ -46,7 +55,8 @@ export default function ProductListingScreen() {
         .includes(searchQuery.toLowerCase());
       const catName = p.category?.categoryName;
       const matchesCategory =
-        selectedCategory === "Tất cả" || catName === selectedCategory;
+        selectedCategory === t("products.allCategories") ||
+        catName === selectedCategory;
       return matchesSearch && matchesCategory;
     });
   }, [data, searchQuery, selectedCategory]);
@@ -115,9 +125,11 @@ export default function ProductListingScreen() {
       <View className="bg-white px-4 py-3 border-b border-gray-100">
         <View className="flex-row items-center justify-between mb-3">
           <View>
-            <Text className="text-2xl font-bold text-gray-900">Sản phẩm</Text>
+            <Text className="text-2xl font-bold text-gray-900">
+              {t("products.title")}
+            </Text>
             <Text className="text-sm text-gray-500">
-              Danh sách sản phẩm y tế
+              {t("products.subtitle")}
             </Text>
           </View>
           <TouchableOpacity className="p-2 rounded-full bg-blue-100">
@@ -130,7 +142,7 @@ export default function ProductListingScreen() {
           <Search size={18} color="#6B7280" />
           <TextInput
             className="flex-1 ml-2 text-gray-900"
-            placeholder="Tìm sản phẩm..."
+            placeholder={t("products.searchPlaceholder")}
             placeholderTextColor="#9CA3AF"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -173,7 +185,7 @@ export default function ProductListingScreen() {
         ) : error ? (
           <View className="flex-1 items-center justify-center">
             <Text className="text-lg font-semibold text-gray-900 mb-2">
-              Lỗi tải sản phẩm
+              {t("products.loadingError")}
             </Text>
             <Text className="text-gray-600 mb-4" numberOfLines={3}>
               {String(error)}
@@ -183,7 +195,7 @@ export default function ProductListingScreen() {
               className="px-4 py-2 rounded-xl bg-blue-500"
             >
               <Text className="text-white font-medium">
-                Thử lại {isRefetching ? "…" : ""}
+                {t("products.tryAgain")} {isRefetching ? "…" : ""}
               </Text>
             </TouchableOpacity>
           </View>
@@ -201,10 +213,10 @@ export default function ProductListingScreen() {
           <View className="flex-1 items-center justify-center">
             <Search size={48} color="#9CA3AF" />
             <Text className="text-lg font-semibold text-gray-900 mt-4 mb-2">
-              Không tìm thấy sản phẩm
+              {t("products.noProductsFound")}
             </Text>
             <Text className="text-gray-600 text-center">
-              Hãy thử thay đổi bộ lọc hoặc từ khóa tìm kiếm
+              {t("products.noProductsFoundDescription")}
             </Text>
           </View>
         )}

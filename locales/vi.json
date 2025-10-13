@@ -100,7 +100,23 @@
     "english": "Tiếng Anh",
     "vietnamese": "Tiếng Việt",
     "languageSettings": "Cài đặt ngôn ngữ",
-    "languageInfo": "Thay đổi ngôn ngữ sẽ cập nhật giao diện trong toàn bộ ứng dụng. Tùy chọn của bạn sẽ được lưu tự động."
+    "languageInfo": "Thay đổi ngôn ngữ sẽ cập nhật giao diện trong toàn bộ ứng dụng. Tùy chọn của bạn sẽ được lưu tự động.",
+    "title": "Cài đặt",
+    "quickActions": "Hành động nhanh",
+    "gold": "Vàng",
+    "activityHistory": "Lịch sử hoạt động",
+    "generalSettings": "Cài đặt chung",
+    "personalInfo": "Thông tin cá nhân",
+    "notification": "Thông báo",
+    "security": "Bảo mật",
+    "helpSupport": "Trợ giúp & Hỗ trợ",
+    "about": "Giới thiệu",
+    "helpCenter": "Trung tâm trợ giúp",
+    "contactUs": "Liên hệ chúng tôi",
+    "signOut": "Đăng xuất",
+    "dangerZone": "Khu vực nguy hiểm",
+    "deleteAccount": "Xóa tài khoản",
+    "activeNow": "Đang hoạt động"
   },
   "navigation": {
     "home": "Trang chủ",
@@ -110,6 +126,61 @@
     "clinics": "Phòng khám",
     "chatbot": "Chat Bot",
     "profile": "Hồ sơ"
+  },
+  "tabs": {
+    "medicineCalendar": "Lịch thuốc",
+    "addReminder": "Thêm nhắc nhở",
+    "myPrescriptions": "Đơn thuốc của tôi"
+  },
+  "clinics": {
+    "title": "Phòng khám gần bạn",
+    "subtitle": "Tìm kiếm nhanh – đặt lịch hẹn – chỉ đường tức thì",
+    "searchPlaceholder": "Tìm kiếm theo tên hoặc địa chỉ...",
+    "locationPermissionWarning": "Bạn chưa bật quyền truy cập vị trí. Vui lòng bật quyền truy cập vị trí để xem các phòng khám gần nhất.",
+    "loadingClinics": "Đang tải phòng khám...",
+    "noClinicsFound": "Không tìm thấy phòng khám phù hợp.",
+    "call": "Gọi",
+    "directions": "Chỉ đường",
+    "details": "Chi tiết",
+    "qa": "Hỏi đáp",
+    "reviews": "Nhận xét",
+    "loadingClinicDetails": "Đang tải chi tiết phòng khám...",
+    "failedToLoadData": "Không tải được dữ liệu",
+    "tryAgain": "Thử lại",
+    "bookAppointment": "Đặt lịch",
+    "doctorTeam": "Đội ngũ bác sĩ",
+    "services": "Dịch vụ",
+    "bookThisService": "Đặt dịch vụ này",
+    "about": "Giới thiệu",
+    "defaultDescription": "Phòng khám chuyên khoa với đội ngũ bác sĩ giàu kinh nghiệm, trang thiết bị hiện đại và dịch vụ chăm sóc sức khỏe toàn diện."
+  },
+  "products": {
+    "title": "Sản phẩm",
+    "subtitle": "Danh sách sản phẩm y tế",
+    "searchPlaceholder": "Tìm sản phẩm...",
+    "allCategories": "Tất cả",
+    "loadingError": "Lỗi tải sản phẩm",
+    "tryAgain": "Thử lại",
+    "noProductsFound": "Không tìm thấy sản phẩm",
+    "noProductsFoundDescription": "Hãy thử thay đổi bộ lọc hoặc từ khóa tìm kiếm",
+    "productDetails": "Chi tiết sản phẩm",
+    "back": "Quay lại",
+    "shareProduct": "Chia sẻ sản phẩm",
+    "noProductData": "Không có dữ liệu sản phẩm",
+    "noProductDataDescription": "Vui lòng quay lại danh sách và chọn sản phẩm.",
+    "loadingImage": "Đang tải ảnh…",
+    "imageError": "Không hiển thị được ảnh",
+    "supplier": "Nhà cung cấp",
+    "description": "Mô tả",
+    "addToCart": "Thêm vào giỏ",
+    "share": "Chia sẻ",
+    "shareFeatureComingSoon": "Tính năng chia sẻ sẽ được bổ sung.",
+    "missingInfo": "Thiếu thông tin",
+    "patientIdNotFound": "Không tìm thấy patientId. Vui lòng đăng nhập/chọn bệnh nhân hoặc truyền patientId khi điều hướng từ danh sách.",
+    "success": "Thành công",
+    "productAddedToCart": "Sản phẩm đã được thêm vào giỏ.",
+    "error": "Lỗi",
+    "unableToCreateOrder": "Không thể tạo đơn hàng"
   },
   "home": {
     "appointmentScheduled": "Lịch hẹn đã được đặt cho bạn",
@@ -215,6 +286,81 @@
     "privacy": "Quyền riêng tư",
     "terms": "Điều khoản dịch vụ",
     "gold": "Thành viên Vàng"
+  },
+  "about": {
+    "title": "Giới thiệu",
+    "appName": "Hi-Vision",
+    "version": "Phiên bản 1.0.0",
+    "mission": "Sứ mệnh",
+    "missionDescription": "Hi-Vision mang đến hệ thống hỗ trợ điều trị và dịch vụ y tế toàn diện dành cho người sống chung với HIV, giúp theo dõi điều trị, quản lý lịch hẹn và kết nối nhanh chóng với bác sĩ.",
+    "organization": "Đơn vị phát triển",
+    "organizationDescription": "Được phát triển bởi Nhóm Penta-Pixel HealthTech, hợp tác cùng các chuyên gia y tế và tổ chức hỗ trợ cộng đồng.",
+    "contactSupport": "Liên hệ & Hỗ trợ",
+    "email": "support@hi-vision.io",
+    "hotline": "Hotline: 1900 1009",
+    "privacyPolicy": "Chính sách bảo mật",
+    "termsOfService": "Điều khoản dịch vụ"
+  },
+  "help": {
+    "title": "Trung tâm trợ giúp",
+    "searchPlaceholder": "Tìm câu hỏi…",
+    "contactSupport": "Liên hệ hỗ trợ",
+    "privacy": "Bảo mật",
+    "terms": "Điều khoản",
+    "noResults": "Không tìm thấy câu hỏi phù hợp.",
+    "stillNeedHelp": "Vẫn cần trợ giúp? Liên hệ chúng tôi",
+    "faqs": [
+      {
+        "question": "Hi-Vision dùng để làm gì?",
+        "answer": "Ứng dụng hỗ trợ điều trị HIV: quản lý hồ sơ, theo dõi lịch, tư vấn từ xa, đăng ký dịch vụ xét nghiệm và điều trị."
+      },
+      {
+        "question": "Dữ liệu y tế của tôi có an toàn không?",
+        "answer": "Chúng tôi áp dụng chuẩn bảo mật, mã hoá trong truyền và lưu trữ. Không chia sẻ dữ liệu khi chưa có sự đồng ý của bạn."
+      },
+      {
+        "question": "Làm thế nào để đặt lịch khám?",
+        "answer": "Hiện tính năng đang phát triển. Bạn có thể theo dõi trong mục Coming Soon hoặc liên hệ hỗ trợ để được hướng dẫn."
+      },
+      {
+        "question": "Quên mật khẩu phải làm sao?",
+        "answer": "Dùng chức năng Forgot Password tại màn hình đăng nhập. Nếu không nhận được email, hãy kiểm tra spam hoặc liên hệ hỗ trợ."
+      },
+      {
+        "question": "Tôi muốn cập nhật thông tin cá nhân?",
+        "answer": "Vào Settings → Personal Info để chỉnh sửa tên, ảnh đại diện, email…"
+      }
+    ]
+  },
+  "contact": {
+    "title": "Liên hệ chúng tôi",
+    "email": "Email",
+    "hotline": "Hotline",
+    "zaloChat": "Zalo/Chat",
+    "website": "Website",
+    "onlineSupport": "Kênh hỗ trợ trực tuyến",
+    "sendSupportRequest": "Gửi yêu cầu hỗ trợ",
+    "subject": "Chủ đề",
+    "content": "Nội dung...",
+    "sendEmail": "Gửi Email",
+    "responseTime": "* Chúng tôi phản hồi trong giờ hành chính. Nếu khẩn cấp, vui lòng gọi hotline.",
+    "error": "Lỗi",
+    "cannotOpenEmail": "Không thể mở ứng dụng email.",
+    "cannotMakeCall": "Không thể thực hiện cuộc gọi.",
+    "cannotOpenZalo": "Không thể mở Zalo."
+  },
+  "privacy": {
+    "title": "Chính sách bảo mật",
+    "content1": "Chúng tôi cam kết bảo mật dữ liệu cá nhân và thông tin y tế của bạn. Hi-Vision không chia sẻ dữ liệu người dùng với bên thứ ba nếu không có sự đồng ý.",
+    "content2": "Các dữ liệu được thu thập bao gồm: thông tin tài khoản, hồ sơ bệnh án, và lịch sử sử dụng dịch vụ nhằm cải thiện trải nghiệm và đảm bảo điều trị chính xác.",
+    "content3": "Nếu có bất kỳ câu hỏi nào về quyền riêng tư, vui lòng liên hệ qua email: support@hi-vision.io."
+  },
+  "terms": {
+    "title": "Điều khoản dịch vụ",
+    "content1": "Việc sử dụng ứng dụng Hi-Vision đồng nghĩa với việc bạn đồng ý với các điều khoản sau:",
+    "content2": "1. Ứng dụng chỉ hỗ trợ tham khảo và quản lý hồ sơ y tế. Các quyết định điều trị cuối cùng cần được thực hiện bởi bác sĩ chuyên môn.",
+    "content3": "2. Người dùng chịu trách nhiệm cung cấp thông tin chính xác để đảm bảo hiệu quả điều trị và tránh sai sót.",
+    "content4": "3. Chúng tôi có quyền cập nhật điều khoản mà không cần thông báo trước. Vui lòng kiểm tra định kỳ để nắm rõ các thay đổi."
   },
   "stats": {
     "title": "Trang tin tức",

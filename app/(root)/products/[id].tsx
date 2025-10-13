@@ -1,11 +1,12 @@
 import { AddToCartModal } from "@/components";
 import { usePatientProfile } from "@/hooks/usePatientId";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useCreateOrder } from "@/services/order/hooks";
 import { Product } from "@/services/product/types";
 import { formatVND } from "@/utils/format";
 import { router, useLocalSearchParams } from "expo-router";
 import { ArrowLeft, Share2 } from "lucide-react-native";
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   Image,
@@ -17,6 +18,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ProductDetailsScreen() {
+  const { t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
   const { data: profile } = usePatientProfile();
   const patientId = profile?.patientID;
@@ -43,17 +45,14 @@ export default function ProductDetailsScreen() {
   const handleBackPress = () => router.back();
 
   const handleSharePress = () => {
-    Alert.alert("Chia sẻ", "Tính năng chia sẻ sẽ được bổ sung.");
+    Alert.alert(t("products.share"), t("products.shareFeatureComingSoon"));
   };
 
   const handleAddToCart = () => {
     if (!product) return;
 
     if (!patientId) {
-      Alert.alert(
-        "Thiếu thông tin",
-        "Không tìm thấy patientId. Vui lòng đăng nhập/chọn bệnh nhân hoặc truyền patientId khi điều hướng từ danh sách."
-      );
+      Alert.alert(t("products.missingInfo"), t("products.patientIdNotFound"));
       return;
     }
 
@@ -67,12 +66,15 @@ export default function ProductDetailsScreen() {
       },
       {
         onSuccess: (order) => {
-          Alert.alert("Thành công", "Sản phẩm đã được thêm vào giỏ.");
+          Alert.alert(t("products.success"), t("products.productAddedToCart"));
           // Điều hướng giỏ hàng nếu muốn:
           // router.push("/(cart)/cart");
         },
         onError: (err: any) => {
-          Alert.alert("Lỗi", String(err?.message ?? "Không thể tạo đơn hàng"));
+          Alert.alert(
+            t("products.error"),
+            String(err?.message ?? t("products.unableToCreateOrder"))
+          );
         },
       }
     );
@@ -82,16 +84,16 @@ export default function ProductDetailsScreen() {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-white px-6">
         <Text className="text-lg font-semibold text-gray-900 mb-2">
-          Không có dữ liệu sản phẩm
+          {t("products.noProductData")}
         </Text>
         <Text className="text-gray-600 text-center mb-4">
-          Vui lòng quay lại danh sách và chọn sản phẩm.
+          {t("products.noProductDataDescription")}
         </Text>
         <TouchableOpacity
           onPress={handleBackPress}
           className="px-4 py-2 rounded-xl bg-blue-500"
         >
-          <Text className="text-white font-medium">Quay lại</Text>
+          <Text className="text-white font-medium">{t("products.back")}</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -108,20 +110,20 @@ export default function ProductDetailsScreen() {
           onPress={handleBackPress}
           className="p-2 rounded-full bg-blue-100"
           accessibilityRole="button"
-          accessibilityLabel="Quay lại"
+          accessibilityLabel={t("products.back")}
         >
           <ArrowLeft size={20} color="#2563EB" />
         </TouchableOpacity>
 
         <Text className="text-lg font-semibold text-gray-900">
-          Chi tiết sản phẩm
+          {t("products.productDetails")}
         </Text>
 
         <TouchableOpacity
           onPress={handleSharePress}
           className="p-2 rounded-full bg-blue-100"
           accessibilityRole="button"
-          accessibilityLabel="Chia sẻ sản phẩm"
+          accessibilityLabel={t("products.shareProduct")}
         >
           <Share2 size={20} color="#2563EB" />
         </TouchableOpacity>
@@ -149,13 +151,17 @@ export default function ProductDetailsScreen() {
 
             {imageLoading && (
               <View className="absolute inset-0 bg-gray-200 items-center justify-center">
-                <Text className="text-gray-500">Đang tải ảnh…</Text>
+                <Text className="text-gray-500">
+                  {t("products.loadingImage")}
+                </Text>
               </View>
             )}
 
             {imageError && (
               <View className="absolute inset-0 bg-gray-200 items-center justify-center">
-                <Text className="text-gray-500">Không hiển thị được ảnh</Text>
+                <Text className="text-gray-500">
+                  {t("products.imageError")}
+                </Text>
               </View>
             )}
 
@@ -196,7 +202,7 @@ export default function ProductDetailsScreen() {
           {!!supplierName && (
             <View className="bg-gray-50 rounded-2xl p-4 mb-6">
               <Text className="text-sm font-medium text-gray-500 mb-1">
-                Nhà cung cấp
+                {t("products.supplier")}
               </Text>
               <Text className="text-lg font-semibold text-gray-900">
                 {supplierName}
@@ -207,7 +213,7 @@ export default function ProductDetailsScreen() {
           {!!product.description && (
             <View className="mb-6">
               <Text className="text-lg font-semibold text-gray-900 mb-3">
-                Mô tả
+                {t("products.description")}
               </Text>
               <Text className="text-gray-700 leading-relaxed text-base">
                 {product.description}
@@ -229,7 +235,9 @@ export default function ProductDetailsScreen() {
           }
           className="bg-blue-600 rounded-2xl py-4 px-6 shadow-lg flex-row items-center justify-center"
         >
-          <Text className="text-white text-lg font-semibold">Thêm vào giỏ</Text>
+          <Text className="text-white text-lg font-semibold">
+            {t("products.addToCart")}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -240,7 +248,7 @@ export default function ProductDetailsScreen() {
         onConfirm={(quantity) => {
           // gọi useCreateOrder ở đây với quantity
           createOrder({
-            patientId,
+            patientId: patientId!,
             payload: { productId: product.id, quantity },
           });
           setModalVisible(false);

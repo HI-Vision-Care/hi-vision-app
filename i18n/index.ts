@@ -32,7 +32,7 @@ i18n
       useSuspense: false, // Disable suspense for React Native
     },
     // Ensure resources are loaded immediately
-    initImmediate: false,
+    initImmediate: true,
   })
   .then(() => {
     console.log("i18n initialized successfully");

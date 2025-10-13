@@ -1,5 +1,6 @@
 // app/about.tsx
 import { images } from "@/constants";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import {
@@ -13,6 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AboutScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
 
   return (
@@ -41,9 +43,11 @@ export default function AboutScreen() {
             style={{ width: 80, height: 80, marginBottom: 12 }}
           />
           <Text style={{ fontSize: 22, fontWeight: "800", color: "#111827" }}>
-            Hi-Vision
+            {t("about.appName")}
           </Text>
-          <Text style={{ fontSize: 14, color: "#6B7280" }}>Version 1.0.0</Text>
+          <Text style={{ fontSize: 14, color: "#6B7280" }}>
+            {t("about.version")}
+          </Text>
         </View>
 
         {/* Mission */}
@@ -55,7 +59,7 @@ export default function AboutScreen() {
             color: "#111827",
           }}
         >
-          Sứ mệnh
+          {t("about.mission")}
         </Text>
         <Text
           style={{
@@ -65,9 +69,7 @@ export default function AboutScreen() {
             marginBottom: 20,
           }}
         >
-          Hi-Vision mang đến hệ thống hỗ trợ điều trị và dịch vụ y tế toàn diện
-          dành cho người sống chung với HIV, giúp theo dõi điều trị, quản lý
-          lịch hẹn và kết nối nhanh chóng với bác sĩ.
+          {t("about.missionDescription")}
         </Text>
 
         {/* Organization */}
@@ -79,11 +81,10 @@ export default function AboutScreen() {
             color: "#111827",
           }}
         >
-          Đơn vị phát triển
+          {t("about.organization")}
         </Text>
         <Text style={{ fontSize: 14, color: "#374151", marginBottom: 20 }}>
-          Được phát triển bởi Nhóm Penta-Pixel HealthTech, hợp tác cùng các
-          chuyên gia y tế và tổ chức hỗ trợ cộng đồng.
+          {t("about.organizationDescription")}
         </Text>
 
         {/* Contact */}
@@ -95,30 +96,30 @@ export default function AboutScreen() {
             color: "#111827",
           }}
         >
-          Liên hệ & Hỗ trợ
+          {t("about.contactSupport")}
         </Text>
         <TouchableOpacity
           onPress={() => Linking.openURL("mailto:support@hi-vision.io")}
         >
           <Text style={{ fontSize: 14, color: "#2563EB", marginBottom: 4 }}>
-            support@hi-vision.io
+            {t("about.email")}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => Linking.openURL("tel:19001009")}>
           <Text style={{ fontSize: 14, color: "#2563EB", marginBottom: 20 }}>
-            Hotline: 1900 1009
+            {t("about.hotline")}
           </Text>
         </TouchableOpacity>
 
         {/* Legal */}
         <TouchableOpacity onPress={() => router.push("/privacy")}>
           <Text style={{ fontSize: 14, color: "#2563EB", marginBottom: 8 }}>
-            Privacy Policy
+            {t("about.privacyPolicy")}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => router.push("/terms")}>
           <Text style={{ fontSize: 14, color: "#2563EB" }}>
-            Terms of Service
+            {t("about.termsOfService")}
           </Text>
         </TouchableOpacity>
       </ScrollView>

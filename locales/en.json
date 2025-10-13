@@ -100,7 +100,23 @@
     "english": "English",
     "vietnamese": "Vietnamese",
     "languageSettings": "Language Settings",
-    "languageInfo": "Changing the language will update the interface throughout the app. Your preference will be saved automatically."
+    "languageInfo": "Changing the language will update the interface throughout the app. Your preference will be saved automatically.",
+    "title": "Settings",
+    "quickActions": "Quick Actions",
+    "gold": "Gold",
+    "activityHistory": "Activity history",
+    "generalSettings": "General Settings",
+    "personalInfo": "Personal Info",
+    "notification": "Notification",
+    "security": "Security",
+    "helpSupport": "Help & Support",
+    "about": "About",
+    "helpCenter": "Help Center",
+    "contactUs": "Contact Us",
+    "signOut": "Sign Out",
+    "dangerZone": "Danger Zone",
+    "deleteAccount": "Delete Account",
+    "activeNow": "Active now"
   },
   "navigation": {
     "home": "Home",
@@ -110,6 +126,61 @@
     "clinics": "Clinics",
     "chatbot": "Chat Bot",
     "profile": "Profile"
+  },
+  "tabs": {
+    "medicineCalendar": "Medicine Calendar",
+    "addReminder": "Add Reminder",
+    "myPrescriptions": "My Prescriptions"
+  },
+  "clinics": {
+    "title": "Clinic near you",
+    "subtitle": "Quick search – appointment booking – instant directions",
+    "searchPlaceholder": "Search by name or address...",
+    "locationPermissionWarning": "You have not enabled location permissions. Please enable location access to see the nearest clinics.",
+    "loadingClinics": "Loading clinic...",
+    "noClinicsFound": "No suitable clinic found.",
+    "call": "Call",
+    "directions": "Directions",
+    "details": "Details",
+    "qa": "Q&A",
+    "reviews": "Reviews",
+    "loadingClinicDetails": "Loading clinic details...",
+    "failedToLoadData": "Failed to load data",
+    "tryAgain": "Try Again",
+    "bookAppointment": "Book Appointment",
+    "doctorTeam": "Doctor Team",
+    "services": "Services",
+    "bookThisService": "Book this service",
+    "about": "About",
+    "defaultDescription": "Specialized clinic with experienced doctors, modern equipment and comprehensive healthcare services."
+  },
+  "products": {
+    "title": "Products",
+    "subtitle": "Medical products list",
+    "searchPlaceholder": "Search products...",
+    "allCategories": "All",
+    "loadingError": "Error loading products",
+    "tryAgain": "Try Again",
+    "noProductsFound": "No products found",
+    "noProductsFoundDescription": "Try changing filters or search keywords",
+    "productDetails": "Product Details",
+    "back": "Back",
+    "shareProduct": "Share Product",
+    "noProductData": "No product data",
+    "noProductDataDescription": "Please go back to the list and select a product.",
+    "loadingImage": "Loading image...",
+    "imageError": "Unable to display image",
+    "supplier": "Supplier",
+    "description": "Description",
+    "addToCart": "Add to Cart",
+    "share": "Share",
+    "shareFeatureComingSoon": "Share feature will be added soon.",
+    "missingInfo": "Missing Information",
+    "patientIdNotFound": "Patient ID not found. Please login/select patient or pass patientId when navigating from the list.",
+    "success": "Success",
+    "productAddedToCart": "Product has been added to cart.",
+    "error": "Error",
+    "unableToCreateOrder": "Unable to create order"
   },
   "home": {
     "appointmentScheduled": "Appointment Scheduled For You",
@@ -198,6 +269,81 @@
     "privacy": "Privacy",
     "terms": "Terms of Service",
     "gold": "Gold Membership"
+  },
+  "about": {
+    "title": "About",
+    "appName": "Hi-Vision",
+    "version": "Version 1.0.0",
+    "mission": "Mission",
+    "missionDescription": "Hi-Vision provides a comprehensive HIV treatment support and medical services system, helping users track treatment, manage appointments, and connect quickly with doctors.",
+    "organization": "Development Organization",
+    "organizationDescription": "Developed by Penta-Pixel HealthTech Team, in collaboration with medical experts and community support organizations.",
+    "contactSupport": "Contact & Support",
+    "email": "support@hi-vision.io",
+    "hotline": "Hotline: 1900 1009",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service"
+  },
+  "help": {
+    "title": "Help Center",
+    "searchPlaceholder": "Search questions...",
+    "contactSupport": "Contact Support",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "noResults": "No matching questions found.",
+    "stillNeedHelp": "Still need help? Contact us",
+    "faqs": [
+      {
+        "question": "What is Hi-Vision used for?",
+        "answer": "HIV treatment support app: manage records, track schedules, remote consultation, register for testing and treatment services."
+      },
+      {
+        "question": "Is my medical data safe?",
+        "answer": "We apply security standards, encryption in transmission and storage. We do not share data without your consent."
+      },
+      {
+        "question": "How to book an appointment?",
+        "answer": "This feature is currently under development. You can follow in the Coming Soon section or contact support for guidance."
+      },
+      {
+        "question": "What if I forget my password?",
+        "answer": "Use the Forgot Password function on the login screen. If you don't receive an email, check spam or contact support."
+      },
+      {
+        "question": "I want to update personal information?",
+        "answer": "Go to Settings → Personal Info to edit name, avatar, email..."
+      }
+    ]
+  },
+  "contact": {
+    "title": "Contact Us",
+    "email": "Email",
+    "hotline": "Hotline",
+    "zaloChat": "Zalo/Chat",
+    "website": "Website",
+    "onlineSupport": "Online support channel",
+    "sendSupportRequest": "Send Support Request",
+    "subject": "Subject",
+    "content": "Content...",
+    "sendEmail": "Send Email",
+    "responseTime": "* We respond during business hours. If urgent, please call the hotline.",
+    "error": "Error",
+    "cannotOpenEmail": "Cannot open email app.",
+    "cannotMakeCall": "Cannot make call.",
+    "cannotOpenZalo": "Cannot open Zalo."
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "content1": "We are committed to protecting your personal data and medical information. Hi-Vision does not share user data with third parties without consent.",
+    "content2": "Data collected includes: account information, medical records, and service usage history to improve experience and ensure accurate treatment.",
+    "content3": "If you have any questions about privacy, please contact us via email: support@hi-vision.io."
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "content1": "By using the Hi-Vision application, you agree to the following terms:",
+    "content2": "1. The application only supports reference and medical record management. Final treatment decisions must be made by professional doctors.",
+    "content3": "2. Users are responsible for providing accurate information to ensure treatment effectiveness and avoid errors.",
+    "content4": "3. We reserve the right to update terms without prior notice. Please check regularly to stay informed of changes."
   },
   "stats": {
     "title": "News",

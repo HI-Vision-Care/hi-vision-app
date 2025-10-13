@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import type React from "react";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   FlatList,
@@ -32,10 +33,11 @@ const TabNavigation = ({
   activeTab: string;
   onTabChange: (tab: string) => void;
 }) => {
+  const { t } = useTranslation();
   const tabs = [
-    { key: "details", label: "Chi tiết" },
-    { key: "reviews", label: "Hỏi đáp" },
-    { key: "feedback", label: "Nhận xét" },
+    { key: "details", label: t("clinics.details") },
+    { key: "reviews", label: t("clinics.qa") },
+    { key: "feedback", label: t("clinics.reviews") },
   ];
 
   return (
@@ -62,6 +64,7 @@ const TabNavigation = ({
 };
 
 const ClinicDetail: React.FC = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState("details");
@@ -75,7 +78,7 @@ const ClinicDetail: React.FC = () => {
       <SafeAreaView className="flex-1 items-center justify-center bg-gray-50">
         <ActivityIndicator color="#3B82F6" />
         <Text className="mt-2 text-gray-500 text-[13px]">
-          Đang tải chi tiết phòng khám...
+          {t("clinics.loadingClinicDetails")}
         </Text>
       </SafeAreaView>
     );
@@ -85,7 +88,7 @@ const ClinicDetail: React.FC = () => {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-gray-50 px-6">
         <Text className="text-red-600 font-semibold">
-          Không tải được dữ liệu
+          {t("clinics.failedToLoadData")}
         </Text>
         {!!error && (
           <Text className="text-[12px] text-gray-500 mt-1" numberOfLines={3}>
@@ -96,7 +99,9 @@ const ClinicDetail: React.FC = () => {
           onPress={() => refetch()}
           className="mt-3 px-4 py-2 bg-blue-600 rounded-xl"
         >
-          <Text className="text-white text-[13px]">Thử lại</Text>
+          <Text className="text-white text-[13px]">
+            {t("clinics.tryAgain")}
+          </Text>
         </Pressable>
       </SafeAreaView>
     );
@@ -140,7 +145,7 @@ const ClinicDetail: React.FC = () => {
               <View className="flex-row items-center">
                 <Ionicons name="calendar" size={16} color="white" />
                 <Text className="text-white text-[13px] font-medium ml-2">
-                  Đặt lịch
+                  {t("clinics.bookAppointment")}
                 </Text>
               </View>
             </Pressable>
@@ -173,7 +178,7 @@ const ClinicDetail: React.FC = () => {
         {Array.isArray(clinic.doctors) && clinic.doctors.length > 0 && (
           <View className="px-4 mb-6">
             <Text className="text-lg font-bold text-gray-900 mb-4">
-              Đội ngũ bác sĩ
+              {t("clinics.doctorTeam")}
             </Text>
             <FlatList
               horizontal
@@ -217,7 +222,7 @@ const ClinicDetail: React.FC = () => {
                     }
                   >
                     <Text className="text-white text-[12px] text-center">
-                      Đặt lịch
+                      {t("clinics.bookAppointment")}
                     </Text>
                   </Pressable>
                 </View>
@@ -231,7 +236,7 @@ const ClinicDetail: React.FC = () => {
           clinic.medicalServices.length > 0 && (
             <View className="px-4 mb-6">
               <Text className="text-lg font-bold text-gray-900 mb-4">
-                Dịch vụ
+                {t("clinics.services")}
               </Text>
               <FlatList
                 horizontal
@@ -267,7 +272,7 @@ const ClinicDetail: React.FC = () => {
                       }
                     >
                       <Text className="text-white text-[12px] text-center">
-                        Book this service
+                        {t("clinics.bookThisService")}
                       </Text>
                     </Pressable>
                   </View>
@@ -279,12 +284,11 @@ const ClinicDetail: React.FC = () => {
         {/* Giới thiệu */}
         <View className="px-4 mb-6">
           <Text className="text-lg font-bold text-gray-900 mb-3">
-            Giới thiệu
+            {t("clinics.about")}
           </Text>
           <View className="bg-gray-50 rounded-xl p-4">
             <Text className="text-[13px] text-gray-700 leading-5">
-              {clinic.des ||
-                "Phòng khám chuyên khoa với đội ngũ bác sĩ giàu kinh nghiệm, trang thiết bị hiện đại và dịch vụ chăm sóc sức khỏe toàn diện."}
+              {clinic.des || t("clinics.defaultDescription")}
             </Text>
           </View>
         </View>
