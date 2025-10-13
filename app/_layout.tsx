@@ -52,10 +52,8 @@ Notifications.setNotificationHandler({
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-
-export default function RootLayout() {
+function RootLayout() {
   const { t } = useTranslation();
-export default Sentry.wrap(function RootLayout() {
   const queryClient = new QueryClient();
   const [loaded] = useFonts({
     "Jakarta-Bold": require("../assets/fonts/PlusJakartaSans-Bold.ttf"),
@@ -126,4 +124,6 @@ export default Sentry.wrap(function RootLayout() {
       </GluestackUIProvider>
     </ErrorBoundary>
   );
-});
+}
+
+export default Sentry.wrap(RootLayout);
