@@ -1,9 +1,10 @@
 import { usePatientProfile } from "@/hooks/usePatientId";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useGetBlogPosts } from "@/services/blog/hooks";
 import { BlogPost } from "@/services/blog/types";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -17,6 +18,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Stats = () => {
+  const { t, isReady, language } = useTranslation();
   const { data: profile } = usePatientProfile();
   const patientAccountId = profile?.account.id;
   const {
@@ -27,7 +29,7 @@ const Stats = () => {
     refetch,
   } = useGetBlogPosts(patientAccountId);
   const [refreshing, setRefreshing] = useState(false);
-  const ALL_TOPIC = "Tất cả";
+  const ALL_TOPIC = t("stats.allTopics");
   const [selectedTopic, setSelectedTopic] = useState<string>(ALL_TOPIC);
 
   // Đảm bảo newest blog lên đầu (nếu backend không sort sẵn)
@@ -67,6 +69,14 @@ const Stats = () => {
     setRefreshing(false);
   }, [refetch]);
 
+  if (!isReady) {
+    return (
+      <SafeAreaView style={[styles.container, styles.center]}>
+        <Text style={styles.errorText}>{t("common.loading")}</Text>
+      </SafeAreaView>
+    );
+  }
+
   if (isLoading) {
     return (
       <SafeAreaView style={[styles.container, styles.center]}>
@@ -79,7 +89,7 @@ const Stats = () => {
     return (
       <SafeAreaView style={[styles.container, styles.center]}>
         <Text style={styles.errorText}>
-          {error?.message || "Lỗi tải bài viết"}
+          {error?.message || t("stats.loadError")}
         </Text>
       </SafeAreaView>
     );
@@ -98,7 +108,7 @@ const Stats = () => {
         >
           <Ionicons name="chevron-back" size={24} color="white" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Trang tin tức</Text>
+        <Text style={styles.headerTitle}>{t("stats.title")}</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.headerButton}>
             <Ionicons name="share-outline" size={24} color="white" />
@@ -164,14 +174,18 @@ const Stats = () => {
           <View style={[styles.tabContainer, { display: "none" }]}>
             <TouchableOpacity style={[styles.tab, styles.activeTab]}>
               <Text style={[styles.tabText, styles.activeTabText]}>
-                Bừng Sáng
+                {t("stats.categories.bright")}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.tab}>
-              <Text style={styles.tabText}>Sống khoẻ</Text>
+              <Text style={styles.tabText}>
+                {t("stats.categories.healthy")}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.tab}>
-              <Text style={styles.tabText}>Dinh dưỡng</Text>
+              <Text style={styles.tabText}>
+                {t("stats.categories.nutrition")}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -222,7 +236,9 @@ const Stats = () => {
                     {post.title}
                   </Text>
                   <Text style={styles.articleMeta}>
-                    {new Date(post.createAt).toLocaleDateString()}
+                    {new Date(post.createAt).toLocaleDateString(
+                      language === "vi" ? "vi-VN" : "en-US"
+                    )}
                   </Text>
                 </View>
               </TouchableOpacity>

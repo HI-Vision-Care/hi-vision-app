@@ -1,5 +1,7 @@
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
+import { useTranslation } from "@/hooks/useTranslation";
+import "@/i18n"; // Import i18n configuration
 import {
   listenArvConfirm,
   registerArvNotificationActions,
@@ -50,6 +52,9 @@ Notifications.setNotificationHandler({
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
+
+export default function RootLayout() {
+  const { t } = useTranslation();
 export default Sentry.wrap(function RootLayout() {
   const queryClient = new QueryClient();
   const [loaded] = useFonts({
@@ -72,6 +77,7 @@ export default Sentry.wrap(function RootLayout() {
     // Lắng nghe action xác nhận
     const subscription = listenArvConfirm((doseTime) => {
       // Có thể hiện Toast hoặc reload calendar tại đây nếu muốn
+      console.log(t("app.arvConfirmed"), doseTime);
     });
     return () => subscription.remove();
   }, []);
@@ -82,8 +88,8 @@ export default Sentry.wrap(function RootLayout() {
       const { status } = await Notifications.requestPermissionsAsync();
       if (status !== "granted") {
         Alert.alert(
-          "Thiếu quyền",
-          "Ứng dụng cần quyền gửi thông báo để nhắc uống thuốc hoạt động"
+          t("app.missingPermission"),
+          t("app.notificationPermissionRequired")
         );
       }
 

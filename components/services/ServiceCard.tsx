@@ -1,3 +1,4 @@
+import { useTranslation } from "@/hooks/useTranslation";
 import { UIMedicalService } from "@/services/medical-services/types";
 import { formatVND } from "@/utils/format";
 import { useRouter } from "expo-router";
@@ -21,6 +22,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
   getSpecialtyColor,
   router,
 }) => {
+  const { t } = useTranslation();
   if (!services || services.length === 0) return null;
 
   return (
@@ -112,7 +114,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                       {!item.isActive && (
                         <View className="bg-red-100 px-3 py-1 rounded-full self-start">
                           <Text className="text-red-600 text-xs font-semibold">
-                            Currently Unavailable
+                            {t("services.currentlyUnavailable")}
                           </Text>
                         </View>
                       )}
@@ -154,7 +156,9 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                         className="text-sm font-semibold ml-2 flex-1 text-gray-600"
                         numberOfLines={1}
                       >
-                        {item.isRequireDoctor ? "Doctor Required" : "No Doctor"}
+                        {item.isRequireDoctor
+                          ? t("services.doctorRequired")
+                          : t("services.noDoctor")}
                       </Text>
                     </View>
                     {item.type && (
@@ -190,7 +194,9 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                       }`}
                       numberOfLines={1}
                     >
-                      {item.isOnline ? "Online" : "In-Person"}
+                      {item.isOnline
+                        ? t("services.online")
+                        : t("services.inPerson")}
                     </Text>
                   </View>
                 </View>
@@ -200,7 +206,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                   <View className="mt-6">
                     <View className="bg-slate-50 rounded-2xl p-4 shadow-sm border border-slate-100">
                       <Text className="text-sm text-slate-700 font-bold mb-3">
-                        Test Panel:
+                        {t("services.testPanel")}
                       </Text>
                       <View className="space-y-1">
                         {item.testItems.slice(0, 2).map((test, idx) => (
@@ -219,7 +225,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                           <View className="flex-row items-center mt-2">
                             <View className="w-1.5 h-1.5 bg-blue-400 rounded-full mr-3" />
                             <Text className="text-sm text-blue-600 font-medium">
-                              +{item.testItems.length - 2} more tests included
+                              +{item.testItems.length - 2}{" "}
+                              {t("services.moreTestsIncluded")}
                             </Text>
                           </View>
                         )}

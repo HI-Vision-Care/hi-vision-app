@@ -1,6 +1,7 @@
+import { useTranslation } from "@/hooks/useTranslation";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   LayoutAnimation,
   Platform,
@@ -23,46 +24,48 @@ if (
 
 type FAQ = { q: string; a: string; id: string };
 
-const FAQS: FAQ[] = [
-  {
-    id: "1",
-    q: "Hi-Vision dùng để làm gì?",
-    a: "Ứng dụng hỗ trợ điều trị HIV: quản lý hồ sơ, theo dõi lịch, tư vấn từ xa, đăng ký dịch vụ xét nghiệm và điều trị.",
-  },
-  {
-    id: "2",
-    q: "Dữ liệu y tế của tôi có an toàn không?",
-    a: "Chúng tôi áp dụng chuẩn bảo mật, mã hoá trong truyền và lưu trữ. Không chia sẻ dữ liệu khi chưa có sự đồng ý của bạn.",
-  },
-  {
-    id: "3",
-    q: "Làm thế nào để đặt lịch khám?",
-    a: "Hiện tính năng đang phát triển. Bạn có thể theo dõi trong mục Coming Soon hoặc liên hệ hỗ trợ để được hướng dẫn.",
-  },
-  {
-    id: "4",
-    q: "Quên mật khẩu phải làm sao?",
-    a: "Dùng chức năng Forgot Password tại màn hình đăng nhập. Nếu không nhận được email, hãy kiểm tra spam hoặc liên hệ hỗ trợ.",
-  },
-  {
-    id: "5",
-    q: "Tôi muốn cập nhật thông tin cá nhân?",
-    a: "Vào Settings → Personal Info để chỉnh sửa tên, ảnh đại diện, email…",
-  },
-];
-
 export default function HelpCenter() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
 
+  // Get FAQs from translation
+  const faqs: FAQ[] = [
+    {
+      id: "1",
+      q: t("help.faqs.0.question"),
+      a: t("help.faqs.0.answer"),
+    },
+    {
+      id: "2",
+      q: t("help.faqs.1.question"),
+      a: t("help.faqs.1.answer"),
+    },
+    {
+      id: "3",
+      q: t("help.faqs.2.question"),
+      a: t("help.faqs.2.answer"),
+    },
+    {
+      id: "4",
+      q: t("help.faqs.3.question"),
+      a: t("help.faqs.3.answer"),
+    },
+    {
+      id: "5",
+      q: t("help.faqs.4.question"),
+      a: t("help.faqs.4.answer"),
+    },
+  ];
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return FAQS;
-    return FAQS.filter(
+    if (!q) return faqs;
+    return faqs.filter(
       (f) => f.q.toLowerCase().includes(q) || f.a.toLowerCase().includes(q)
     );
-  }, [query]);
+  }, [query, faqs, t]);
 
   const toggle = (id: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -76,7 +79,7 @@ export default function HelpCenter() {
         <TouchableOpacity style={s.iconBtn} onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={20} color="#374151" />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>Help Center</Text>
+        <Text style={s.headerTitle}>{t("help.title")}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -86,7 +89,7 @@ export default function HelpCenter() {
         <TextInput
           value={query}
           onChangeText={setQuery}
-          placeholder="Tìm câu hỏi…"
+          placeholder={t("help.searchPlaceholder")}
           placeholderTextColor="#94A3B8"
           style={s.searchInput}
           autoCapitalize="none"
@@ -104,25 +107,27 @@ export default function HelpCenter() {
           onPress={() => router.push("/contact")}
         >
           <Ionicons name="chatbubbles-outline" size={16} color="#1E40AF" />
-          <Text style={[s.chipText, { color: "#1E40AF" }]}>Liên hệ hỗ trợ</Text>
+          <Text style={[s.chipText, { color: "#1E40AF" }]}>
+            {t("help.contactSupport")}
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={s.chip}
           onPress={() => router.push("/privacy")}
         >
           <Ionicons name="shield-checkmark-outline" size={16} color="#0F172A" />
-          <Text style={s.chipText}>Privacy</Text>
+          <Text style={s.chipText}>{t("help.privacy")}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={s.chip} onPress={() => router.push("/terms")}>
           <Ionicons name="document-text-outline" size={16} color="#0F172A" />
-          <Text style={s.chipText}>Terms</Text>
+          <Text style={s.chipText}>{t("help.terms")}</Text>
         </TouchableOpacity>
       </View>
 
       {/* FAQ */}
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         {filtered.length === 0 ? (
-          <Text style={s.empty}>Không tìm thấy câu hỏi phù hợp.</Text>
+          <Text style={s.empty}>{t("help.noResults")}</Text>
         ) : (
           filtered.map((f) => (
             <View key={f.id} style={s.item}>
@@ -141,7 +146,7 @@ export default function HelpCenter() {
         {/* Contact CTA */}
         <TouchableOpacity style={s.cta} onPress={() => router.push("/contact")}>
           <Ionicons name="help-circle-outline" size={18} color="#FFFFFF" />
-          <Text style={s.ctaText}>Vẫn cần trợ giúp? Liên hệ chúng tôi</Text>
+          <Text style={s.ctaText}>{t("help.stillNeedHelp")}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

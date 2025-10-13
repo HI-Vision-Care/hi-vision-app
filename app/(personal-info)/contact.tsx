@@ -1,6 +1,7 @@
+import { useTranslation } from "@/hooks/useTranslation";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -19,6 +20,7 @@ const SUPPORT_EMAIL = "support@hi-vision.io";
 const SUPPORT_PHONE = "19001009";
 
 export default function ContactUs() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
@@ -28,20 +30,20 @@ export default function ContactUs() {
       subject || "[Hi-Vision] Yêu cầu hỗ trợ"
     )}&body=${encodeURIComponent(message || "")}`;
     Linking.openURL(mailto).catch(() =>
-      Alert.alert("Lỗi", "Không thể mở ứng dụng email.")
+      Alert.alert(t("contact.error"), t("contact.cannotOpenEmail"))
     );
   };
 
   const callHotline = () => {
     Linking.openURL(`tel:${SUPPORT_PHONE}`).catch(() =>
-      Alert.alert("Lỗi", "Không thể thực hiện cuộc gọi.")
+      Alert.alert(t("contact.error"), t("contact.cannotMakeCall"))
     );
   };
 
   const openZalo = () => {
     // nếu có official link của Zalo OA, thay URL bên dưới
     Linking.openURL("https://zalo.me/").catch(() =>
-      Alert.alert("Lỗi", "Không thể mở Zalo.")
+      Alert.alert(t("contact.error"), t("contact.cannotOpenZalo"))
     );
   };
 
@@ -52,7 +54,7 @@ export default function ContactUs() {
         <TouchableOpacity style={s.iconBtn} onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={20} color="#374151" />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>Contact Us</Text>
+        <Text style={s.headerTitle}>{t("contact.title")}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -68,7 +70,9 @@ export default function ContactUs() {
               onPress={openMail}
             >
               <Ionicons name="mail-outline" size={22} color="#1E3A8A" />
-              <Text style={[s.cardText, { color: "#1E3A8A" }]}>Email</Text>
+              <Text style={[s.cardText, { color: "#1E3A8A" }]}>
+                {t("contact.email")}
+              </Text>
               <Text style={s.cardSub}>{SUPPORT_EMAIL}</Text>
             </TouchableOpacity>
 
@@ -77,7 +81,9 @@ export default function ContactUs() {
               onPress={callHotline}
             >
               <Ionicons name="call-outline" size={22} color="#166534" />
-              <Text style={[s.cardText, { color: "#166534" }]}>Hotline</Text>
+              <Text style={[s.cardText, { color: "#166534" }]}>
+                {t("contact.hotline")}
+              </Text>
               <Text style={s.cardSub}>{SUPPORT_PHONE}</Text>
             </TouchableOpacity>
           </View>
@@ -88,8 +94,10 @@ export default function ContactUs() {
               onPress={openZalo}
             >
               <Ionicons name="chatbubbles-outline" size={22} color="#92400E" />
-              <Text style={[s.cardText, { color: "#92400E" }]}>Zalo/Chat</Text>
-              <Text style={s.cardSub}>Kênh hỗ trợ trực tuyến</Text>
+              <Text style={[s.cardText, { color: "#92400E" }]}>
+                {t("contact.zaloChat")}
+              </Text>
+              <Text style={s.cardSub}>{t("contact.onlineSupport")}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -97,25 +105,27 @@ export default function ContactUs() {
               onPress={() => Linking.openURL("https://hi-vision.io")}
             >
               <Ionicons name="globe-outline" size={22} color="#0F172A" />
-              <Text style={[s.cardText, { color: "#0F172A" }]}>Website</Text>
+              <Text style={[s.cardText, { color: "#0F172A" }]}>
+                {t("contact.website")}
+              </Text>
               <Text style={s.cardSub}>hi-vision.io</Text>
             </TouchableOpacity>
           </View>
 
           {/* Form */}
           <View style={s.form}>
-            <Text style={s.formTitle}>Gửi yêu cầu hỗ trợ</Text>
+            <Text style={s.formTitle}>{t("contact.sendSupportRequest")}</Text>
             <TextInput
               value={subject}
               onChangeText={setSubject}
-              placeholder="Chủ đề"
+              placeholder={t("contact.subject")}
               placeholderTextColor="#94A3B8"
               style={s.input}
             />
             <TextInput
               value={message}
               onChangeText={setMessage}
-              placeholder="Nội dung..."
+              placeholder={t("contact.content")}
               placeholderTextColor="#94A3B8"
               multiline
               numberOfLines={6}
@@ -124,12 +134,9 @@ export default function ContactUs() {
             />
             <TouchableOpacity style={s.submitBtn} onPress={openMail}>
               <Ionicons name="send" size={18} color="#FFFFFF" />
-              <Text style={s.submitText}>Gửi Email</Text>
+              <Text style={s.submitText}>{t("contact.sendEmail")}</Text>
             </TouchableOpacity>
-            <Text style={s.hint}>
-              * Chúng tôi phản hồi trong giờ hành chính. Nếu khẩn cấp, vui lòng
-              gọi hotline.
-            </Text>
+            <Text style={s.hint}>{t("contact.responseTime")}</Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

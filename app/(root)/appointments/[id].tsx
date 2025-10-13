@@ -1,4 +1,5 @@
 import { HeaderBack } from "@/components";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useCancelAppointment } from "@/services/appointment/hooks";
 import { useGetLabResultsByAppointmentId } from "@/services/lab-results/hooks";
 import { useGetMedicalRecordByAppointmentId } from "@/services/medical-record/hooks";
@@ -18,6 +19,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const AppointmentDetail = () => {
+  const { t } = useTranslation();
   const { data } = useLocalSearchParams<{ id: string; data?: string }>();
   const appointment = data ? JSON.parse(data) : undefined;
 
@@ -41,13 +43,13 @@ const AppointmentDetail = () => {
       },
       {
         onSuccess: () => {
-          Alert.alert("Appointment cancelled successfully!");
+          Alert.alert(t("appointmentDetail.cancelSuccess"));
           router.back(); // hoặc refetch data, hoặc điều hướng lại
         },
         onError: (error: any) => {
           Alert.alert(
-            "Cancel Failed",
-            error?.message || "An error occurred, please try again."
+            t("appointmentDetail.cancelFailed"),
+            error?.message || t("appointmentDetail.cancelError")
           );
         },
       }
@@ -120,7 +122,7 @@ const AppointmentDetail = () => {
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
 
-      <HeaderBack title="Appointment Detail" />
+      <HeaderBack title={t("appointmentDetail.title")} />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Appointment Information */}
@@ -145,7 +147,7 @@ const AppointmentDetail = () => {
               {appointment.isAnonymous && (
                 <View className="bg-purple-100 px-2 py-1 rounded-full">
                   <Text className="text-xs font-medium text-purple-800">
-                    Anonymous
+                    {t("appointmentDetail.anonymous")}
                   </Text>
                 </View>
               )}
@@ -225,12 +227,12 @@ const AppointmentDetail = () => {
                 <TouchableOpacity
                   className="ml-3 bg-blue-100 px-3 py-2 rounded-lg"
                   onPress={openDirections}
-                  accessibilityLabel="Get directions"
+                  accessibilityLabel={t("appointmentDetail.getDirections")}
                 >
                   <View className="flex-row items-center">
                     <Ionicons name="navigate" size={16} color="#2563EB" />
                     <Text className="text-blue-700 ml-2 font-semibold">
-                      Directions
+                      {t("appointmentDetail.directions")}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -245,7 +247,9 @@ const AppointmentDetail = () => {
                 color="#6b7280"
               />
               <Text className="text-gray-900 ml-3 flex-1">
-                {isOnline ? "Online Consultation" : "In-Person Visit"}
+                {isOnline
+                  ? t("appointmentDetail.onlineConsultation")
+                  : t("appointmentDetail.inPersonVisit")}
               </Text>
             </View>
 
@@ -275,7 +279,7 @@ const AppointmentDetail = () => {
                   />
                   <View className="ml-3 flex-1">
                     <Text className="text-sm font-medium text-gray-700 mb-1">
-                      Notes:
+                      {t("appointmentDetail.notes")}
                     </Text>
                     <Text className="text-gray-600 leading-5">
                       {appointment.notes}
@@ -295,15 +299,14 @@ const AppointmentDetail = () => {
                 <View className="flex-row items-center">
                   <FontAwesome5 name="vials" size={20} color="#8b5cf6" />
                   <Text className="text-lg font-semibold text-gray-900 ml-2">
-                    Included Tests
+                    {t("appointmentDetail.includedTests")}
                   </Text>
                 </View>
                 <Text className="text-sm text-gray-600 mt-1">
-                  {appointment.medicalService.testItems.length} test
+                  {appointment.medicalService.testItems.length}{" "}
                   {appointment.medicalService.testItems.length !== 1
-                    ? "s"
-                    : ""}{" "}
-                  included in this service
+                    ? t("appointmentDetail.testsIncluded")
+                    : t("appointmentDetail.testIncluded")}
                 </Text>
               </View>
               <View className="p-4">
@@ -340,7 +343,8 @@ const AppointmentDetail = () => {
                                 color="#6b7280"
                               />
                               <Text className="text-xs text-gray-600 ml-1">
-                                Unit: {test.unit || "N/A"}
+                                {t("appointmentDetail.unit")}{" "}
+                                {test.unit || "N/A"}
                               </Text>
                             </View>
                             {test.referenceRange && (
@@ -351,7 +355,8 @@ const AppointmentDetail = () => {
                                   color="#6b7280"
                                 />
                                 <Text className="text-xs text-gray-600 ml-1">
-                                  Ref: {test.referenceRange}
+                                  {t("appointmentDetail.reference")}{" "}
+                                  {test.referenceRange}
                                 </Text>
                               </View>
                             )}
@@ -375,7 +380,7 @@ const AppointmentDetail = () => {
                 <Text className="ml-2 text-red-700 flex-1">
                   {(medicalError as any)?.response?.data?.message ||
                     medicalError?.message ||
-                    "Đã xảy ra lỗi khi lấy hồ sơ khám bệnh."}
+                    t("appointmentDetail.medicalRecordError")}
                 </Text>
               </View>
             )}
@@ -385,7 +390,7 @@ const AppointmentDetail = () => {
               <View className="bg-white mx-4 mt-4 rounded-lg border border-yellow-200 p-4 flex-row items-center">
                 <Ionicons name="information-circle" size={20} color="#f59e42" />
                 <Text className="ml-2 text-yellow-700 flex-1">
-                  Không có hồ sơ khám bệnh cho lịch hẹn này.
+                  {t("appointmentDetail.noMedicalRecord")}
                 </Text>
               </View>
             )}
@@ -401,7 +406,7 @@ const AppointmentDetail = () => {
                       color="#ef4444"
                     />
                     <Text className="text-lg font-semibold text-gray-900 ml-2">
-                      Medical Record
+                      {t("appointmentDetail.medicalRecord")}
                     </Text>
                   </View>
                 </View>
@@ -409,7 +414,7 @@ const AppointmentDetail = () => {
                   {/* Diagnosis */}
                   <View>
                     <Text className="text-sm font-medium text-gray-700 mb-1">
-                      Diagnosis:
+                      {t("appointmentDetail.diagnosis")}
                     </Text>
                     <Text className="text-gray-900">
                       {medicalRecord.diagnosis}
@@ -419,7 +424,7 @@ const AppointmentDetail = () => {
                   {/* Creation Date */}
                   <View>
                     <Text className="text-sm font-medium text-gray-700 mb-1">
-                      Record Created:
+                      {t("appointmentDetail.recordCreated")}
                     </Text>
                     <Text className="text-gray-600">
                       {formatDateUTC(medicalRecord.createDate || "")}
@@ -429,7 +434,7 @@ const AppointmentDetail = () => {
                   {/* Medical Notes */}
                   <View>
                     <Text className="text-sm font-medium text-gray-700 mb-1">
-                      Medical Notes:
+                      {t("appointmentDetail.medicalNotes")}
                     </Text>
                     <Text className="text-gray-600 leading-5">
                       {medicalRecord.note}
@@ -448,7 +453,7 @@ const AppointmentDetail = () => {
               <View className="flex-row items-center">
                 <FontAwesome5 name="flask" size={20} color="#8b5cf6" />
                 <Text className="text-lg font-semibold text-gray-900 ml-2">
-                  Lab Results
+                  {t("appointmentDetail.labResults")}
                 </Text>
               </View>
             </View>
@@ -490,7 +495,7 @@ const AppointmentDetail = () => {
                   <View className="space-y-1">
                     <View className="flex-row justify-between">
                       <Text className="text-sm text-gray-600">
-                        Result Value:
+                        {t("appointmentDetail.resultValue")}
                       </Text>
                       <Text className="text-sm font-medium text-gray-900">
                         {result.resultValue} {result.unit}
@@ -498,20 +503,24 @@ const AppointmentDetail = () => {
                     </View>
                     <View className="flex-row justify-between">
                       <Text className="text-sm text-gray-600">
-                        Reference Range:
+                        {t("appointmentDetail.referenceRange")}
                       </Text>
                       <Text className="text-sm text-gray-700">
                         {result.referenceRange}
                       </Text>
                     </View>
                     <View className="flex-row justify-between">
-                      <Text className="text-sm text-gray-600">Test Date:</Text>
+                      <Text className="text-sm text-gray-600">
+                        {t("appointmentDetail.testDate")}
+                      </Text>
                       <Text className="text-sm text-gray-700">
                         {formatDateUTC(result.testDate)}
                       </Text>
                     </View>
                     <View className="flex-row justify-between">
-                      <Text className="text-sm text-gray-600">Lab:</Text>
+                      <Text className="text-sm text-gray-600">
+                        {t("appointmentDetail.lab")}
+                      </Text>
                       <Text className="text-sm text-gray-700">
                         {result.performedBy}
                       </Text>
@@ -542,7 +551,9 @@ const AppointmentDetail = () => {
                 <View className="flex-row items-center justify-center">
                   <MaterialIcons name="cancel" size={20} color="white" />
                   <Text className="text-white font-semibold ml-2">
-                    {isCancelling ? "Cancelling..." : "Cancel Appointment"}
+                    {isCancelling
+                      ? t("appointmentDetail.cancelling")
+                      : t("appointmentDetail.cancelAppointment")}
                   </Text>
                 </View>
               </TouchableOpacity>

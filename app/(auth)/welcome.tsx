@@ -1,3 +1,4 @@
+import { useTranslation } from "@/hooks/useTranslation";
 import { router } from "expo-router";
 import { useRef, useState } from "react";
 import { Dimensions, Image, Text, TouchableOpacity, View } from "react-native";
@@ -9,6 +10,7 @@ import { icons, onboarding } from "@/constants";
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 
 const Home = () => {
+  const { t } = useTranslation();
   const swiperRef = useRef<Swiper>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -30,7 +32,7 @@ const Home = () => {
           onPress={() => router.replace("/(auth)/sign-up")}
           className="px-2 py-1"
         >
-          <Text className="text-[#242e49] ">Skip</Text>
+          <Text className="text-[#242e49] ">{t("auth.skip")}</Text>
         </TouchableOpacity>
       </View>
 

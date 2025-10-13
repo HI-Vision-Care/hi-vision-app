@@ -1,5 +1,6 @@
 import { images, menuSections } from "@/constants";
 import { usePatientProfile } from "@/hooks/usePatientId";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useDeleteAccount } from "@/services/patient/hooks";
 import { useCreateWallet, useWalletByAccountId } from "@/services/wallet/hooks";
 import { Account, FeatureCard, MenuItem, MenuSection } from "@/types/type";
@@ -21,6 +22,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Setting = () => {
+  const { t } = useTranslation();
   const { data: profile } = usePatientProfile();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -75,7 +77,7 @@ const Setting = () => {
     if (itemId === "personal") router.push("/personalinfo");
 
     if (itemId === "notification") return openComingSoon("Notification");
-    if (itemId === "language") return openComingSoon("Language");
+    if (itemId === "language") return router.push("/language"); // Chuyển đến màn hình language chuyên dụng
     if (itemId === "preferences") return router.push("/preferences");
     if (itemId === "about") return router.push("/about");
     if (itemId === "help") return router.push("/help");
@@ -166,7 +168,11 @@ const Setting = () => {
                 : "#374151",
           }}
         >
-          {card.title}
+          {card.id === "gold"
+            ? t("settings.gold")
+            : card.id === "activity-history"
+            ? t("settings.activityHistory")
+            : card.title}
         </Text>
       </TouchableOpacity>
     );
@@ -208,7 +214,27 @@ const Setting = () => {
               item.isDanger ? "text-red-600" : "text-gray-800"
             }`}
           >
-            {item.title}
+            {item.id === "personal"
+              ? t("settings.personalInfo")
+              : item.id === "notification"
+              ? t("settings.notification")
+              : item.id === "preferences"
+              ? t("settings.preferences")
+              : item.id === "security"
+              ? t("settings.security")
+              : item.id === "language"
+              ? t("settings.language")
+              : item.id === "about"
+              ? t("settings.about")
+              : item.id === "help"
+              ? t("settings.helpCenter")
+              : item.id === "contact"
+              ? t("settings.contactUs")
+              : item.id === "signout"
+              ? t("settings.signOut")
+              : item.id === "delete"
+              ? t("settings.deleteAccount")
+              : item.title}
           </Text>
         </View>
       </View>
@@ -235,7 +261,19 @@ const Setting = () => {
     <View key={index} className="mb-6">
       {/* Section Header */}
       <View className="flex-row justify-between items-center px-6 mb-3">
-        <Text className="text-lg font-bold text-gray-800">{section.title}</Text>
+        <Text className="text-lg font-bold text-gray-800">
+          {section.title === "General Settings"
+            ? t("settings.generalSettings")
+            : section.title === "Accessibility"
+            ? t("settings.accessibility")
+            : section.title === "Help & Support"
+            ? t("settings.helpSupport")
+            : section.title === "Sign Out"
+            ? t("settings.signOut")
+            : section.title === "Danger Zone"
+            ? t("settings.dangerZone")
+            : section.title}
+        </Text>
       </View>
 
       {/* Section Items */}
@@ -278,7 +316,9 @@ const Setting = () => {
         <Ionicons name="chevron-back" size={20} color="#374151" />
       </TouchableOpacity>
 
-      <Text className="text-xl font-bold text-gray-900">Settings</Text>
+      <Text className="text-xl font-bold text-gray-900">
+        {t("settings.title")}
+      </Text>
 
       <TouchableOpacity
         className="w-10 h-10 rounded-full bg-white justify-center items-center"
@@ -349,7 +389,7 @@ const Setting = () => {
                         className="text-xs"
                         style={{ color: "rgba(255, 255, 255, 0.7)" }}
                       >
-                        Active now
+                        {t("settings.activeNow")}
                       </Text>
                     </View>
                   </View>
@@ -427,7 +467,7 @@ const Setting = () => {
           {/* Feature Cards Section */}
           {/* <View className="px-4 mb-8">
             <Text className="text-lg font-bold text-gray-800 mb-4 px-2">
-              Quick Actions
+              {t("settings.quickActions")}
             </Text>
             <View className="flex-row justify-between">
               {featureCards.map((card) => renderFeatureCard(card))}

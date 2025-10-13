@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { router } from "expo-router";
 import { JSX, useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   FlatList,
   Image,
@@ -58,6 +59,7 @@ const openDirections = (coords: LatLng, label?: string) => {
 };
 
 const ClinicsScreen: React.FC = () => {
+  const { t } = useTranslation();
   const [granted, setGranted] = useState<boolean | null>(null);
   const [coords, setCoords] = useState<LatLng | null>(null);
   const [search, setSearch] = useState("");
@@ -242,7 +244,9 @@ const ClinicsScreen: React.FC = () => {
                 onPress={() => Linking.openURL(`tel:${item.phone}`)}
                 className="px-3 py-2 rounded-xl bg-gray-100 mr-2"
               >
-                <Text className="text-[12px] text-gray-800">Call</Text>
+                <Text className="text-[12px] text-gray-800">
+                  {t("clinics.call")}
+                </Text>
               </Pressable>
             )}
             <Pressable
@@ -259,7 +263,7 @@ const ClinicsScreen: React.FC = () => {
                   item.coords ? "text-white" : "text-gray-500"
                 }`}
               >
-                Directions
+                {t("clinics.directions")}
               </Text>
             </Pressable>
           </View>
@@ -274,10 +278,10 @@ const ClinicsScreen: React.FC = () => {
       <View className="px-5 pt-2 pb-3 flex-row items-center justify-between">
         <View>
           <Text className="text-xl font-bold text-gray-900">
-            Clinic near you
+            {t("clinics.title")}
           </Text>
           <Text className="text-[13px] text-gray-500 mt-0.5">
-            Quick search – appointment booking – instant directions
+            {t("clinics.subtitle")}
           </Text>
         </View>
         <Pressable
@@ -296,7 +300,7 @@ const ClinicsScreen: React.FC = () => {
         <View className="flex-row items-center bg-white border border-gray-200 rounded-2xl px-3 py-2 shadow-sm">
           <Ionicons name="search" size={18} color="#6B7280" />
           <TextInput
-            placeholder="Search by name or address..."
+            placeholder={t("clinics.searchPlaceholder")}
             className="ml-2 flex-1 text-[14px] text-gray-800"
             value={search}
             onChangeText={setSearch}
@@ -315,8 +319,7 @@ const ClinicsScreen: React.FC = () => {
         {granted === false && (
           <View className="bg-amber-50 border border-amber-200 rounded-xl p-3">
             <Text className="text-[13px] text-amber-800">
-              You have not enabled location permissions. Please enable location
-              access to see the nearest clinics.
+              {t("clinics.locationPermissionWarning")}
             </Text>
           </View>
         )}
@@ -334,8 +337,8 @@ const ClinicsScreen: React.FC = () => {
             <Ionicons name="search" size={24} color="#9CA3AF" />
             <Text className="text-[13px] text-gray-500 mt-2">
               {loadingFacilities
-                ? "Loading clinic..."
-                : "No suitable clinic found."}
+                ? t("clinics.loadingClinics")
+                : t("clinics.noClinicsFound")}
             </Text>
           </View>
         }

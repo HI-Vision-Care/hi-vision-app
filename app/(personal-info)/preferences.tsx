@@ -1,5 +1,6 @@
 // app/preferences.tsx
 import { HeaderBack } from "@/components";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
@@ -32,6 +33,7 @@ const PREF_KEYS = {
 
 export default function PreferencesScreen() {
   const router = useRouter();
+  const { t, language, setLanguage } = useTranslation();
 
   const [theme, setTheme] = useState<ThemeMode>("system");
   const [fontScale, setFontScale] = useState<number>(1); // 0.9–1.3
@@ -81,6 +83,27 @@ export default function PreferencesScreen() {
       style={[styles.pill, theme === value && styles.pillActive]}
     >
       <Text style={[styles.pillText, theme === value && styles.pillTextActive]}>
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  const LanguagePill = ({
+    value,
+    label,
+  }: {
+    value: "en" | "vi";
+    label: string;
+  }) => (
+    <TouchableOpacity
+      onPress={() => {
+        setLanguage(value);
+      }}
+      style={[styles.pill, language === value && styles.pillActive]}
+    >
+      <Text
+        style={[styles.pillText, language === value && styles.pillTextActive]}
+      >
         {label}
       </Text>
     </TouchableOpacity>
@@ -136,7 +159,7 @@ export default function PreferencesScreen() {
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <HeaderBack title="Preferences" />
+      <HeaderBack title={t("settings.preferences")} />
 
       {/* Content */}
       <ScrollView
@@ -144,23 +167,23 @@ export default function PreferencesScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Appearance</Text>
+          <Text style={styles.sectionTitle}>{t("settings.appearance")}</Text>
           <View style={styles.card}>
-            <Text style={styles.cardLabel}>Theme</Text>
+            <Text style={styles.cardLabel}>{t("settings.theme")}</Text>
             <View style={styles.pillsRow}>
-              <ThemePill value="system" label="System" />
-              <ThemePill value="light" label="Light" />
-              <ThemePill value="dark" label="Dark" />
+              <ThemePill value="system" label={t("settings.system")} />
+              <ThemePill value="light" label={t("settings.light")} />
+              <ThemePill value="dark" label={t("settings.dark")} />
             </View>
 
             <Row
-              title="Text size"
-              subtitle="Điều chỉnh kích thước chữ trong ứng dụng"
+              title={t("settings.textSize")}
+              subtitle={t("settings.adjustTextSize")}
               right={<Stepper />}
             />
 
             <Row
-              title="High contrast"
+              title={t("settings.highContrast")}
               right={
                 <Switch
                   value={highContrast}
@@ -175,8 +198,8 @@ export default function PreferencesScreen() {
             />
 
             <Row
-              title="Reduce motion"
-              subtitle="Giảm hiệu ứng chuyển cảnh/animation"
+              title={t("settings.reduceMotion")}
+              subtitle={t("settings.reduceMotionDesc")}
               right={
                 <Switch
                   value={reduceMotion}
@@ -193,11 +216,11 @@ export default function PreferencesScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Accessibility</Text>
+          <Text style={styles.sectionTitle}>{t("settings.accessibility")}</Text>
           <View style={styles.card}>
             <Row
-              title="Haptic feedback"
-              subtitle="Rung nhẹ khi chạm nút"
+              title={t("settings.hapticFeedback")}
+              subtitle={t("settings.hapticFeedbackDesc")}
               right={
                 <Switch
                   value={haptic}
@@ -214,10 +237,12 @@ export default function PreferencesScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Content & Behavior</Text>
+          <Text style={styles.sectionTitle}>
+            {t("settings.contentBehavior")}
+          </Text>
           <View style={styles.card}>
             <Row
-              title="Autoplay animations"
+              title={t("settings.autoplayAnimations")}
               right={
                 <Switch
                   value={autoplay}
@@ -231,8 +256,8 @@ export default function PreferencesScreen() {
               }
             />
             <Row
-              title="Data saver"
-              subtitle="Giảm chất lượng ảnh/kích thước tải về trên mạng di động"
+              title={t("settings.dataSaver")}
+              subtitle={t("settings.dataSaverDesc")}
               right={
                 <Switch
                   value={dataSaver}
@@ -249,9 +274,9 @@ export default function PreferencesScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Region & Units</Text>
+          <Text style={styles.sectionTitle}>{t("settings.regionUnits")}</Text>
           <View style={styles.card}>
-            <Text style={styles.cardLabel}>Units</Text>
+            <Text style={styles.cardLabel}>{t("settings.units")}</Text>
             <View style={styles.pillsRow}>
               <TouchableOpacity
                 style={[styles.pill, units === "metric" && styles.pillActive]}
@@ -266,7 +291,7 @@ export default function PreferencesScreen() {
                     units === "metric" && styles.pillTextActive,
                   ]}
                 >
-                  Metric
+                  {t("settings.metric")}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -282,13 +307,13 @@ export default function PreferencesScreen() {
                     units === "imperial" && styles.pillTextActive,
                   ]}
                 >
-                  Imperial
+                  {t("settings.imperial")}
                 </Text>
               </TouchableOpacity>
             </View>
 
             <Text style={[styles.cardLabel, { marginTop: 14 }]}>
-              Date format
+              {t("settings.dateFormat")}
             </Text>
             <View style={styles.pillsRow}>
               <TouchableOpacity
@@ -323,6 +348,17 @@ export default function PreferencesScreen() {
                   MM/DD/YYYY
                 </Text>
               </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t("settings.language")}</Text>
+          <View style={styles.card}>
+            <Text style={styles.cardLabel}>{t("settings.selectLanguage")}</Text>
+            <View style={styles.pillsRow}>
+              <LanguagePill value="vi" label={t("settings.vietnamese")} />
+              <LanguagePill value="en" label={t("settings.english")} />
             </View>
           </View>
         </View>

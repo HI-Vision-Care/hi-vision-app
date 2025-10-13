@@ -1,6 +1,8 @@
-"use client"
+"use client";
 
-import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
+import DateTimePicker, {
+  type DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { useCallback, useMemo, useState } from "react";
 import {
@@ -13,20 +15,54 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
+import { useTranslation } from "@/hooks/useTranslation";
 import { WidgetManager } from "@/native/WidgetManager";
 import { createMedicationPlan } from "@/services/medication/scheduler";
 import type { MedicationSlot } from "@/services/medication/types";
 import { requestNotificationPermissions } from "@/services/notification/prep-notification";
 
-const SLOT_METADATA: Record<MedicationSlot, { label: string; emoji: string; defaultHour: number; defaultMinute: number }> = {
-  morning: { label: "Buổi sáng", emoji: "🌅", defaultHour: 7, defaultMinute: 0 },
-  noon: { label: "Buổi trưa", emoji: "☀️", defaultHour: 12, defaultMinute: 0 },
-  afternoon: { label: "Buổi chiều", emoji: "🌇", defaultHour: 16, defaultMinute: 0 },
-  evening: { label: "Buổi tối", emoji: "🌙", defaultHour: 21, defaultMinute: 0 },
-  custom: { label: "Tùy chỉnh", emoji: "🕑", defaultHour: 10, defaultMinute: 0 },
-};
+const getSlotMetadata = (
+  t: any
+): Record<
+  MedicationSlot,
+  { label: string; emoji: string; defaultHour: number; defaultMinute: number }
+> => ({
+  morning: {
+    label: t("medicine.medicationReminderForm.morning"),
+    emoji: "🌅",
+    defaultHour: 7,
+    defaultMinute: 0,
+  },
+  noon: {
+    label: t("medicine.medicationReminderForm.noon"),
+    emoji: "☀️",
+    defaultHour: 12,
+    defaultMinute: 0,
+  },
+  afternoon: {
+    label: t("medicine.medicationReminderForm.afternoon"),
+    emoji: "🌇",
+    defaultHour: 16,
+    defaultMinute: 0,
+  },
+  evening: {
+    label: t("medicine.medicationReminderForm.evening"),
+    emoji: "🌙",
+    defaultHour: 21,
+    defaultMinute: 0,
+  },
+  custom: {
+    label: t("medicine.medicationReminderForm.custom"),
+    emoji: "🕑",
+    defaultHour: 10,
+    defaultMinute: 0,
+  },
+});
 
 type SlotState = {
   id: string;
@@ -37,10 +73,15 @@ type SlotState = {
   labelOverride: string;
 };
 
-const createId = () => `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+const createId = () =>
+  `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 
-const createSlotState = (slot: MedicationSlot, dateRef: Date): SlotState => {
-  const meta = SLOT_METADATA[slot];
+const createSlotState = (
+  slot: MedicationSlot,
+  dateRef: Date,
+  t: any
+): SlotState => {
+  const meta = getSlotMetadata(t)[slot];
   const time = new Date(dateRef);
   time.setHours(meta.defaultHour, meta.defaultMinute, 0, 0);
   return {
@@ -53,26 +94,38 @@ const createSlotState = (slot: MedicationSlot, dateRef: Date): SlotState => {
   };
 };
 
-const PRESET_CONFIGS = {
+const getPresetConfigs = (t: any) => ({
   prep: {
-    planName: "Nhắc PrEP hàng ngày",
-    medicineName: "PrEP",
-    notes: "Uống mỗi ngày cùng thời điểm.",
+    planName: t("medicine.medicationReminderForm.prepDailyReminder"),
+    medicineName: t("medicine.medicationReminderForm.prep"),
+    notes: t("medicine.medicationReminderForm.takeDailySameTime"),
     slots: [
-      { slot: "evening" as MedicationSlot, hour: 20, minute: 0, note: "Uống đều đặn", quantity: "1" },
+      {
+        slot: "evening" as MedicationSlot,
+        hour: 20,
+        minute: 0,
+        note: t("medicine.medicationReminderForm.prepSlot"),
+        quantity: "1",
+      },
     ],
   },
   arv: {
-    planName: "Nhắc ARV",
-    medicineName: "ARV",
-    notes: "Nhắc gồm cảnh báo và đếm ngược.",
+    planName: t("medicine.medicationReminderForm.arvReminder"),
+    medicineName: t("medicine.medicationReminderForm.arv"),
+    notes: t("medicine.medicationReminderForm.reminderWithWarning"),
     slots: [
-      { slot: "evening" as MedicationSlot, hour: 19, minute: 30, note: "Sau khi ăn tối", quantity: "1" },
+      {
+        slot: "evening" as MedicationSlot,
+        hour: 19,
+        minute: 30,
+        note: t("medicine.medicationReminderForm.afterDinner"),
+        quantity: "1",
+      },
     ],
   },
-};
+});
 
-function applySlotPreset(baseDate: Date, preset: (typeof PRESET_CONFIGS)["prep" | "arv"]["slots"]) {
+function applySlotPreset(baseDate: Date, preset: any[], t: any) {
   return preset.map((config) => {
     const slotDate = new Date(baseDate);
     slotDate.setHours(config.hour, config.minute, 0, 0);
@@ -88,14 +141,21 @@ function applySlotPreset(baseDate: Date, preset: (typeof PRESET_CONFIGS)["prep" 
 }
 
 export default function MedicationReminderForm() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const today = useMemo(() => new Date(), []);
 
-  const [planName, setPlanName] = useState("Kế hoạch thuốc mới");
-  const [medicineName, setMedicineName] = useState("Thuốc");
+  const [planName, setPlanName] = useState(
+    t("medicine.medicationReminderForm.planName")
+  );
+  const [medicineName, setMedicineName] = useState(
+    t("medicine.medicationReminderForm.medicineName")
+  );
   const [planNotes, setPlanNotes] = useState("");
   const [totalDays, setTotalDays] = useState("7");
-  const [regimenType, setRegimenType] = useState<"custom" | "prep" | "arv">("custom");
+  const [regimenType, setRegimenType] = useState<"custom" | "prep" | "arv">(
+    "custom"
+  );
 
   const [startDate, setStartDate] = useState(() => {
     const date = new Date();
@@ -105,18 +165,23 @@ export default function MedicationReminderForm() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const [slots, setSlots] = useState<SlotState[]>(() => [createSlotState("morning", today)]);
+  const [slots, setSlots] = useState<SlotState[]>(() => [
+    createSlotState("morning", today, t),
+  ]);
 
   const formatDate = (date: Date) => date.toLocaleDateString("vi-VN");
   const formatTime = (date: Date) =>
-    date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", hour12: false });
+    date.toLocaleTimeString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
 
-  const updateSlot = useCallback(
-    (id: string, partial: Partial<SlotState>) => {
-      setSlots((prev) => prev.map((item) => (item.id === id ? { ...item, ...partial } : item)));
-    },
-    [],
-  );
+  const updateSlot = useCallback((id: string, partial: Partial<SlotState>) => {
+    setSlots((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, ...partial } : item))
+    );
+  }, []);
 
   const removeSlot = useCallback((id: string) => {
     setSlots((prev) => prev.filter((item) => item.id !== id));
@@ -124,9 +189,9 @@ export default function MedicationReminderForm() {
 
   const addSlot = useCallback(
     (slot: MedicationSlot) => {
-      setSlots((prev) => [...prev, createSlotState(slot, startDate)]);
+      setSlots((prev) => [...prev, createSlotState(slot, startDate, t)]);
     },
-    [startDate],
+    [startDate, t]
   );
 
   const onChangeStartDate = (event: DateTimePickerEvent, selected?: Date) => {
@@ -139,30 +204,31 @@ export default function MedicationReminderForm() {
         const nextTime = new Date(selected);
         nextTime.setHours(item.time.getHours(), item.time.getMinutes(), 0, 0);
         return { ...item, time: nextTime };
-      }),
+      })
     );
   };
 
   const handlePreset = (type: "prep" | "arv") => {
-    const preset = PRESET_CONFIGS[type];
+    const presetConfigs = getPresetConfigs(t);
+    const preset = presetConfigs[type];
     const baseDate = new Date(startDate);
     setPlanName(preset.planName);
     setMedicineName(preset.medicineName);
     setPlanNotes(preset.notes);
     setRegimenType(type);
-    setSlots(applySlotPreset(baseDate, preset.slots));
+    setSlots(applySlotPreset(baseDate, preset.slots, t));
   };
 
   const validateInputs = () => {
     if (!medicineName.trim()) {
-      return "Bạn cần nhập tên thuốc";
+      return t("medicine.medicationReminderForm.enterMedicineName");
     }
     const days = Number.parseInt(totalDays, 10);
     if (Number.isNaN(days) || days < 1 || days > 365) {
-      return "Số ngày phải trong khoảng 1-365";
+      return t("medicine.medicationReminderForm.validDays");
     }
     if (!slots.length) {
-      return "Thêm ít nhất một thời điểm uống";
+      return t("medicine.medicationReminderForm.addAtLeastOne");
     }
     return null;
   };
@@ -170,7 +236,7 @@ export default function MedicationReminderForm() {
   const handleSave = async () => {
     const error = validateInputs();
     if (error) {
-      Alert.alert("Thiếu thông tin", error);
+      Alert.alert(t("medicine.medicationReminderForm.missingInfo"), error);
       return;
     }
 
@@ -200,28 +266,50 @@ export default function MedicationReminderForm() {
       }
 
       Alert.alert(
-        "Đã tạo kế hoạch",
-        `Đã lưu lịch uống cho ${medicineName}\nBắt đầu từ ${formatDate(startDate)}\nSố ngày: ${days}`,
+        t("medicine.medicationReminderForm.planCreated"),
+        t("medicine.medicationReminderForm.scheduleSaved", {
+          medicineName,
+          startDate: formatDate(startDate),
+          days,
+        })
       );
     } catch (err) {
       console.error("createMedicationPlan failed", err);
-      Alert.alert("Lỗi", "Không thể lưu kế hoạch thuốc. Vui lòng thử lại.");
+      Alert.alert(
+        t("medicine.medicationReminderForm.error"),
+        t("medicine.medicationReminderForm.cannotSavePlan")
+      );
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#F8FAFC", paddingTop: insets.top }}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: "#F8FAFC", paddingTop: insets.top }}
+    >
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 48 }}>
-        <Text style={{ fontSize: 24, fontWeight: "700", marginBottom: 12 }}>📋 Kế hoạch uống thuốc</Text>
+        <Text style={{ fontSize: 24, fontWeight: "700", marginBottom: 12 }}>
+          {t("medicine.medicationReminderForm.title")}
+        </Text>
 
-        <View style={{ backgroundColor: "white", borderRadius: 12, padding: 16, marginBottom: 16 }}>
-          <Text style={{ fontWeight: "600", fontSize: 16, marginBottom: 4 }}>Tên kế hoạch</Text>
+        <View
+          style={{
+            backgroundColor: "white",
+            borderRadius: 12,
+            padding: 16,
+            marginBottom: 16,
+          }}
+        >
+          <Text style={{ fontWeight: "600", fontSize: 16, marginBottom: 4 }}>
+            {t("medicine.medicationReminderForm.planName")}
+          </Text>
           <TextInput
             value={planName}
             onChangeText={setPlanName}
-            placeholder="Ví dụ: Liệu trình tháng 9"
+            placeholder={t(
+              "medicine.medicationReminderForm.planNamePlaceholder"
+            )}
             style={{
               backgroundColor: "#EFF6FF",
               borderRadius: 8,
@@ -231,11 +319,22 @@ export default function MedicationReminderForm() {
             }}
           />
 
-          <Text style={{ fontWeight: "600", fontSize: 16, marginTop: 12, marginBottom: 4 }}>Tên thuốc</Text>
+          <Text
+            style={{
+              fontWeight: "600",
+              fontSize: 16,
+              marginTop: 12,
+              marginBottom: 4,
+            }}
+          >
+            {t("medicine.medicationReminderForm.medicineName")}
+          </Text>
           <TextInput
             value={medicineName}
             onChangeText={setMedicineName}
-            placeholder="Ví dụ: PrEP, ARV, Vitamin C"
+            placeholder={t(
+              "medicine.medicationReminderForm.medicineNamePlaceholder"
+            )}
             style={{
               backgroundColor: "#EFF6FF",
               borderRadius: 8,
@@ -245,11 +344,22 @@ export default function MedicationReminderForm() {
             }}
           />
 
-          <Text style={{ fontWeight: "600", fontSize: 16, marginTop: 12, marginBottom: 4 }}>Ghi chú chung</Text>
+          <Text
+            style={{
+              fontWeight: "600",
+              fontSize: 16,
+              marginTop: 12,
+              marginBottom: 4,
+            }}
+          >
+            {t("medicine.medicationReminderForm.generalNotes")}
+          </Text>
           <TextInput
             value={planNotes}
             onChangeText={setPlanNotes}
-            placeholder="Ví dụ: Uống sau ăn sáng"
+            placeholder={t(
+              "medicine.medicationReminderForm.generalNotesPlaceholder"
+            )}
             multiline
             style={{
               backgroundColor: "#F1F5F9",
@@ -263,8 +373,17 @@ export default function MedicationReminderForm() {
           />
         </View>
 
-        <View style={{ backgroundColor: "white", borderRadius: 12, padding: 16, marginBottom: 16 }}>
-          <Text style={{ fontWeight: "600", fontSize: 16 }}>Ngày bắt đầu</Text>
+        <View
+          style={{
+            backgroundColor: "white",
+            borderRadius: 12,
+            padding: 16,
+            marginBottom: 16,
+          }}
+        >
+          <Text style={{ fontWeight: "600", fontSize: 16 }}>
+            {t("medicine.medicationReminderForm.startDate")}
+          </Text>
           <TouchableOpacity
             style={{
               marginTop: 8,
@@ -287,12 +406,14 @@ export default function MedicationReminderForm() {
             />
           )}
 
-          <Text style={{ fontWeight: "600", fontSize: 16, marginTop: 16 }}>Số ngày áp dụng</Text>
+          <Text style={{ fontWeight: "600", fontSize: 16, marginTop: 16 }}>
+            {t("medicine.medicationReminderForm.numberOfDays")}
+          </Text>
           <TextInput
             value={totalDays}
             onChangeText={setTotalDays}
             keyboardType="numeric"
-            placeholder="Ví dụ: 7, 14, 30"
+            placeholder={t("medicine.medicationReminderForm.daysPlaceholder")}
             style={{
               backgroundColor: "#EFF6FF",
               borderRadius: 8,
@@ -303,7 +424,9 @@ export default function MedicationReminderForm() {
             }}
           />
 
-          <Text style={{ fontWeight: "600", fontSize: 16, marginTop: 16 }}>Loại kế hoạch</Text>
+          <Text style={{ fontWeight: "600", fontSize: 16, marginTop: 16 }}>
+            {t("medicine.medicationReminderForm.planType")}
+          </Text>
           <View
             style={{
               borderRadius: 8,
@@ -313,10 +436,22 @@ export default function MedicationReminderForm() {
               overflow: "hidden",
             }}
           >
-            <Picker selectedValue={regimenType} onValueChange={(value) => setRegimenType(value)}>
-              <Picker.Item label="Tùy chỉnh" value="custom" />
-              <Picker.Item label="PrEP nhanh" value="prep" />
-              <Picker.Item label="ARV nhanh" value="arv" />
+            <Picker
+              selectedValue={regimenType}
+              onValueChange={(value) => setRegimenType(value)}
+            >
+              <Picker.Item
+                label={t("medicine.medicationReminderForm.custom")}
+                value="custom"
+              />
+              <Picker.Item
+                label={t("medicine.medicationReminderForm.quickPrep")}
+                value="prep"
+              />
+              <Picker.Item
+                label={t("medicine.medicationReminderForm.quickArv")}
+                value="arv"
+              />
             </Picker>
           </View>
 
@@ -331,7 +466,9 @@ export default function MedicationReminderForm() {
                 alignItems: "center",
               }}
             >
-              <Text style={{ color: "white", fontWeight: "600" }}>Áp preset PrEP</Text>
+              <Text style={{ color: "white", fontWeight: "600" }}>
+                {t("medicine.medicationReminderForm.applyPrepPreset")}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => handlePreset("arv")}
@@ -343,16 +480,27 @@ export default function MedicationReminderForm() {
                 alignItems: "center",
               }}
             >
-              <Text style={{ color: "white", fontWeight: "600" }}>Áp preset ARV</Text>
+              <Text style={{ color: "white", fontWeight: "600" }}>
+                {t("medicine.medicationReminderForm.applyArvPreset")}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        <View style={{ backgroundColor: "white", borderRadius: 12, padding: 16, marginBottom: 16 }}>
-          <Text style={{ fontSize: 18, fontWeight: "700", marginBottom: 12 }}>⏰ Thời điểm uống</Text>
+        <View
+          style={{
+            backgroundColor: "white",
+            borderRadius: 12,
+            padding: 16,
+            marginBottom: 16,
+          }}
+        >
+          <Text style={{ fontSize: 18, fontWeight: "700", marginBottom: 12 }}>
+            {t("medicine.medicationReminderForm.timeSlots")}
+          </Text>
 
           {slots.map((slot) => {
-            const meta = SLOT_METADATA[slot.slot];
+            const meta = getSlotMetadata(t)[slot.slot];
             return (
               <View
                 key={slot.id}
@@ -376,7 +524,9 @@ export default function MedicationReminderForm() {
                     {meta.emoji} {meta.label}
                   </Text>
                   <TouchableOpacity onPress={() => removeSlot(slot.id)}>
-                    <Text style={{ color: "#DC2626", fontWeight: "600" }}>Xóa</Text>
+                    <Text style={{ color: "#DC2626", fontWeight: "600" }}>
+                      {t("medicine.medicationReminderForm.delete")}
+                    </Text>
                   </TouchableOpacity>
                 </View>
 
@@ -386,10 +536,14 @@ export default function MedicationReminderForm() {
                   formatTime={formatTime}
                 />
 
-                <Text style={{ marginTop: 12, fontWeight: "500" }}>Số viên</Text>
+                <Text style={{ marginTop: 12, fontWeight: "500" }}>
+                  {t("medicine.medicationReminderForm.numberOfPills")}
+                </Text>
                 <TextInput
                   value={slot.quantity}
-                  onChangeText={(value) => updateSlot(slot.id, { quantity: value })}
+                  onChangeText={(value) =>
+                    updateSlot(slot.id, { quantity: value })
+                  }
                   keyboardType="numeric"
                   style={{
                     backgroundColor: "#FFF",
@@ -402,11 +556,15 @@ export default function MedicationReminderForm() {
                   }}
                 />
 
-                <Text style={{ marginTop: 12, fontWeight: "500" }}>Ghi chú</Text>
+                <Text style={{ marginTop: 12, fontWeight: "500" }}>
+                  {t("medicine.medicationReminderForm.notes")}
+                </Text>
                 <TextInput
                   value={slot.note}
                   onChangeText={(value) => updateSlot(slot.id, { note: value })}
-                  placeholder="Ví dụ: Uống sau ăn"
+                  placeholder={t(
+                    "medicine.medicationReminderForm.notesPlaceholder"
+                  )}
                   style={{
                     backgroundColor: "#FFF",
                     borderRadius: 8,
@@ -420,11 +578,17 @@ export default function MedicationReminderForm() {
 
                 {slot.slot === "custom" && (
                   <>
-                    <Text style={{ marginTop: 12, fontWeight: "500" }}>Tên hiển thị</Text>
+                    <Text style={{ marginTop: 12, fontWeight: "500" }}>
+                      {t("medicine.medicationReminderForm.displayName")}
+                    </Text>
                     <TextInput
                       value={slot.labelOverride}
-                      onChangeText={(value) => updateSlot(slot.id, { labelOverride: value })}
-                      placeholder="Ví dụ: Sau tập thể dục"
+                      onChangeText={(value) =>
+                        updateSlot(slot.id, { labelOverride: value })
+                      }
+                      placeholder={t(
+                        "medicine.medicationReminderForm.displayNamePlaceholder"
+                      )}
                       style={{
                         backgroundColor: "#FFF",
                         borderRadius: 8,
@@ -441,24 +605,29 @@ export default function MedicationReminderForm() {
             );
           })}
 
-          <Text style={{ fontWeight: "600", fontSize: 16, marginBottom: 8 }}>Thêm thời điểm</Text>
+          <Text style={{ fontWeight: "600", fontSize: 16, marginBottom: 8 }}>
+            {t("medicine.medicationReminderForm.addTimeSlot")}
+          </Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-            {(Object.keys(SLOT_METADATA) as MedicationSlot[]).map((slotKey) => (
-              <TouchableOpacity
-                key={slotKey}
-                style={{
-                  backgroundColor: "#E0E7FF",
-                  borderRadius: 24,
-                  paddingVertical: 8,
-                  paddingHorizontal: 12,
-                }}
-                onPress={() => addSlot(slotKey)}
-              >
-                <Text style={{ fontWeight: "600", color: "#312E81" }}>
-                  {SLOT_METADATA[slotKey].emoji} {SLOT_METADATA[slotKey].label}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            {(Object.keys(getSlotMetadata(t)) as MedicationSlot[]).map(
+              (slotKey) => (
+                <TouchableOpacity
+                  key={slotKey}
+                  style={{
+                    backgroundColor: "#E0E7FF",
+                    borderRadius: 24,
+                    paddingVertical: 8,
+                    paddingHorizontal: 12,
+                  }}
+                  onPress={() => addSlot(slotKey)}
+                >
+                  <Text style={{ fontWeight: "600", color: "#312E81" }}>
+                    {getSlotMetadata(t)[slotKey].emoji}{" "}
+                    {getSlotMetadata(t)[slotKey].label}
+                  </Text>
+                </TouchableOpacity>
+              )
+            )}
           </View>
         </View>
 
@@ -476,7 +645,9 @@ export default function MedicationReminderForm() {
           {isSaving ? (
             <ActivityIndicator color="white" />
           ) : (
-            <Text style={{ color: "white", fontWeight: "700", fontSize: 16 }}>💾 Lưu kế hoạch</Text>
+            <Text style={{ color: "white", fontWeight: "700", fontSize: 16 }}>
+              {t("medicine.medicationReminderForm.savePlan")}
+            </Text>
           )}
         </TouchableOpacity>
       </ScrollView>
@@ -490,7 +661,11 @@ type InlineTimePickerProps = {
   formatTime: (date: Date) => string;
 };
 
-function InlineTimePicker({ value, onChange, formatTime }: InlineTimePickerProps) {
+function InlineTimePicker({
+  value,
+  onChange,
+  formatTime,
+}: InlineTimePickerProps) {
   const [open, setOpen] = useState(false);
 
   const handleChange = (event: DateTimePickerEvent, selected?: Date) => {
@@ -515,7 +690,12 @@ function InlineTimePicker({ value, onChange, formatTime }: InlineTimePickerProps
         <Text style={{ fontSize: 16 }}>🕒 {formatTime(value)}</Text>
       </TouchableOpacity>
       {open && (
-        <DateTimePicker value={value} mode="time" display="default" onChange={handleChange} />
+        <DateTimePicker
+          value={value}
+          mode="time"
+          display="default"
+          onChange={handleChange}
+        />
       )}
     </>
   );

@@ -1,4 +1,6 @@
 import { icons, images } from "@/constants";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useGoogleAuth } from "@/services/auth/google-auth";
 import { useSignUp } from "@/services/auth/hooks";
 import {
   authErrorHandler,
@@ -19,6 +21,7 @@ import {
 } from "react-native-safe-area-context";
 
 const SignUp: React.FC = () => {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -88,16 +91,18 @@ const SignUp: React.FC = () => {
           className="w-14 h-14 mb-4"
           resizeMode="contain"
         />
-        <Text className="text-white text-2xl font-semibold">Sign Up</Text>
+        <Text className="text-white text-2xl font-semibold">
+          {t("auth.signUp")}
+        </Text>
       </View>
 
       {/* Content */}
       <View className="flex-1 px-6 py-8">
         {/* Email */}
         <InputField
-          label="Email Address"
+          label={t("auth.emailAddress")}
           icon={icons.email}
-          placeholder="Enter your email"
+          placeholder={t("auth.enterEmail")}
           keyboardType="email-address"
           autoCapitalize="none"
           value={email}
@@ -111,15 +116,15 @@ const SignUp: React.FC = () => {
         />
         {email.length > 0 && !isValidEmail(email) && (
           <Text className="text-red-500 text-lg mt-1">
-            Invalid email address.
+            {t("auth.invalidEmail")}
           </Text>
         )}
 
         {/* Password */}
         <InputField
-          label="Password"
+          label={t("auth.password")}
           icon={icons.password}
-          placeholder="Enter your password"
+          placeholder={t("auth.enterPassword")}
           secureTextEntry
           value={password}
           onChangeText={(text) => {
@@ -129,15 +134,15 @@ const SignUp: React.FC = () => {
         />
         {password.length > 0 && !isValidPassword(password) && (
           <Text className="text-red-500 text-lg mt-1">
-            Password must be at least 8 characters, no spaces.
+            {t("auth.invalidPassword")}
           </Text>
         )}
 
         {/* Confirm Password */}
         <InputField
-          label="Confirm Password"
+          label={t("auth.confirmPassword")}
           icon={icons.password}
-          placeholder="Confirm your password"
+          placeholder={t("auth.confirmPasswordPlaceholder")}
           secureTextEntry
           value={confirmPassword}
           onChangeText={(text) => {
@@ -150,15 +155,15 @@ const SignUp: React.FC = () => {
         />
         {confirmPassword.length > 0 && password !== confirmPassword && (
           <Text className="text-red-500 text-lg mt-1">
-            Passwords do not match.
+            {t("auth.passwordsNotMatch")}
           </Text>
         )}
 
         {/* Phone Number */}
         <InputField
-          label="Phone Number"
+          label={t("auth.phoneNumber")}
           icon={icons.phone}
-          placeholder="Enter your phone number"
+          placeholder={t("auth.enterPhone")}
           keyboardType="phone-pad"
           value={phone}
           onChangeText={(text) => {
@@ -171,7 +176,7 @@ const SignUp: React.FC = () => {
         />
         {phone.length > 0 && !isValidPhone(phone) && (
           <Text className="text-red-500 text-lg mt-1">
-            Invalid phone number.
+            {t("auth.invalidPhone")}
           </Text>
         )}
 
@@ -182,7 +187,7 @@ const SignUp: React.FC = () => {
 
         {/* Sign Up Button */}
         <CustomButton
-          title="Sign Up"
+          title={t("auth.signUp")}
           onPress={handleSignUp}
           variant="primary"
           className="mb-6 mx-0 shadow-lg"
@@ -199,18 +204,18 @@ const SignUp: React.FC = () => {
         {/* OR Divider */}
         <View className="flex-row items-center mb-6">
           <View className="flex-1 h-px bg-gray-300" />
-          <Text className="mx-4 text-gray-500 text-sm">OR</Text>
+          <Text className="mx-4 text-gray-500 text-sm">{t("auth.or")}</Text>
           <View className="flex-1 h-px bg-gray-300" />
         </View>
 
         {/* Link to Sign In */}
         <View className="flex-row justify-center mb-8 ">
           <Text className="text-gray-600 text-base">
-            Already have an account?{" "}
+            {t("auth.haveAccount")}{" "}
           </Text>
           <TouchableOpacity onPress={() => router.push("/(auth)/sign-in")}>
             <Text className="text-red-500 font-medium underline text-base">
-              Sign In
+              {t("auth.signIn")}
             </Text>
           </TouchableOpacity>
         </View>

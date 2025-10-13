@@ -1,9 +1,10 @@
 import { usePatientProfile } from "@/hooks/usePatientId";
+import { useTranslation } from "@/hooks/useTranslation";
 import { getConsultationMessages } from "@/services/consultant/api";
 import { useGetConsultationRequire } from "@/services/consultant/hooks";
 import { Ionicons } from "@expo/vector-icons";
 import { Client, Frame, IMessage } from "@stomp/stompjs";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -31,6 +32,7 @@ const WS_ENDPOINT =
   process.env.EXPO_PUBLIC_WS_ENDPOINT || "https://hivision.io.vn/HiVision/ws";
 
 const ChatBox = () => {
+  const { t } = useTranslation();
   const [connected, setConnected] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
@@ -85,7 +87,7 @@ const ChatBox = () => {
         try {
           const msg: Message = JSON.parse(message.body);
           setMessages((prev) => [...prev, msg]);
-          if (msg.message === "Tư vấn kết thúc") {
+          if (msg.message === t("chat.consultationEnded")) {
             setRequireModalVisible(true);
           }
         } catch (e) {
@@ -111,12 +113,14 @@ const ChatBox = () => {
     client.activate();
     stompClient.current = client;
 
-    return () => client.deactivate();
-  }, [chatID]);
+    return () => {
+      client.deactivate();
+    };
+  }, [chatID, t]);
 
   const sendMessage = () => {
     if (!connected || !inputText.trim() || !stompClient.current) {
-      console.warn("Cannot send – not connected");
+      console.warn(t("chat.cannotSend"));
       return;
     }
     const outgoing = {
@@ -173,7 +177,7 @@ const ChatBox = () => {
             style={styles.input}
             value={inputText}
             onChangeText={setInputText}
-            placeholder="Nhập tin nhắn..."
+            placeholder={t("chat.enterMessage")}
           />
           <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
             <Ionicons name="send" size={24} color="#fff" />

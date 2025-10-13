@@ -1,4 +1,5 @@
 import { icons } from "@/constants";
+import { useTranslation } from "@/hooks/useTranslation";
 import { PasswordSentModal, ResetOptionCard } from "@components";
 import { router, useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -16,6 +17,7 @@ import {
 } from "react-native-safe-area-context";
 
 const ForgotPassword: React.FC = () => {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const nav = useRouter();
 
@@ -73,10 +75,10 @@ const ForgotPassword: React.FC = () => {
         {/* Title & Subtitle căn giữa */}
         <View className="flex-1 justify-center px-6">
           <Text className="text-white text-3xl font-bold">
-            Forgot Password?
+            {t("auth.forgotPassword")}
           </Text>
           <Text className="text-gray-300 text-base mt-1">
-            Then let&apos;s submit password reset.
+            {t("auth.forgotPasswordSubtitle")}
           </Text>
         </View>
       </View>
@@ -90,32 +92,32 @@ const ForgotPassword: React.FC = () => {
       >
         <ResetOptionCard
           icon={icons.email}
-          title="Send via Email"
-          subtitle="Reset password via email."
+          title={t("auth.sendViaEmail")}
+          subtitle={t("auth.resetViaEmail")}
           selected={selectedOption === "email"}
           onPress={() => setSelectedOption("email")}
         />
 
         <ResetOptionCard
           icon={icons.password}
-          title="Send via 2FA"
-          subtitle="Reset password via 2FA."
+          title={t("auth.sendVia2FA")}
+          subtitle={t("auth.resetVia2FA")}
           selected={selectedOption === "2fa"}
           onPress={() => setSelectedOption("2fa")}
         />
 
         <ResetOptionCard
           icon={icons.key}
-          title="Send via Google Auth"
-          subtitle="Reset password via G–Auth."
+          title={t("auth.sendViaGoogle")}
+          subtitle={t("auth.resetViaGoogle")}
           selected={selectedOption === "google"}
           onPress={() => setSelectedOption("google")}
         />
 
         <ResetOptionCard
           icon={icons.phone}
-          title="Send via SMS"
-          subtitle="Reset password via SMS."
+          title={t("auth.sendViaSMS")}
+          subtitle={t("auth.resetViaSMS")}
           selected={selectedOption === "sms"}
           onPress={() => router.push("/(account-setup)/otp-setup")}
         />
@@ -134,7 +136,7 @@ const ForgotPassword: React.FC = () => {
           onPress={handleResetPress}
         >
           <Text className="text-white text-lg font-semibold mr-2">
-            Reset Password
+            {t("auth.resetPassword")}
           </Text>
           <Image
             source={icons.password}
