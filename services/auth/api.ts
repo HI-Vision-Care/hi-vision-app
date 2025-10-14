@@ -19,6 +19,14 @@ export const signIn = async (params: SignInParams): Promise<SignInResponse> => {
     });
     return response.data.data ?? response.data;
   } catch (err: any) {
+    console.log("SignIn API Error Details:", {
+      message: err.message,
+      code: err.code,
+      response: err.response?.data,
+      status: err.response?.status,
+      statusText: err.response?.statusText,
+    });
+
     const backendMsg = err.response?.data?.message;
     throw new Error(backendMsg ?? err.message);
   }
@@ -45,6 +53,14 @@ export const signUp = async (params: SignUpParams): Promise<SignUpResponse> => {
     });
     return response.data.data ?? response.data;
   } catch (err: any) {
+    console.log("SignUp API Error Details:", {
+      message: err.message,
+      code: err.code,
+      response: err.response?.data,
+      status: err.response?.status,
+      statusText: err.response?.statusText,
+    });
+
     const backendMsg = err.response?.data?.message;
     throw new Error(backendMsg ?? err.message);
   }

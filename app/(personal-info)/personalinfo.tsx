@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Modal,
   ScrollView,
   StatusBar,
   Text,
@@ -49,6 +50,7 @@ export default function PersonalInfo() {
   const [focusedField, setFocusedField] = useState<string>("");
   const [avatarUri, setAvatarUri] = useState<string | undefined>(undefined);
   const [saving, setSaving] = useState(false);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
 
   const updateMutation = useUpdatePatientProfile();
   const uploadAvatarMutation = useUploadAccountAvatar();
@@ -82,6 +84,7 @@ export default function PersonalInfo() {
   };
 
   const pickFromLibrary = async () => {
+    setShowAvatarModal(false);
     try {
       const ImagePicker = require("expo-image-picker");
       await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -98,6 +101,7 @@ export default function PersonalInfo() {
   };
 
   const takePhoto = async () => {
+    setShowAvatarModal(false);
     try {
       const ImagePicker = require("expo-image-picker");
       await ImagePicker.requestCameraPermissionsAsync();
@@ -202,7 +206,10 @@ export default function PersonalInfo() {
         <ScrollView showsVerticalScrollIndicator={false}>
           {/* Profile header */}
           <View className="items-center pt-2 mb-6">
-            <View className="relative">
+            <TouchableOpacity
+              onPress={() => setShowAvatarModal(true)}
+              className="relative"
+            >
               <View className="w-28 h-28 rounded-full border-4 border-white bg-white shadow-xl overflow-hidden">
                 <Image
                   source={{
@@ -214,23 +221,20 @@ export default function PersonalInfo() {
                   className="w-full h-full"
                 />
               </View>
-              <View className="absolute -bottom-2 left-0 right-0 flex-row gap-3 justify-center">
-                <TouchableOpacity
-                  onPress={takePhoto}
-                  className="bg-blue-600 rounded-full px-3 py-2 items-center flex-row"
-                >
-                  <Ionicons name="camera-outline" size={16} color="#fff" />
-                  <Text className="text-white ml-1">Camera</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={pickFromLibrary}
-                  className="bg-white border border-blue-200 rounded-full px-3 py-2 items-center flex-row"
-                >
-                  <Ionicons name="images-outline" size={16} color="#2563eb" />
-                  <Text className="text-blue-700 ml-1">Library</Text>
-                </TouchableOpacity>
+              {/* Edit overlay */}
+              <View className="absolute inset-0 bg-black bg-opacity-20 rounded-full items-center justify-center">
+                <View className="bg-white bg-opacity-90 rounded-full p-2">
+                  <Ionicons name="camera-outline" size={20} color="#2563eb" />
+                </View>
               </View>
-            </View>
+              {/* Camera icon indicator */}
+              <View className="absolute -bottom-1 -right-1 bg-blue-600 rounded-full p-2 border-2 border-white">
+                <Ionicons name="camera" size={16} color="#fff" />
+              </View>
+            </TouchableOpacity>
+            <Text className="text-gray-600 text-sm mt-2">
+              Tap to change avatar
+            </Text>
           </View>
 
           <View className="px-6">
@@ -333,6 +337,74 @@ export default function PersonalInfo() {
             </View>
           </View>
         </ScrollView>
+
+        {/* Avatar Selection Modal */}
+        <Modal
+          visible={showAvatarModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowAvatarModal(false)}
+        >
+          <View className="flex-1 bg-black bg-opacity-50 justify-center items-center">
+            <View className="bg-white rounded-2xl mx-8 p-6 w-full max-w-sm">
+              <Text className="text-xl font-bold text-gray-900 text-center mb-6">
+                Change Avatar
+              </Text>
+
+              <Text className="text-gray-600 text-center mb-6">
+                Choose how you'd like to update your profile picture
+              </Text>
+
+              <View className="space-y-4">
+                {/* Camera Option */}
+                <TouchableOpacity
+                  onPress={takePhoto}
+                  className="flex-row items-center p-4 bg-blue-50 rounded-xl border border-blue-200"
+                >
+                  <View className="w-12 h-12 bg-blue-600 rounded-xl items-center justify-center mr-4">
+                    <Ionicons name="camera-outline" size={24} color="#fff" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-gray-900 font-semibold text-lg">
+                      Take Photo
+                    </Text>
+                    <Text className="text-gray-600 text-sm">
+                      Use your camera to take a new photo
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+
+                {/* Library Option */}
+                <TouchableOpacity
+                  onPress={pickFromLibrary}
+                  className="flex-row items-center p-4 bg-green-50 rounded-xl border border-green-200"
+                >
+                  <View className="w-12 h-12 bg-green-600 rounded-xl items-center justify-center mr-4">
+                    <Ionicons name="images-outline" size={24} color="#fff" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-gray-900 font-semibold text-lg">
+                      Choose from Library
+                    </Text>
+                    <Text className="text-gray-600 text-sm">
+                      Select an existing photo from your gallery
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+
+              {/* Cancel Button */}
+              <TouchableOpacity
+                onPress={() => setShowAvatarModal(false)}
+                className="mt-6 py-3 px-6 border border-gray-300 rounded-xl"
+              >
+                <Text className="text-gray-600 font-medium text-center">
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
     </>
   );

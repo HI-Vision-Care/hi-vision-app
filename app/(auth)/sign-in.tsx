@@ -1,11 +1,10 @@
 import { icons, images } from "@/constants";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useGoogleAuth } from "@/services/auth/google-auth";
 import { useSignIn } from "@/services/auth/hooks";
 import { authErrorHandler } from "@/utils/error-handler";
 import { CustomButton, InputField } from "@components";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 import { Image, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import {
   SafeAreaView,
