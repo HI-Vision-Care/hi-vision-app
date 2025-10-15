@@ -1,0 +1,41 @@
+# Ignore files that are not needed for builds
+node_modules/.cache/
+.expo/
+.git/
+*.log
+*.tmp
+*.temp
+coverage/
+.nyc_output/
+.cache/
+dist/
+build/
+*.tgz
+*.tar.gz
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+# Ignore large files that aren't needed
+*.mov
+*.mp4
+*.avi
+*.mkv
+*.webm
+# Ignore test files
+**/*.test.*
+**/*.spec.*
+__tests__/
+test/
+tests/
+# Ignore documentation
+docs/
+*.md
+README*
+CHANGELOG*
+LICENSE*

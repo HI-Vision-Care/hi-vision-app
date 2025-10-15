@@ -3,7 +3,7 @@
     "name": "Hi-Vision",
     "slug": "hi-vision",
     "version": "1.0.3",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "web": {
       "bundler": "metro",
       "output": "static",
@@ -14,10 +14,8 @@
     },
     "extra": {
       "router": {},
-      "eas": {
-        "projectId": "6a9a627d-4091-4595-9dc7-c2a18fcad50b"
-      }
+      "eas": { "projectId": "63718a04-7fcb-4a1a-87f9-aecbf774b5e5" }
     },
-    "owner": "kimcu142"
+    "owner": "dkhoa_happy"
   }
 }

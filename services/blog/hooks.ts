@@ -53,7 +53,10 @@ export const useGetBlogPosts = (accountID?: string) =>
       return getBlogPosts(accountID);
     },
     {
-      enabled: Boolean(accountID), // chỉ chạy khi accountID != undefined
+      enabled: Boolean(accountID && accountID !== "undefined"), // chỉ chạy khi accountID có giá trị hợp lệ
+      retry: false, // Không retry khi lỗi để tránh spam API
+      staleTime: 5 * 60 * 1000, // Cache 5 phút
+      cacheTime: 10 * 60 * 1000, // Cache 10 phút
     }
   );
 

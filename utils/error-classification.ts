@@ -138,6 +138,14 @@ export function classifyError(error: Error | string): ErrorInfo {
 
   // Phân loại dựa trên keywords
   for (const [category, keywords] of Object.entries(ERROR_KEYWORDS)) {
+    // Ensure keywords is an array before calling .some()
+    if (!Array.isArray(keywords)) {
+      console.warn(
+        `Keywords for category ${category} is not an array:`,
+        keywords
+      );
+      continue;
+    }
     const hasKeyword = keywords.some((keyword) =>
       lowerMessage.includes(keyword.toLowerCase())
     );

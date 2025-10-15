@@ -29,6 +29,11 @@ const getHealthKeywords = (t: any) => t("chatbot.healthKeywords");
 export function needsMedicalAdvice(text: string, t: any) {
   const lower = text.toLowerCase();
   const keywords = getHealthKeywords(t);
+  // Ensure keywords is an array before calling .some()
+  if (!Array.isArray(keywords)) {
+    console.warn("healthKeywords is not an array:", keywords);
+    return false;
+  }
   return keywords.some((kw: string) => lower.includes(kw));
 }
 

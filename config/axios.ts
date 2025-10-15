@@ -31,20 +31,29 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.log("Axios Response Error:", {
-      message: error.message,
-      code: error.code,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      url: error.config?.url,
-      config: {
-        baseURL: error.config?.baseURL,
+    // Chỉ log lỗi quan trọng, không log lỗi 404 "User not found" spam
+    const shouldLog =
+      error.response?.status >= 500 ||
+      (error.response?.status === 404 &&
+        !error.config?.url?.includes("blog-post")) ||
+      !error.response; // Network errors
+
+    if (shouldLog) {
+      console.log("Axios Response Error:", {
+        message: error.message,
+        code: error.code,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
         url: error.config?.url,
-        method: error.config?.method,
-        timeout: error.config?.timeout,
-      },
-    });
+        config: {
+          baseURL: error.config?.baseURL,
+          url: error.config?.url,
+          method: error.config?.method,
+          timeout: error.config?.timeout,
+        },
+      });
+    }
 
     // Nếu là lỗi network (không có response)
     if (!error.response) {
