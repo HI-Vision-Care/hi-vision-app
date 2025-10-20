@@ -17,10 +17,13 @@ const api = axios.create({
 
 // Trước mỗi request, đọc token và gắn vào header
 api.interceptors.request.use(
-  async (config) => {
-    const token = await AsyncStorage.getItem("token");
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+  async (config: any) => {
+    // Skip authentication nếu có flag skipAuth
+    if (!config.skipAuth) {
+      const token = await AsyncStorage.getItem("token");
+      if (token && config.headers) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
@@ -31,21 +34,6 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.log("Axios Response Error:", {
-      message: error.message,
-      code: error.code,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      url: error.config?.url,
-      config: {
-        baseURL: error.config?.baseURL,
-        url: error.config?.url,
-        method: error.config?.method,
-        timeout: error.config?.timeout,
-      },
-    });
-
     // Nếu là lỗi network (không có response)
     if (!error.response) {
       // Tạo error message chi tiết hơn
@@ -64,7 +52,7 @@ api.interceptors.response.use(
 
       const networkError = new Error(errorMessage);
       networkError.name = "NetworkError";
-      networkError.code = error.code;
+      (networkError as any).code = error.code;
       return Promise.reject(networkError);
     }
 

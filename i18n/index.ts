@@ -56,10 +56,8 @@ i18n
       const languageCode = deviceLocale.split("-")[0];
 
       if (languageCode === "vi") {
-        console.log("Detected device language: vi");
         return i18n.changeLanguage("vi");
       } else {
-        console.log("Detected device language: en");
         return i18n.changeLanguage("en");
       }
     }

@@ -75,7 +75,6 @@ function RootLayout() {
     // Lắng nghe action xác nhận
     const subscription = listenArvConfirm((doseTime) => {
       // Có thể hiện Toast hoặc reload calendar tại đây nếu muốn
-      console.log(t("app.arvConfirmed"), doseTime);
     });
     return () => subscription.remove();
   }, []);

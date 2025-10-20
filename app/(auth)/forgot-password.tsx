@@ -1,9 +1,15 @@
 import { icons } from "@/constants";
 import { useTranslation } from "@/hooks/useTranslation";
-import { PasswordSentModal, ResetOptionCard } from "@components";
+import { useForgotPassword } from "@/services/auth/hooks";
+import {
+  EmailInputModal,
+  PasswordSentModal,
+  ResetOptionCard,
+} from "@components";
 import { router, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
+  Alert,
   Image,
   ScrollView,
   StatusBar,
@@ -22,20 +28,70 @@ const ForgotPassword: React.FC = () => {
   const nav = useRouter();
 
   const [selectedOption, setSelectedOption] = useState<string>("");
-  const [showEmailModal, setShowEmailModal] = useState<boolean>(false);
-  const [emailToSend, setEmailToSend] = useState<string>("elem221b@gmail.com");
+  const [showEmailInputModal, setShowEmailInputModal] =
+    useState<boolean>(false);
+  const [showPasswordSentModal, setShowPasswordSentModal] =
+    useState<boolean>(false);
+  const [emailToSend, setEmailToSend] = useState<string>("");
+
+  // Hook để gọi API forgot password
+  const forgotPasswordMutation = useForgotPassword();
 
   const handleResetPress = () => {
     if (selectedOption === "email") {
-      setShowEmailModal(true);
-      // TODO: Gọi API gửi mail lần đầu
+      // Hiển thị modal để nhập email
+      setShowEmailInputModal(true);
+    } else if (selectedOption === "2fa") {
+      Alert.alert("Coming Soon", "2FA feature is not available yet");
+    } else if (selectedOption === "google") {
+      Alert.alert("Coming Soon", "Google Auth feature is not available yet");
+    } else if (selectedOption === "sms") {
+      router.push("/(account-setup)/otp-setup");
     } else {
-      // TODO: Xử lý 2FA / Google / SMS
+      Alert.alert("Info", "Please select a reset method first");
     }
   };
 
+  const handleEmailSubmit = (email: string) => {
+    setEmailToSend(email);
+
+    // Gọi API gửi OTP về email
+    forgotPasswordMutation.mutate(
+      { email },
+      {
+        onSuccess: (data) => {
+          setShowEmailInputModal(false);
+          setShowPasswordSentModal(true);
+        },
+        onError: (error) => {
+          Alert.alert("Error", error.message || "Failed to send OTP");
+        },
+      }
+    );
+  };
+
   const handleResendCode = () => {
-    // TODO: Gọi API resend code
+    // Gọi lại API gửi OTP
+    forgotPasswordMutation.mutate(
+      { email: emailToSend },
+      {
+        onSuccess: (data) => {
+          Alert.alert("Success", "OTP has been resent to your email");
+        },
+        onError: (error) => {
+          Alert.alert("Error", error.message || "Failed to resend OTP");
+        },
+      }
+    );
+  };
+
+  const handlePasswordSentModalClose = () => {
+    setShowPasswordSentModal(false);
+    // Navigate đến màn hình nhập OTP, truyền email qua params
+    router.push({
+      pathname: "/(account-setup)/otp-security",
+      params: { email: emailToSend },
+    });
   };
 
   return (
@@ -147,12 +203,20 @@ const ForgotPassword: React.FC = () => {
         </TouchableOpacity>
       </View>
 
+      {/* MODAL Email Input */}
+      <EmailInputModal
+        visible={showEmailInputModal}
+        onClose={() => setShowEmailInputModal(false)}
+        onSubmit={handleEmailSubmit}
+        isLoading={forgotPasswordMutation.isPending}
+      />
+
       {/* MODAL Password Sent (sử dụng NativeWind) */}
       <PasswordSentModal
-        visible={showEmailModal}
+        visible={showPasswordSentModal}
         email={emailToSend}
         onResend={handleResendCode}
-        onClose={() => setShowEmailModal(false)}
+        onClose={handlePasswordSentModalClose}
       />
     </SafeAreaView>
   );

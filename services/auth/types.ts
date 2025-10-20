@@ -28,3 +28,37 @@ export interface ErrorResponse {
   data?: any;
   response: string;
 }
+
+// Forgot Password APIs
+export interface ForgotPasswordParams {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  code: number;
+  message: string;
+  data: string;
+}
+
+export interface VerifyOtpParams {
+  email: string;
+  otp: string;
+}
+
+export interface VerifyOtpResponse {
+  code: number;
+  message: string;
+  data: string;
+}
+
+export interface ResetPasswordParams {
+  email: string;
+  otp: string;
+  newPassword: string;
+}
+
+export interface ResetPasswordResponse {
+  code: number;
+  message: string;
+  data: string;
+}

@@ -24,12 +24,18 @@ export type Message = {
   text: string;
 };
 
-const getHealthKeywords = (t: any) => t("chatbot.healthKeywords");
+const getHealthKeywords = (t: any): string[] => {
+  const value = t("chatbot.healthKeywords", { returnObjects: true } as any);
+  return Array.isArray(value) ? (value as string[]) : [];
+};
 
 export function needsMedicalAdvice(text: string, t: any) {
   const lower = text.toLowerCase();
   const keywords = getHealthKeywords(t);
-  return keywords.some((kw: string) => lower.includes(kw));
+  if (!Array.isArray(keywords) || keywords.length === 0) return false;
+  return keywords.some((kw: string) =>
+    lower.includes(String(kw).toLowerCase())
+  );
 }
 
 const getSuggestions = (t: any) => [

@@ -12,18 +12,10 @@ const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
   useEffect(() => {
     // Wait for i18n to be initialized
     const checkI18n = () => {
-      console.log("I18nProvider checking:", {
-        isInitialized: i18n.isInitialized,
-        language: i18n.language,
-        hasResourceBundle: i18n.hasResourceBundle(i18n.language, "translation"),
-        languages: i18n.languages,
-      });
-
       if (
         i18n.isInitialized &&
         i18n.hasResourceBundle(i18n.language, "translation")
       ) {
-        console.log("I18nProvider: Ready!");
         setIsReady(true);
       } else {
         setTimeout(checkI18n, 100);

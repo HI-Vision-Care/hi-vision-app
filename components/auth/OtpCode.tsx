@@ -1,7 +1,13 @@
 import { OTPInputProps } from "@/types/type";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Pressable, TextInput, View } from "react-native";
+import {
+  Animated,
+  Pressable,
+  TextInput,
+  View,
+  useWindowDimensions,
+} from "react-native";
 
 const OTPInput: React.FC<OTPInputProps> = ({
   length = 4,
@@ -11,6 +17,17 @@ const OTPInput: React.FC<OTPInputProps> = ({
   const [otp, setOtp] = useState<string[]>(new Array(length).fill(""));
   const [focusedIndex, setFocusedIndex] = useState<number | null>(0);
   const inputRefs = useRef<(TextInput | null)[]>([]);
+  const { width } = useWindowDimensions();
+
+  // Tính kích thước hộp động theo chiều rộng màn hình để không bị tràn
+  const HORIZONTAL_SAFE_PADDING = 48; // 2 bên tổng ~24px mỗi bên (khớp px-6 của màn cha)
+  const GAP_SPACING = 8; // khoảng cách giữa các ô
+  const availableWidth = Math.max(
+    0,
+    width - HORIZONTAL_SAFE_PADDING - GAP_SPACING * (length - 1)
+  );
+  const computedBoxSize = Math.floor(availableWidth / length);
+  const boxSize = Math.max(44, Math.min(64, computedBoxSize));
 
   // Animation values
   const animatedValues = useRef(
@@ -83,7 +100,10 @@ const OTPInput: React.FC<OTPInputProps> = ({
   };
 
   return (
-    <View className="flex-row justify-center items-center space-x-4 py-4 gap-2">
+    <View
+      className="flex-row justify-center items-center py-4"
+      style={{ gap: GAP_SPACING }}
+    >
       {otp.map((digit, index) => (
         <Animated.View
           key={index}
@@ -92,10 +112,10 @@ const OTPInput: React.FC<OTPInputProps> = ({
         >
           <Pressable
             onPress={() => handlePress(index)}
-            className={`w-24 h-24 rounded-2xl overflow-hidden ${getInputBoxStyle(
-              index
-            )}`}
+            className={`rounded-2xl overflow-hidden ${getInputBoxStyle(index)}`}
             style={{
+              width: boxSize,
+              height: boxSize,
               shadowColor: focusedIndex === index ? "#3b82f6" : "#000000",
               shadowOffset: { width: 0, height: 4 },
               shadowOpacity: focusedIndex === index ? 0.3 : 0.1,
@@ -111,7 +131,7 @@ const OTPInput: React.FC<OTPInputProps> = ({
                   ? ["#f9fafb", "#f3f4f6"]
                   : ["#f3f4f6", "#e5e7eb"]
               }
-              className="w-full h-full justify-center items-center border-2"
+              className="w-full h-full justify-center items-center border"
               style={{
                 borderColor:
                   focusedIndex === index
@@ -147,7 +167,7 @@ const OTPInput: React.FC<OTPInputProps> = ({
                 placeholderTextColor={
                   focusedIndex === index ? "rgba(255,255,255,0.5)" : "#9ca3af"
                 }
-                style={{ fontSize: 24 }}
+                style={{ fontSize: Math.max(18, Math.floor(boxSize * 0.45)) }}
               />
             </LinearGradient>
           </Pressable>
