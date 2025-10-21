@@ -734,7 +734,6 @@
       "confirmed": "✅ Confirmed",
       "doseConfirmed": "Dose confirmed!",
       "cannotConfirm": "Cannot confirm. Please try again.",
-      "cannotSyncWidget": "Cannot sync confirmation from widget:",
       "errorLoadingConfirmed": "Error loading confirmed doses:",
       "errorLoadingMedication": "Error loading medication data:"
     },

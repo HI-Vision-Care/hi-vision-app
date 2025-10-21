@@ -1,7 +1,6 @@
 "use client";
 
 import { useTranslation } from "@/hooks/useTranslation";
-import { WidgetBridge } from "@/native/WidgetBridge";
 import { clearAllMedicationPlans } from "@/services/medication/scheduler";
 import { loadMedicationPlans } from "@/services/medication/storage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -11,7 +10,6 @@ import { navigate } from "expo-router/build/global-state/routing";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
-  Platform,
   ScrollView,
   StatusBar,
   Text,
@@ -93,31 +91,13 @@ const MedicineCalendar = () => {
     }
   }, [currentWeekStart, today]);
 
-  // Load confirmed doses from storage + widget history
+  // Load confirmed doses from storage
   const loadConfirmedDoses = useCallback(async () => {
     try {
       const stored = await AsyncStorage.getItem("confirmedDoses");
       const asyncStorageList: string[] = stored ? JSON.parse(stored) : [];
 
-      let widgetList: string[] = [];
-      if (
-        Platform.OS === "android" &&
-        WidgetBridge?.getMedicationConfirmedHistory
-      ) {
-        try {
-          const values = await WidgetBridge.getMedicationConfirmedHistory();
-          if (Array.isArray(values)) {
-            widgetList = values.filter(
-              (item): item is string => typeof item === "string"
-            );
-          }
-        } catch (error) {
-          console.warn(t("medicine.medicineCalendar.cannotSyncWidget"), error);
-        }
-      }
-
-      const combined = [...asyncStorageList, ...widgetList];
-      const uniqueSorted = Array.from(new Set(combined)).sort(
+      const uniqueSorted = Array.from(new Set(asyncStorageList)).sort(
         (a, b) => new Date(a).getTime() - new Date(b).getTime()
       );
 
@@ -302,29 +282,6 @@ const MedicineCalendar = () => {
           "confirmedDoses",
           JSON.stringify(newConfirmedDoses)
         );
-
-        // Đồng bộ với widget nếu có
-        if (
-          Platform.OS === "android" &&
-          WidgetBridge?.recordMedicationConfirmation
-        ) {
-          await WidgetBridge.recordMedicationConfirmation(
-            doseIso,
-            new Date().toISOString()
-          );
-
-          // Force refresh widget để cập nhật ngay lập tức
-          if (WidgetBridge?.forceRefreshWidget) {
-            await WidgetBridge.forceRefreshWidget();
-
-            // Thêm một refresh nữa sau 500ms để đảm bảo
-            setTimeout(async () => {
-              if (WidgetBridge?.forceRefreshWidget) {
-                await WidgetBridge.forceRefreshWidget();
-              }
-            }, 500);
-          }
-        }
 
         // Cập nhật state và refresh dữ liệu
         setConfirmedDoses(newConfirmedDoses);

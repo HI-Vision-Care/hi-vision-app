@@ -3,21 +3,65 @@
     "name": "Hi-Vision",
     "slug": "hi-vision",
     "version": "1.0.3",
+    "orientation": "portrait",
+    "icon": "./assets/images/logo.png",
+    "scheme": "hivisionmobileapp",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/images/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.HIVisionMobileApp"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/logo.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.anonymous.HI_Vision_Mobile_App",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.VIBRATE",
+        "android.permission.INTERNET"
+      ]
+    },
     "newArchEnabled": false,
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/logo.png"
     },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "buildToolsVersion": "34.0.0"
+          }
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
-      "router": {},
+      "router": {
+        "origin": false
+      },
       "eas": {
-        "projectId": "6a9a627d-4091-4595-9dc7-c2a18fcad50b"
+        "projectId": "63718a04-7fcb-4a1a-87f9-aecbf774b5e5"
       }
     },
-    "owner": "kimcu142"
+    "owner": "dkhoa_happy"
   }
 }

@@ -14,7 +14,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 interface JWTPayload {
   sub: string; // sub là accountId
@@ -54,24 +53,18 @@ const HeaderHome = () => {
 
   if (!isReady) {
     return (
-      <SafeAreaView
-        edges={["top"]}
-        className="bg-[#242e49] px-4 pb-6 rounded-3xl"
-      >
+      <View className="px-4 pb-6 rounded-3xl">
         <View className="flex-row justify-between items-center mb-4 mt-4">
           <View className="flex-row items-center">
             <Text className="text-gray-400 text-sm">{t("common.loading")}</Text>
           </View>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView
-      edges={["top"]}
-      className="bg-[#242e49] px-4 pb-6 rounded-3xl"
-    >
+    <View className="px-4 pb-6 rounded-3xl">
       {/* Date + notification + logout */}
       <View className="flex-row justify-between items-center mb-4 mt-4">
         {/* Date */}
@@ -176,7 +169,7 @@ const HeaderHome = () => {
           className="flex-1 ml-3 text-white"
         />
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

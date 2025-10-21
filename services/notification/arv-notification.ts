@@ -2,8 +2,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { Alert, Platform } from "react-native";
 
-import { WidgetBridge } from "@/native/WidgetBridge";
-
 // ARV notification identifiers
 export const ARV_CATEGORY = "ARV_REMINDER_CATEGORY";
 export const ARV_ACTION_CONFIRM = "CONFIRM";
@@ -144,14 +142,6 @@ export function listenArvConfirm(onConfirm: (doseTime: string) => void): {
           if (!arr.includes(doseTime)) {
             arr.push(doseTime);
             await AsyncStorage.setItem("confirmedDoses", JSON.stringify(arr));
-            try {
-              WidgetBridge?.recordMedicationConfirmation?.(
-                doseTime,
-                new Date().toISOString()
-              );
-            } catch (nativeError) {
-              console.warn("Widget history sync failed:", nativeError);
-            }
           }
         } catch (e) {
           console.error("Error saving confirm:", e);
@@ -213,11 +203,6 @@ export async function cancelAllArvNotifications(): Promise<void> {
 export async function clearAllConfirmedDoses() {
   try {
     await AsyncStorage.removeItem("confirmedDoses");
-    try {
-      await WidgetBridge?.clearMedicationConfirmedHistory?.();
-    } catch (nativeError) {
-      console.warn("Widget history cleanup failed:", nativeError);
-    }
     Alert.alert("Đã xóa tất cả xác nhận đã uống!");
   } catch (e) {
     Alert.alert("Lỗi", "Không thể xóa xác nhận!");

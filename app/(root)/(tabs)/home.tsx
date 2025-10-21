@@ -1,9 +1,10 @@
 import { usePatientProfile } from "@/hooks/usePatientId";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useGetAppointmentByPatientId } from "@/services/appointment/hooks";
-import { useSyncWidgetWithBlog } from "@/services/blog/hooks";
 import {
   ActivityList,
+  ChatbotCard,
+  ChatbotSectionHeader,
   HeaderHome,
   HealthServicesSwiper,
   MedicationSection,
@@ -32,8 +33,6 @@ const Home = () => {
   const latestAppointment = appointments.length
     ? appointments[appointments.length - 1]
     : null;
-
-  useSyncWidgetWithBlog(patientId);
 
   // Refresh data when page comes into focus to ensure fresh data
   useFocusEffect(
@@ -67,14 +66,12 @@ const Home = () => {
 
   return (
     <>
-      {/* Cho StatusBar xuyên thấu nền */}
-      <StatusBar
-        translucent
-        backgroundColor="transparent"
-        barStyle="light-content"
-      />
+      {/* StatusBar với background màu xanh đậm */}
+      <StatusBar backgroundColor="#242e49" barStyle="light-content" />
 
-      <HeaderHome />
+      <SafeAreaView edges={["top"]} className="bg-[#242e49]">
+        <HeaderHome />
+      </SafeAreaView>
 
       <SafeAreaView
         edges={["left", "right", "bottom"]}
@@ -85,20 +82,15 @@ const Home = () => {
           contentContainerStyle={{ paddingBottom: 100 }}
           showsVerticalScrollIndicator={false}
         >
-          {/* Language Switcher for testing */}
-          {/* <View className="mb-4">
-            <LanguageSwitcher />
-          </View> */}
-
           {/* Health Service Swiper */}
           <HealthServicesSwiper />
 
-          {/* <ChatbotSectionHeader
+          <ChatbotSectionHeader
             title="Appointment Scheduled For You"
             onHelpPress={() => console.log("Help tapped")}
           />
 
-          {latestAppointment && <ChatbotCard appointment={latestAppointment} />} */}
+          {latestAppointment && <ChatbotCard appointment={latestAppointment} />}
 
           {/* Smart Health Metrics */}
           <View className="flex-row justify-between items-center mb-4">
@@ -114,8 +106,6 @@ const Home = () => {
 
           {/* Metrics Cards */}
           <MetricCarousel />
-
-          {/* <UpdateWidgetButton /> */}
 
           {/* Fitness & Activity Tracker Section */}
           <View className="flex-row justify-between items-center mb-4">
