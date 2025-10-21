@@ -32,7 +32,7 @@
         "android.permission.INTERNET"
       ]
     },
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "web": {
       "bundler": "metro",
       "output": "static",
@@ -46,7 +46,7 @@
           "android": {
             "compileSdkVersion": 34,
             "targetSdkVersion": 34,
-            "buildToolsVersion": "34.0.0"
+            "buildToolsVersion": "35.0.0"
           }
         }
       ]
