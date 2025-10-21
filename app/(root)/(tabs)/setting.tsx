@@ -1,4 +1,4 @@
-import { featureCards, images, menuSections } from "@/constants";
+import { images, menuSections } from "@/constants";
 import { usePatientProfile } from "@/hooks/usePatientId";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useDeleteAccount } from "@/services/patient/hooks";
@@ -465,14 +465,14 @@ const Setting = () => {
           </View> */}
 
           {/* Feature Cards Section */}
-          <View className="px-4 mb-8">
+          {/* <View className="px-4 mb-8">
             <Text className="text-lg font-bold text-gray-800 mb-4 px-2">
               {t("settings.quickActions")}
             </Text>
             <View className="flex-row justify-between">
               {featureCards.map((card) => renderFeatureCard(card))}
             </View>
-          </View>
+          </View> */}
 
           {/* Menu Sections */}
           {menuSections.map((section, index) => renderSection(section, index))}

@@ -23,19 +23,19 @@ export const getHealthServices = (t: (key: string) => string) => [
       router.push("/(medicine-reminder)/medicine-calendar");
     },
   },
+  // {
+  //   id: "3",
+  //   title: t("home.clinics"),
+  //   icon: "business",
+  //   iconColor: "#FFFFFF",
+  //   backgroundColor: "#0EA5E9",
+  //   gradientColors: ["#0EA5E9", "#0369A1"],
+  //   onPress: () => {
+  //     router.push("/(clinics)/clinics");
+  //   },
+  // },
   {
     id: "3",
-    title: t("home.clinics"),
-    icon: "business",
-    iconColor: "#FFFFFF",
-    backgroundColor: "#0EA5E9",
-    gradientColors: ["#0EA5E9", "#0369A1"],
-    onPress: () => {
-      router.push("/(clinics)/clinics");
-    },
-  },
-  {
-    id: "4",
     title: t("home.products"),
     icon: "bag",
     iconColor: "#FFFFFF",
