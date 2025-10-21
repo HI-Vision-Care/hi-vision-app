@@ -1,7 +1,6 @@
 "use client";
 
 import { useTranslation } from "@/hooks/useTranslation";
-import { WidgetManager } from "@/native/WidgetManager";
 import { createMedicationPlan } from "@/services/medication/scheduler";
 import { requestNotificationPermissions } from "@/services/notification/prep-notification";
 import DateTimePicker, {
@@ -103,10 +102,6 @@ export default function ARVReminderForm() {
           },
         ],
       });
-
-      if (Platform.OS === "android") {
-        WidgetManager.requestPinWidget();
-      }
 
       Alert.alert(
         t("medicine.arvReminderForm.saved"),

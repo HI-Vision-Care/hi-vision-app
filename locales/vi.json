@@ -749,7 +749,6 @@
       "confirmed": "✅ Đã xác nhận",
       "doseConfirmed": "Đã ghi nhận bạn đã uống thuốc!",
       "cannotConfirm": "Không thể xác nhận. Vui lòng thử lại.",
-      "cannotSyncWidget": "Không thể đồng bộ xác nhận từ widget:",
       "errorLoadingConfirmed": "Error loading confirmed doses:",
       "errorLoadingMedication": "Error loading medication data:"
     },

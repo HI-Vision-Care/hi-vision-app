@@ -21,7 +21,6 @@ import {
 } from "react-native-safe-area-context";
 
 import { useTranslation } from "@/hooks/useTranslation";
-import { WidgetManager } from "@/native/WidgetManager";
 import { createMedicationPlan } from "@/services/medication/scheduler";
 import type { MedicationSlot } from "@/services/medication/types";
 import { requestNotificationPermissions } from "@/services/notification/prep-notification";
@@ -260,10 +259,6 @@ export default function MedicationReminderForm() {
           label: slot.labelOverride.trim() || undefined,
         })),
       });
-
-      if (Platform.OS === "android") {
-        WidgetManager.requestPinWidget();
-      }
 
       Alert.alert(
         t("medicine.medicationReminderForm.planCreated"),

@@ -14,4 +14,3 @@ export * from "./onboarding";
 export * from "./products";
 export * from "./services";
 export * from "./wallet";
-export * from "./widget";
