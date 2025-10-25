@@ -1,9 +1,6 @@
-import { HeaderBack } from "@/components";
+import { HeaderBack, ProfileUpdateSuccessScreen } from "@/components";
 import { usePatientProfile } from "@/hooks/usePatientId";
-import {
-  useUpdatePatientProfile,
-  useUploadAccountAvatar,
-} from "@/services/patient/hooks";
+import { useUpdatePatientProfile } from "@/services/patient/hooks";
 import { useUploadImage } from "@/services/storage/hooks";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
@@ -51,9 +48,9 @@ export default function PersonalInfo() {
   const [avatarUri, setAvatarUri] = useState<string | undefined>(undefined);
   const [saving, setSaving] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [showSuccessScreen, setShowSuccessScreen] = useState(false);
 
   const updateMutation = useUpdatePatientProfile();
-  const uploadAvatarMutation = useUploadAccountAvatar();
   const uploadImageMutation = useUploadImage();
 
   useEffect(() => {
@@ -129,6 +126,8 @@ export default function PersonalInfo() {
           imageUri: avatarUri,
           folder: "avatars",
         });
+        // Use the new uploaded image URL
+        avatarUrl = uploadResult.url;
       }
 
       // Update profile with avatar URL included
@@ -145,7 +144,8 @@ export default function PersonalInfo() {
         },
       });
 
-      Alert.alert("Success", "Profile updated");
+      // Show success screen instead of alert
+      setShowSuccessScreen(true);
     } catch (e: any) {
       Alert.alert("Update failed", e?.message || "Please try again");
     } finally {
@@ -198,6 +198,11 @@ export default function PersonalInfo() {
     </View>
   );
 
+  // Show success screen if update was successful
+  if (showSuccessScreen) {
+    return <ProfileUpdateSuccessScreen />;
+  }
+
   return (
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#eaf2fb" />
@@ -212,21 +217,36 @@ export default function PersonalInfo() {
             >
               <View className="w-28 h-28 rounded-full border-4 border-white bg-white shadow-xl overflow-hidden">
                 <Image
-                  source={{
-                    uri:
-                      avatarUri ||
-                      profile?.account?.avatar ||
-                      "https://via.placeholder.com/120x120.png?text=Avatar",
-                  }}
+                  source={
+                    avatarUri || profile?.account?.avatar
+                      ? {
+                          uri: avatarUri || profile?.account?.avatar,
+                        }
+                      : require("@/assets/images/avatarPlaceholder.jpg")
+                  }
                   className="w-full h-full"
+                  style={{ width: "100%", height: "100%" }}
+                  resizeMode="cover"
+                  onError={(error) => {
+                    console.log("Image load error:", error);
+                    console.log("Avatar URI:", avatarUri);
+                    console.log("Profile avatar:", profile?.account?.avatar);
+                  }}
+                  onLoad={() => {
+                    console.log("Image loaded successfully");
+                    console.log("Avatar URI:", avatarUri);
+                    console.log("Profile avatar:", profile?.account?.avatar);
+                  }}
                 />
               </View>
-              {/* Edit overlay */}
-              <View className="absolute inset-0 bg-black bg-opacity-20 rounded-full items-center justify-center">
-                <View className="bg-white bg-opacity-90 rounded-full p-2">
-                  <Ionicons name="camera-outline" size={20} color="#2563eb" />
+              {/* Edit overlay - only show when no avatar */}
+              {!(avatarUri || profile?.account?.avatar) && (
+                <View className="absolute inset-0 bg-black bg-opacity-20 rounded-full items-center justify-center">
+                  <View className="bg-white bg-opacity-90 rounded-full p-2">
+                    <Ionicons name="camera-outline" size={20} color="#2563eb" />
+                  </View>
                 </View>
-              </View>
+              )}
               {/* Camera icon indicator */}
               <View className="absolute -bottom-1 -right-1 bg-blue-600 rounded-full p-2 border-2 border-white">
                 <Ionicons name="camera" size={16} color="#fff" />
@@ -352,7 +372,7 @@ export default function PersonalInfo() {
               </Text>
 
               <Text className="text-gray-600 text-center mb-6">
-                Choose how you'd like to update your profile picture
+                Choose how you&apos;d like to update your profile picture
               </Text>
 
               <View className="space-y-4">
