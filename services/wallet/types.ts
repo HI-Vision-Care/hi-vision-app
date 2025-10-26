@@ -66,3 +66,10 @@ export interface RequestWithdrawResponse {
   account: AccountSummary;
   staff: StaffSummary | null; // để đề phòng có yêu cầu chưa được gán staff
 }
+
+// --- PayOS Top-up
+export interface PayOSTopupPayload {
+  amount: number;
+}
+
+export type PayOSTopupResponse = string; // URL string
