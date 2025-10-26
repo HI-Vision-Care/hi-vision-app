@@ -4,10 +4,13 @@ import {
   depositToWallet,
   getWalletByAccountId,
   requestWithdraw,
+  topupByPayOS,
   vnpayCallback,
 } from "./api";
 import {
   DepositPayload,
+  PayOSTopupPayload,
+  PayOSTopupResponse,
   RequestWithdrawPayload,
   RequestWithdrawResponse,
   VNPayCallbackParams,
@@ -57,5 +60,15 @@ export function useRequestWithdraw() {
     { accountId: string; payload: RequestWithdrawPayload }
   >({
     mutationFn: ({ accountId, payload }) => requestWithdraw(accountId, payload),
+  });
+}
+
+export function useTopupByPayOS() {
+  return useMutation<
+    PayOSTopupResponse,
+    Error,
+    { accountId: string; payload: PayOSTopupPayload }
+  >({
+    mutationFn: ({ accountId, payload }) => topupByPayOS(accountId, payload),
   });
 }

@@ -1,5 +1,5 @@
 import axios from "@/config/axios";
-import { Transaction } from "./types";
+import { CancelTransactionResponse, Transaction } from "./types";
 
 export const transferToAppointment = async (
   appointmentId: string,
@@ -19,5 +19,12 @@ export const getTransactionsByAccountId = async (
   accountId: string
 ): Promise<Transaction[]> => {
   const res = await axios.get(`/transaction/view/${accountId}`);
+  return res.data;
+};
+
+export const cancelTransaction = async (
+  orderCode: number
+): Promise<CancelTransactionResponse> => {
+  const res = await axios.put(`/transaction/${orderCode}/cancel`);
   return res.data;
 };

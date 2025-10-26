@@ -1,8 +1,8 @@
-import { useCreateWallet, useVNPayCallback } from "@/services/wallet/hooks";
-import { VNPayCallbackParams } from "@/services/wallet/types";
+import { useCancelTransaction } from "@/services/transaction/hooks";
+import { useTopupByPayOS } from "@/services/wallet/hooks";
 import { NavState } from "@/types/type";
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -15,8 +15,7 @@ import {
 } from "react-native";
 import { WebView } from "react-native-webview";
 import { TopUpSuccessModal } from "../modals";
-
-const VNPAY_CALLBACK_URL = "http://192.168.100.21:8081/success";
+import PaymentFailureModal from "../modals/PaymentFailureModal";
 
 const DepositButton = ({
   accountId,
@@ -28,43 +27,10 @@ const DepositButton = ({
   const [showInput, setShowInput] = useState(false);
   const [amount, setAmount] = useState("");
   const [webviewUrl, setWebviewUrl] = useState<string | null>(null);
-  const { mutate: createWallet, isLoading } = useCreateWallet();
-
+  const { mutate: topupByPayOS, isLoading } = useTopupByPayOS();
+  const { mutate: cancelTransaction } = useCancelTransaction();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-
-  const [callbackParams, setCallbackParams] =
-    useState<VNPayCallbackParams | null>(null);
-  const {
-    data: callbackData,
-    isSuccess: isCallbackSuccess,
-    isError: isCallbackError,
-    error: callbackError,
-  } = useVNPayCallback(
-    callbackParams || { vnp_TxnRef: "", vnp_ResponseCode: "", vnp_Amount: "" },
-    !!callbackParams
-  );
-
-  useEffect(() => {
-    if (isCallbackSuccess && callbackData) {
-      setShowSuccessModal(true); // show modal thành công
-      refetchWallet?.();
-      setCallbackParams(null);
-    }
-    if (isCallbackError) {
-      Alert.alert(
-        "Giao dịch lỗi",
-        callbackError?.message || "Vui lòng thử lại",
-        [{ text: "Đóng", style: "default" }]
-      );
-      setCallbackParams(null);
-    }
-  }, [
-    isCallbackSuccess,
-    isCallbackError,
-    callbackData,
-    callbackError,
-    refetchWallet,
-  ]);
+  const [showFailureModal, setShowFailureModal] = useState(false);
 
   const handleDeposit = () => {
     if (!amount || !accountId) return;
@@ -75,23 +41,26 @@ const DepositButton = ({
       return;
     }
 
-    createWallet(
+    topupByPayOS(
       {
         accountId,
-        payload: { balance: numAmount },
+        payload: { amount: numAmount },
       },
       {
-        onSuccess: (data) => {
+        onSuccess: (url) => {
           setShowInput(false);
           setAmount("");
-          if (data) {
-            setWebviewUrl(data);
+          if (url) {
+            setWebviewUrl(url);
           } else {
-            Alert.alert("Lỗi", "Không thể kết nối VNPay!");
+            Alert.alert("Lỗi", "Không thể kết nối PayOS!");
           }
         },
-        onError: () => {
-          Alert.alert("Lỗi", "Không thể thực hiện giao dịch!");
+        onError: (error) => {
+          Alert.alert("Lỗi", "Không thể thực hiện giao dịch!", [
+            { text: "Đóng" },
+          ]);
+          console.error("Topup error:", error);
         },
       }
     );
@@ -107,7 +76,7 @@ const DepositButton = ({
     setAmount(numericValue);
   };
 
-  const getQueryParams = (url: string): Record<string, string> => {
+  const parseQueryParams = (url: string): Record<string, string> => {
     const params: Record<string, string> = {};
     const queryString = url.split("?")[1];
     if (!queryString) return params;
@@ -120,19 +89,35 @@ const DepositButton = ({
   };
 
   const handleWebViewNavigationStateChange = (navState: NavState) => {
-    if (navState.url.startsWith(VNPAY_CALLBACK_URL)) {
-      setWebviewUrl(null);
+    const url = navState.url;
 
-      const params = getQueryParams(navState.url);
-      const { vnp_TxnRef, vnp_ResponseCode, vnp_Amount } = params;
+    // Check if this is a cancel URL
+    if (url.includes("/payment/cancel")) {
+      const params = parseQueryParams(url);
+      const orderCode = params.orderCode;
 
-      if (vnp_TxnRef && vnp_ResponseCode && vnp_Amount) {
-        setCallbackParams({
-          vnp_TxnRef: String(vnp_TxnRef),
-          vnp_ResponseCode: String(vnp_ResponseCode),
-          vnp_Amount: String(vnp_Amount),
+      if (orderCode) {
+        setWebviewUrl(null);
+
+        // Call cancel transaction API
+        cancelTransaction(Number(orderCode), {
+          onSuccess: () => {
+            refetchWallet?.();
+            setShowFailureModal(true);
+          },
+          onError: (error) => {
+            console.error("Cancel transaction error:", error);
+            Alert.alert("Lỗi", "Không thể hủy giao dịch. Vui lòng thử lại.");
+          },
         });
       }
+    }
+
+    // Check if this is a success URL
+    if (url.includes("/payment/success")) {
+      setWebviewUrl(null);
+      setShowSuccessModal(true);
+      refetchWallet?.();
     }
   };
 
@@ -259,7 +244,7 @@ const DepositButton = ({
                   <>
                     <Ionicons name="card-outline" size={22} color="#fff" />
                     <Text className="text-white font-bold ml-2 text-base">
-                      Thanh toán VNPay
+                      Thanh toán PayOS
                     </Text>
                   </>
                 )}
@@ -281,7 +266,7 @@ const DepositButton = ({
         </View>
       </Modal>
 
-      {/* VNPay Payment Modal giữ nguyên */}
+      {/* PayOS Payment Modal */}
       <Modal visible={!!webviewUrl} animationType="slide">
         <View className="flex-1 bg-white">
           {/* Modal Header */}
@@ -289,7 +274,10 @@ const DepositButton = ({
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center">
                 <TouchableOpacity
-                  onPress={() => setWebviewUrl(null)}
+                  onPress={() => {
+                    setWebviewUrl(null);
+                    refetchWallet?.();
+                  }}
                   className="bg-gray-100 rounded-full p-2 mr-3"
                   activeOpacity={0.7}
                 >
@@ -297,7 +285,7 @@ const DepositButton = ({
                 </TouchableOpacity>
                 <View>
                   <Text className="font-bold text-lg text-gray-900">
-                    Thanh toán VNPay
+                    Thanh toán PayOS
                   </Text>
                   <Text className="text-sm text-gray-500">
                     Giao dịch được bảo mật
@@ -340,6 +328,15 @@ const DepositButton = ({
       <TopUpSuccessModal
         visible={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
+      />
+
+      <PaymentFailureModal
+        visible={showFailureModal}
+        onClose={() => setShowFailureModal(false)}
+        onTopUp={() => {
+          setShowFailureModal(false);
+          setShowInput(true);
+        }}
       />
     </View>
   );

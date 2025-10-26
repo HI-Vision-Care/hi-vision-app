@@ -5,3 +5,6 @@ export interface Transaction {
   status: string;
   date: string; // ISO string
 }
+
+// Response cho cancel transaction
+export type CancelTransactionResponse = string;
