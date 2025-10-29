@@ -90,6 +90,7 @@ export default function BookingScreen() {
   const servicesFromFacility: Service[] = useMemo(() => {
     const raw = facilityDetail?.medicalServices ?? [];
     const list = Array.isArray(raw) ? raw : [];
+
     const mapped = list.map((s) => ({
       serviceID: s.serviceID,
       name: s.name,
@@ -98,8 +99,12 @@ export default function BookingScreen() {
       specialty: s.specialty,
       type: s.type,
       isActive: s.isActive,
+      isRequireDoctor: s.isRequireDoctor,
+      isOnline: s.isOnline,
+      img: s.img, // Thêm field img để hiển thị ảnh
       // ...bổ sung field nào bạn dùng trong ServiceSelection
     })) as unknown as Service[];
+
     return mapped;
   }, [facilityDetail]);
   const [selectedDay, setSelectedDay] = useState<string>(() => {

@@ -3,7 +3,8 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { formatVND } from "@/utils/format";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
+import ServiceImage from "../common/ServiceImage";
 
 type Service = {
   serviceID: number;
@@ -59,10 +60,16 @@ const ServiceSelection: React.FC<ServiceSelectionProps> = ({
           <>
             {/* Thumbnail */}
             <View className="relative">
-              <Image
-                source={{ uri: selectedService.img }}
-                className="w-12 h-12 rounded-lg"
-                style={{ backgroundColor: "#f3f4f6" }}
+              <ServiceImage
+                imageUri={selectedService.img}
+                size="medium"
+                onError={(error) => {
+                  console.log(
+                    "Selected service image load error:",
+                    selectedService.serviceID,
+                    error.nativeEvent.error
+                  );
+                }}
               />
             </View>
 
@@ -168,10 +175,16 @@ const ServiceSelection: React.FC<ServiceSelectionProps> = ({
               >
                 {/* Thumbnail */}
                 <View className="relative">
-                  <Image
-                    source={{ uri: service.img }}
-                    className="w-10 h-10 rounded-lg"
-                    style={{ backgroundColor: "#f3f4f6" }}
+                  <ServiceImage
+                    imageUri={service.img}
+                    size="small"
+                    onError={(error) => {
+                      console.log(
+                        "Image load error for service:",
+                        service.serviceID,
+                        error.nativeEvent.error
+                      );
+                    }}
                   />
                 </View>
 
