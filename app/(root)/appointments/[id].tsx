@@ -1,6 +1,9 @@
 import { HeaderBack } from "@/components";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useCancelAppointment } from "@/services/appointment/hooks";
+import { usePreARVPrescription } from "@/services/prescription/hooks";
+import { createMedicationPlan } from "@/services/medication/scheduler";
+import { requestNotificationPermissions } from "@/services/notification/prep-notification";
 import { useGetLabResultsByAppointmentId } from "@/services/lab-results/hooks";
 import { useGetMedicalRecordByAppointmentId } from "@/services/medical-record/hooks";
 import capitalize from "@/utils/capitalize";
@@ -31,6 +34,10 @@ const AppointmentDetail = () => {
 
   const { data: labResults, isLoading: isLabLoading } =
     useGetLabResultsByAppointmentId(appointment?.appointmentID);
+
+  const { data: preArv } = usePreARVPrescription(
+    appointment?.appointmentID as any
+  );
 
   const { mutate: cancelAppointment, isLoading: isCancelling } =
     useCancelAppointment();
@@ -116,6 +123,36 @@ const AppointmentDetail = () => {
     }
     if (url) {
       Linking.openURL(url);
+    }
+  };
+  
+  const handleAddPreArvToReminders = async () => {
+    if (!preArv?.arvList || preArv.arvList.length === 0) return;
+    try {
+      const granted = await requestNotificationPermissions();
+      if (!granted) return;
+
+      const today = new Date();
+      const defaultTime = new Date();
+      defaultTime.setHours(20, 0, 0, 0);
+
+      await Promise.all(
+        preArv.arvList.map((drug) =>
+          createMedicationPlan({
+            name: `${drug.genericName} – ARV`,
+            medicineName: drug.genericName,
+            regimenType: "arv",
+            notes: "Auto-imported from appointment pre-ARV",
+            startDate: today,
+            totalDays: 30,
+            slots: [
+              { slot: "evening", time: defaultTime, note: "Uống ARV", quantity: 1 },
+            ],
+          })
+        )
+      );
+    } catch (e) {
+      console.error(e);
     }
   };
   return (
@@ -528,6 +565,46 @@ const AppointmentDetail = () => {
                   </View>
                 </View>
               ))}
+            </View>
+          </View>
+        )}
+
+        {/* Pre-ARV Prescription Section */}
+        {preArv?.prescription && (
+          <View className="bg-white mx-4 mt-4 rounded-lg shadow-sm border border-gray-200">
+            <View className="p-4 border-b border-gray-100">
+              <View className="flex-row items-center">
+                <Ionicons name="medkit-outline" size={20} color="#2563EB" />
+                <Text className="text-lg font-semibold text-gray-900 ml-2">
+                  {t("appointmentDetail.preArvPrescription")}
+                </Text>
+              </View>
+            </View>
+            <View className="p-4">
+              {preArv.arvList && preArv.arvList.length > 0 ? (
+                preArv.arvList.map((drug, idx) => (
+                  <View key={drug.arvId} className={`${idx>0?"mt-3 pt-3 border-t border-gray-100":""}`}>
+                    <Text className="text-base font-semibold text-gray-900">
+                      {drug.genericName}
+                    </Text>
+                    <Text className="text-sm text-gray-600">{drug.drugClass}</Text>
+                    <Text className="text-sm text-gray-600">{drug.rcmDosage}</Text>
+                  </View>
+                ))
+              ) : (
+                <Text className="text-sm text-gray-600">{t("appointmentDetail.noArvInPrescription")}</Text>
+              )}
+
+              {preArv.arvList && preArv.arvList.length > 0 && (
+                <TouchableOpacity
+                  className="bg-blue-600 py-3 rounded-lg mt-4"
+                  onPress={handleAddPreArvToReminders}
+                >
+                  <Text className="text-white text-center font-semibold">
+                    {t("appointmentDetail.addPreArvToReminders")}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         )}

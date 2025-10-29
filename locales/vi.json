@@ -455,7 +455,10 @@
     "cancelFailed": "Hủy thất bại",
     "cancelError": "Đã xảy ra lỗi, vui lòng thử lại.",
     "medicalRecordError": "Đã xảy ra lỗi khi lấy hồ sơ khám bệnh.",
-    "noMedicalRecord": "Không có hồ sơ khám bệnh cho lịch hẹn này."
+    "noMedicalRecord": "Không có hồ sơ khám bệnh cho lịch hẹn này.",
+    "preArvPrescription": "Đơn thuốc ARV dự kiến",
+    "addPreArvToReminders": "Thêm vào lịch nhắc nhở",
+    "noArvInPrescription": "Đơn thuốc này chưa có thuốc ARV được kê."
   },
   "booking": {
     "title": "Đặt lịch hẹn",
@@ -767,7 +770,8 @@
       "noArvInPrescription": "Đơn thuốc này chưa có thuốc ARV được kê.",
       "dosage": "Liều dùng:",
       "route": "Đường dùng:",
-      "rememberTakeMedication": "Nhớ uống thuốc đúng giờ và theo chỉ định của bác sĩ"
+      "rememberTakeMedication": "Nhớ uống thuốc đúng giờ và theo chỉ định của bác sĩ",
+      "addAllToReminders": "Thêm tất cả vào lịch nhắc nhở"
     }
   }
 }

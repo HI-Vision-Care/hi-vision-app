@@ -1,6 +1,8 @@
 "use client";
 import { usePatientProfile } from "@/hooks/usePatientId";
 import { useTranslation } from "@/hooks/useTranslation";
+import { createMedicationPlan } from "@/services/medication/scheduler";
+import { requestNotificationPermissions } from "@/services/notification/prep-notification";
 import { useGetArvPrescription } from "@/services/prescription/hooks";
 import { ScrollView, StatusBar, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -201,6 +203,54 @@ export default function MyPrescriptions() {
 
   const isLoading = loadingProfile || loadingPrescription;
 
+  // Debug logging
+  console.log("Debug prescription data:", {
+    patientId,
+    prescriptionData,
+    hasPrescription: !!prescriptionData?.prescription,
+    hasArvList: !!prescriptionData?.arvList,
+    arvListLength: prescriptionData?.arvList?.length || 0,
+    isLoading,
+    isError,
+  });
+
+  const handleAutoAddReminders = async () => {
+    if (!prescriptionData?.arvList || prescriptionData.arvList.length === 0)
+      return;
+    try {
+      const granted = await requestNotificationPermissions();
+      if (!granted) return;
+
+      const today = new Date();
+      const defaultTime = new Date();
+      defaultTime.setHours(20, 0, 0, 0);
+
+      await Promise.all(
+        prescriptionData.arvList.map((drug) =>
+          createMedicationPlan({
+            name: `${drug.genericName} – ARV`,
+            medicineName: drug.genericName,
+            regimenType: "arv",
+            notes: "Auto-imported from prescription",
+            startDate: today,
+            totalDays: 30,
+            slots: [
+              {
+                slot: "evening",
+                time: defaultTime,
+                note: "Uống ARV",
+                quantity: 1,
+              },
+            ],
+          })
+        )
+      );
+    } catch (e) {
+      // no-op: surface via console for dev
+      console.error(e);
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-blue-500" edges={["top"]}>
       <StatusBar backgroundColor="#3B82F6" barStyle="light-content" />
@@ -229,23 +279,47 @@ export default function MyPrescriptions() {
 
         {!isLoading &&
           !isError &&
-          (!prescriptionData || !prescriptionData.prescription) && (
-            <EmptyState t={t} />
-          )}
+          (!prescriptionData ||
+            (!prescriptionData.prescription &&
+              !prescriptionData.arvList?.length)) && <EmptyState t={t} />}
 
         {!isLoading &&
           !isError &&
           prescriptionData &&
-          prescriptionData.prescription && (
+          (prescriptionData.prescription ||
+            prescriptionData.arvList?.length > 0) && (
             <ScrollView
               contentContainerStyle={{ padding: 16 }}
               showsVerticalScrollIndicator={false}
             >
               <PrescriptionCard
-                prescription={prescriptionData.prescription}
-                arvList={prescriptionData.arvList}
+                prescription={
+                  prescriptionData.prescription || {
+                    prescriptionID: "temp",
+                    date: new Date().toISOString(),
+                    prescribeBy: "Doctor",
+                    status: "active",
+                  }
+                }
+                arvList={prescriptionData.arvList || []}
                 t={t}
               />
+
+              {/* Auto add to reminders */}
+              {prescriptionData.arvList &&
+                prescriptionData.arvList.length > 0 && (
+                  <View className="mt-4">
+                    <Text className="text-gray-700 mb-2 font-medium">
+                      {t("medicine.myPrescriptions.rememberTakeMedication")}
+                    </Text>
+                    <Text
+                      onPress={handleAutoAddReminders}
+                      className="bg-blue-600 text-white text-center py-3 rounded-xl font-semibold"
+                    >
+                      {t("medicine.myPrescriptions.addAllToReminders")}
+                    </Text>
+                  </View>
+                )}
 
               {/* Footer Info với typography nổi bật */}
               <View className="bg-yellow-50 rounded-2xl p-5 mt-6 border border-yellow-200">

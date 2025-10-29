@@ -438,7 +438,10 @@
     "cancelFailed": "Cancel Failed",
     "cancelError": "An error occurred, please try again.",
     "medicalRecordError": "Error loading medical record.",
-    "noMedicalRecord": "No medical record available for this appointment."
+    "noMedicalRecord": "No medical record available for this appointment.",
+    "preArvPrescription": "Pre-ARV Prescription",
+    "addPreArvToReminders": "Add to Reminders",
+    "noArvInPrescription": "This prescription doesn't have any ARV medications prescribed yet."
   },
   "booking": {
     "title": "Book Appointment",
@@ -752,7 +755,8 @@
       "noArvInPrescription": "This prescription doesn't have any ARV medications prescribed yet.",
       "dosage": "Dosage:",
       "route": "Route:",
-      "rememberTakeMedication": "Remember to take medication on time and as prescribed by your doctor"
+      "rememberTakeMedication": "Remember to take medication on time and as prescribed by your doctor",
+      "addAllToReminders": "Add All to Reminders"
     }
   }
 }
