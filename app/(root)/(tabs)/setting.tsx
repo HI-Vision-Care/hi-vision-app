@@ -414,14 +414,14 @@ const Setting = () => {
             >
               <View className="flex-1">
                 <Text className="text-lg font-bold text-gray-900 mb-2">
-                  Wallet balance
+                  {t("settings.walletBalance")}
                 </Text>
                 <Text className="text-2xl font-extrabold text-green-600">
                   {isWalletLoading
-                    ? "Loading..."
+                    ? t("common.loading")
                     : wallet
                     ? `${formatVND(wallet.balance)} `
-                    : "No Wallet"}
+                    : t("settings.noWallet")}
                 </Text>
               </View>
               {!wallet && !isWalletLoading ? (
@@ -444,7 +444,9 @@ const Setting = () => {
                   <View className="flex-row items-center">
                     <Ionicons name="wallet" size={22} color="#fff" />
                     <Text className="text-white font-bold ml-2">
-                      {isCreating ? "Đang tạo ví..." : "Tạo ví"}
+                      {isCreating
+                        ? t("settings.creatingWallet")
+                        : t("settings.createWallet")}
                     </Text>
                   </View>
                 </TouchableOpacity>

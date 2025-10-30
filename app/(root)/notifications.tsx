@@ -1,9 +1,10 @@
 import { useTranslation } from "@/hooks/useTranslation";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
+  DeviceEventEmitter,
   FlatList,
   StatusBar,
   Text,
@@ -12,20 +13,32 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-interface NotificationItem {
-  id: string;
-  title: string;
-  message: string;
-  time: string;
-  type: "medication" | "appointment" | "system";
-  isRead: boolean;
-}
+import {
+  NOTIFICATIONS_UPDATED_EVENT,
+  NotificationItem,
+  getNotifications,
+  markAllRead as storeMarkAllRead,
+  markRead as storeMarkRead,
+} from "@/utils/notificationStore";
 
 const Notifications = () => {
   const { t, isReady } = useTranslation();
 
-  // Empty notifications array - will be populated from API
-  const notifications: NotificationItem[] = [];
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+
+  const loadNotifications = async () => {
+    const data = await getNotifications();
+    setNotifications(data);
+  };
+
+  useEffect(() => {
+    loadNotifications();
+    const sub = DeviceEventEmitter.addListener(
+      NOTIFICATIONS_UPDATED_EVENT,
+      loadNotifications
+    );
+    return () => sub.remove();
+  }, []);
 
   const getNotificationIcon = (type: NotificationItem["type"]) => {
     switch (type) {
@@ -53,9 +66,9 @@ const Notifications = () => {
     }
   };
 
-  const handleNotificationPress = (notification: NotificationItem) => {
+  const handleNotificationPress = async (notification: NotificationItem) => {
     if (!notification.isRead) {
-      // Mark as read logic here
+      await storeMarkRead(notification.id);
     }
 
     // Handle navigation based on notification type
@@ -72,7 +85,8 @@ const Notifications = () => {
     }
   };
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
+    await storeMarkAllRead();
     Alert.alert(
       t("notifications.markAllRead"),
       t("notifications.markAllReadMessage"),

@@ -174,7 +174,7 @@ const OtpSecurity: React.FC = () => {
             {/* Resend */}
             <View className="items-center mb-10">
               <Text className="text-gray-600 text-sm">
-                Didn't see any OTP code?{" "}
+                Didn&apos;t see any OTP code?{" "}
                 <Text className="text-red-500 underline" onPress={handleResend}>
                   Resend.
                 </Text>

@@ -351,17 +351,6 @@ export default function PreferencesScreen() {
             </View>
           </View>
         </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t("settings.language")}</Text>
-          <View style={styles.card}>
-            <Text style={styles.cardLabel}>{t("settings.selectLanguage")}</Text>
-            <View style={styles.pillsRow}>
-              <LanguagePill value="vi" label={t("settings.vietnamese")} />
-              <LanguagePill value="en" label={t("settings.english")} />
-            </View>
-          </View>
-        </View>
       </ScrollView>
     </SafeAreaView>
   );

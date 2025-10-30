@@ -1,5 +1,6 @@
 import { HeaderBack, ProfileUpdateSuccessScreen } from "@/components";
 import { usePatientProfile } from "@/hooks/usePatientId";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useUpdatePatientProfile } from "@/services/patient/hooks";
 import { useUploadImage } from "@/services/storage/hooks";
 import { Ionicons } from "@expo/vector-icons";
@@ -30,6 +31,7 @@ type MedicalData = {
 };
 
 export default function PersonalInfo() {
+  const { t } = useTranslation();
   const { data: profile, isLoading } = usePatientProfile();
   const patientId = profile?.patientID;
   const accountId = profile?.account?.id;
@@ -93,7 +95,10 @@ export default function PersonalInfo() {
       });
       if (!res.canceled) setAvatarUri(res.assets?.[0]?.uri);
     } catch (e: any) {
-      Alert.alert("Image Picker", e?.message || "Unable to open library");
+      Alert.alert(
+        t("personalInfo.imagePicker"),
+        e?.message || t("personalInfo.unableToOpenLibrary")
+      );
     }
   };
 
@@ -109,12 +114,19 @@ export default function PersonalInfo() {
       });
       if (!res.canceled) setAvatarUri(res.assets?.[0]?.uri);
     } catch (e: any) {
-      Alert.alert("Camera", e?.message || "Unable to open camera");
+      Alert.alert(
+        t("personalInfo.camera"),
+        e?.message || t("personalInfo.unableToOpenCamera")
+      );
     }
   };
 
   const handleSave = async () => {
-    if (!patientId) return Alert.alert("Profile", "Missing patient id");
+    if (!patientId)
+      return Alert.alert(
+        t("personalInfo.profile"),
+        t("personalInfo.missingPatientId")
+      );
     setSaving(true);
     try {
       // Upload avatar if changed and get URL
@@ -147,7 +159,10 @@ export default function PersonalInfo() {
       // Show success screen instead of alert
       setShowSuccessScreen(true);
     } catch (e: any) {
-      Alert.alert("Update failed", e?.message || "Please try again");
+      Alert.alert(
+        t("personalInfo.updateFailed"),
+        e?.message || t("personalInfo.pleaseTryAgain")
+      );
     } finally {
       setSaving(false);
     }
@@ -185,7 +200,7 @@ export default function PersonalInfo() {
                 onFocus={() => setFocusedField(field)}
                 onBlur={() => setFocusedField("")}
                 className="flex-1 text-slate-900 text-base font-medium"
-                placeholder={`Enter ${label.toLowerCase()}`}
+                placeholder={t("personalInfo.enterField", { field: label })}
                 placeholderTextColor="#9cb7d1"
                 multiline={opts?.multiline}
                 numberOfLines={opts?.multiline ? 3 : 1}
@@ -207,7 +222,7 @@ export default function PersonalInfo() {
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#eaf2fb" />
       <SafeAreaView className="flex-1 bg-blue-50">
-        <HeaderBack title="Personal Information" />
+        <HeaderBack title={t("personalInfo.title")} />
         <ScrollView showsVerticalScrollIndicator={false}>
           {/* Profile header */}
           <View className="items-center pt-2 mb-6">
@@ -253,17 +268,17 @@ export default function PersonalInfo() {
               </View>
             </TouchableOpacity>
             <Text className="text-gray-600 text-sm mt-2">
-              Tap to change avatar
+              {t("personalInfo.tapToChangeAvatar")}
             </Text>
           </View>
 
           <View className="px-6">
             {/* Personal */}
             <Text className="text-blue-900 text-lg font-bold mb-4">
-              Personal Details
+              {t("personalInfo.personalDetails")}
             </Text>
             {Field(
-              "Full Name",
+              t("personalInfo.fullName"),
               data.fullName,
               "fullName",
               <Ionicons
@@ -273,25 +288,25 @@ export default function PersonalInfo() {
               />
             )}
             {Field(
-              "Email Address",
+              t("personalInfo.emailAddress"),
               data.email,
               "email",
               <Ionicons name="mail-outline" size={20} color="#3b82f6" />
             )}
             {Field(
-              "Phone Number",
+              t("personalInfo.phoneNumber"),
               data.phoneNumber,
               "phoneNumber",
               <Ionicons name="call-outline" size={20} color="#3b82f6" />
             )}
             {Field(
-              "Date of Birth",
+              t("personalInfo.dateOfBirth"),
               data.dateOfBirth,
               "dateOfBirth",
               <Ionicons name="calendar-outline" size={20} color="#3b82f6" />
             )}
             {Field(
-              "Gender",
+              t("personalInfo.gender"),
               data.gender,
               "gender",
               <Ionicons name="male-female-outline" size={20} color="#3b82f6" />
@@ -299,22 +314,22 @@ export default function PersonalInfo() {
 
             {/* Medical */}
             <Text className="text-blue-900 text-lg font-bold mt-4 mb-4">
-              Medical Information
+              {t("personalInfo.medicalInformation")}
             </Text>
             {Field(
-              "Medical Number",
+              t("personalInfo.medicalNumber"),
               data.medNo,
               "medNo",
               <Ionicons name="medkit-outline" size={20} color="#3b82f6" />
             )}
             {Field(
-              "Medical Date",
+              t("personalInfo.medicalDate"),
               data.medDate,
               "medDate",
               <Ionicons name="time-outline" size={20} color="#3b82f6" />
             )}
             {Field(
-              "Medical Facility",
+              t("personalInfo.medicalFacility"),
               data.medFac,
               "medFac",
               <Ionicons name="business-outline" size={20} color="#3b82f6" />
@@ -332,7 +347,7 @@ export default function PersonalInfo() {
                 <Ionicons name="save-outline" size={18} color="#fff" />
               )}
               <Text className="text-white text-lg font-bold ml-2">
-                Save Profile
+                {t("personalInfo.saveProfile")}
               </Text>
             </TouchableOpacity>
 
@@ -346,11 +361,10 @@ export default function PersonalInfo() {
                 />
                 <View className="flex-1 ml-3">
                   <Text className="text-blue-900 font-semibold text-sm mb-1">
-                    Medical Information Notice
+                    {t("personalInfo.medicalInfoNotice")}
                   </Text>
                   <Text className="text-blue-800 text-xs leading-5">
-                    Your information is confidential. Ensure it’s accurate and
-                    up-to-date.
+                    {t("personalInfo.medicalInfoNoteText")}
                   </Text>
                 </View>
               </View>
@@ -368,11 +382,11 @@ export default function PersonalInfo() {
           <View className="flex-1 bg-black bg-opacity-50 justify-center items-center">
             <View className="bg-white rounded-2xl mx-8 p-6 w-full max-w-sm">
               <Text className="text-xl font-bold text-gray-900 text-center mb-6">
-                Change Avatar
+                {t("personalInfo.changeAvatar")}
               </Text>
 
               <Text className="text-gray-600 text-center mb-6">
-                Choose how you&apos;d like to update your profile picture
+                {t("personalInfo.chooseHowToUpdateAvatar")}
               </Text>
 
               <View className="space-y-4">
@@ -386,10 +400,10 @@ export default function PersonalInfo() {
                   </View>
                   <View className="flex-1">
                     <Text className="text-gray-900 font-semibold text-lg">
-                      Take Photo
+                      {t("personalInfo.takePhoto")}
                     </Text>
                     <Text className="text-gray-600 text-sm">
-                      Use your camera to take a new photo
+                      {t("personalInfo.useCameraToTakePhoto")}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -404,10 +418,10 @@ export default function PersonalInfo() {
                   </View>
                   <View className="flex-1">
                     <Text className="text-gray-900 font-semibold text-lg">
-                      Choose from Library
+                      {t("personalInfo.chooseFromLibrary")}
                     </Text>
                     <Text className="text-gray-600 text-sm">
-                      Select an existing photo from your gallery
+                      {t("personalInfo.selectExistingPhoto")}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -419,7 +433,7 @@ export default function PersonalInfo() {
                 className="mt-6 py-3 px-6 border border-gray-300 rounded-xl"
               >
                 <Text className="text-gray-600 font-medium text-center">
-                  Cancel
+                  {t("common.cancel")}
                 </Text>
               </TouchableOpacity>
             </View>

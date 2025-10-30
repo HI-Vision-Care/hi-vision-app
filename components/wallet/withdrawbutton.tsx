@@ -1,4 +1,5 @@
 import { MIN_WITHDRAW, quickAmounts } from "@/constants";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useRequestWithdraw } from "@/services/wallet/hooks";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
@@ -19,6 +20,7 @@ type Props = {
 };
 
 export const WithdrawButton = ({ accountId, refetchWallet }: Props) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState<string>("");
   const [accountName, setAccountName] = useState("");
@@ -61,12 +63,12 @@ export const WithdrawButton = ({ accountId, refetchWallet }: Props) => {
           setAccountNumber("");
           setBankName("");
           refetchWallet?.();
-          Alert.alert("Đã gửi yêu cầu", "Yêu cầu rút tiền đang được xử lý.");
+          Alert.alert(t("wallet.requestSent"), t("wallet.withdrawProcessing"));
         },
         onError: (err: any) => {
           Alert.alert(
-            "Không thể rút tiền",
-            err?.message || "Vui lòng thử lại sau."
+            t("wallet.cannotWithdraw"),
+            err?.message || t("wallet.tryAgainLater")
           );
         },
       }
@@ -91,7 +93,9 @@ export const WithdrawButton = ({ accountId, refetchWallet }: Props) => {
         <View className="bg-white/20 rounded-full p-1 mr-2">
           <Ionicons name="swap-vertical" size={20} color="#fff" />
         </View>
-        <Text className="text-white font-bold text-base">Rút tiền</Text>
+        <Text className="text-white font-bold text-base">
+          {t("wallet.withdraw")}
+        </Text>
       </TouchableOpacity>
 
       {/* Modal rút tiền */}
@@ -105,7 +109,7 @@ export const WithdrawButton = ({ accountId, refetchWallet }: Props) => {
                   <Ionicons name="cash-outline" size={20} color="#DC2626" />
                 </View>
                 <Text className="text-xl font-bold text-gray-900">
-                  Rút tiền
+                  {t("wallet.withdraw")}
                 </Text>
               </View>
               <TouchableOpacity
@@ -119,7 +123,7 @@ export const WithdrawButton = ({ accountId, refetchWallet }: Props) => {
 
             {/* Amount */}
             <Text className="text-sm font-medium text-gray-700 mb-2">
-              Số tiền muốn rút
+              {t("wallet.amountToWithdraw")}
             </Text>
             <View className="bg-gray-50 rounded-2xl flex-row items-center border border-gray-200 px-4 py-3 mb-1">
               <Text className="text-2xl font-bold text-rose-600 mr-1">₫</Text>
@@ -167,18 +171,18 @@ export const WithdrawButton = ({ accountId, refetchWallet }: Props) => {
 
             {/* Bank info */}
             <Text className="text-sm font-medium text-gray-700 mb-2">
-              Thông tin ngân hàng nhận
+              {t("wallet.bankInfo")}
             </Text>
             <View className="space-y-3 mb-4 ">
               <TextInput
-                placeholder="Tên chủ tài khoản"
+                placeholder={t("wallet.accountNamePlaceholder")}
                 value={accountName}
                 onChangeText={setAccountName}
                 className="bg-gray-50 rounded-2xl border border-gray-200 px-4 py-3"
                 placeholderTextColor="#9CA3AF"
               />
               <TextInput
-                placeholder="Số tài khoản"
+                placeholder={t("wallet.accountNumberPlaceholder")}
                 value={accountNumber}
                 onChangeText={setAccountNumber}
                 keyboardType="number-pad"
@@ -186,7 +190,7 @@ export const WithdrawButton = ({ accountId, refetchWallet }: Props) => {
                 placeholderTextColor="#9CA3AF"
               />
               <TextInput
-                placeholder="Tên ngân hàng"
+                placeholder={t("wallet.bankNamePlaceholder")}
                 value={bankName}
                 onChangeText={setBankName}
                 className="bg-gray-50 rounded-2xl border border-gray-200 px-4 py-3"
@@ -208,14 +212,14 @@ export const WithdrawButton = ({ accountId, refetchWallet }: Props) => {
                   <>
                     <ActivityIndicator size="small" color="#fff" />
                     <Text className="text-white font-bold ml-2 text-base">
-                      Đang gửi yêu cầu...
+                      {t("wallet.sendingRequest")}
                     </Text>
                   </>
                 ) : (
                   <>
                     <Ionicons name="paper-plane" size={22} color="#fff" />
                     <Text className="text-white font-bold ml-2 text-base">
-                      Xác nhận rút tiền
+                      {t("wallet.confirmWithdraw")}
                     </Text>
                   </>
                 )}
@@ -228,7 +232,9 @@ export const WithdrawButton = ({ accountId, refetchWallet }: Props) => {
                 <View className="flex-row items-center">
                   <Ionicons name="warning-outline" size={16} color="#DC2626" />
                   <Text className="text-red-600 text-xs font-medium ml-2">
-                    Số tiền tối thiểu là {MIN_WITHDRAW.toLocaleString()} VNĐ
+                    {t("wallet.minWithdraw", {
+                      amount: MIN_WITHDRAW.toLocaleString(),
+                    })}
                   </Text>
                 </View>
               </View>

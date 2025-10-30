@@ -8,12 +8,17 @@ import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  DeviceEventEmitter,
   Image,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import {
+  getNotifications,
+  NOTIFICATIONS_UPDATED_EVENT,
+} from "@/utils/notificationStore";
 
 interface JWTPayload {
   sub: string; // sub là accountId
@@ -24,6 +29,7 @@ interface JWTPayload {
 const HeaderHome = () => {
   const { t, language, isReady } = useTranslation();
   const [accountId, setAccountId] = useState<string>();
+  const [unreadCount, setUnreadCount] = useState<number>(0);
 
   useEffect(() => {
     AsyncStorage.getItem("token").then((token) => {
@@ -37,6 +43,19 @@ const HeaderHome = () => {
         }
       }
     });
+  }, []);
+
+  useEffect(() => {
+    const load = async () => {
+      const list = await getNotifications();
+      setUnreadCount(list.filter((n) => !n.isRead).length);
+    };
+    load();
+    const sub = DeviceEventEmitter.addListener(
+      NOTIFICATIONS_UPDATED_EVENT,
+      load
+    );
+    return () => sub.remove();
   }, []);
 
   const {
@@ -98,9 +117,11 @@ const HeaderHome = () => {
             activeOpacity={0.7}
           >
             <Ionicons name="notifications-outline" size={24} color="white" />
-            <View className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full items-center justify-center">
-              <Text className="text-white text-xs font-bold">1</Text>
-            </View>
+            {unreadCount > 0 && (
+              <View className="absolute -top-1 -right-1 min-w-4 h-4 px-1 bg-red-500 rounded-full items-center justify-center">
+                <Text className="text-white text-xs font-bold">{unreadCount}</Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
       </View>
