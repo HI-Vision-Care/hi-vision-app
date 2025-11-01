@@ -2,7 +2,7 @@
   "expo": {
     "name": "Hi-Vision",
     "slug": "hi-vision",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",
     "scheme": "hivisionmobileapp",
