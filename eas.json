@@ -20,6 +20,11 @@
       "android": {
         "buildType": "app-bundle",
         "gradleCommand": ":app:bundleRelease"
+      },
+      "ios": {
+        "distribution": "store",
+        "autoIncrement": true,
+        "simulator": false
       }
     }
   },

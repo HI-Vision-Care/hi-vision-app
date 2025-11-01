@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 import { useMutation } from "@tanstack/react-query";
 import {
   forgotPassword,
@@ -23,9 +24,20 @@ import {
 export const useSignIn = () => {
   return useMutation<SignInResponse, Error, SignInParams>({
     mutationFn: signIn,
-    onSuccess: async (data) => {
+    onSuccess: async (data, variables) => {
       if (data?.token) {
         await AsyncStorage.setItem("token", data.token);
+        // Lưu thông tin đăng nhập để dùng cho sinh trắc học/PIN
+        // Lưu vào SecureStore để bảo mật hơn
+        try {
+          await SecureStore.setItemAsync("saved_email", variables.email);
+          await SecureStore.setItemAsync("saved_password", variables.password);
+        } catch (error) {
+          console.error("Error saving credentials:", error);
+          // Fallback to AsyncStorage nếu SecureStore không khả dụng
+          await AsyncStorage.setItem("saved_email", variables.email);
+          await AsyncStorage.setItem("saved_password", variables.password);
+        }
       }
     },
     onError: (error) => {

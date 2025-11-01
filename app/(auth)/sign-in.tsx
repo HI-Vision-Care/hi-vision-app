@@ -4,12 +4,13 @@ import { useSignIn } from "@/services/auth/hooks";
 import { authErrorHandler } from "@/utils/error-handler";
 import { CustomButton, InputField } from "@components";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Image, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { isBiometricEnabled, checkBiometricSupport } from "@/services/auth/biometric";
 
 const SignIn: React.FC = () => {
   const { t } = useTranslation();
@@ -19,10 +20,35 @@ const SignIn: React.FC = () => {
 
   const { mutateAsync: login, isLoading } = useSignIn();
 
+  useEffect(() => {
+    // Kiểm tra xem đã thiết lập biometric chưa
+    checkBiometricSetup();
+  }, []);
+
+  const checkBiometricSetup = async () => {
+    const enabled = await isBiometricEnabled();
+    const biometricInfo = await checkBiometricSupport();
+    
+    if (enabled && biometricInfo.available) {
+      // Đã có biometric, chuyển đến màn hình đăng nhập sinh trắc học
+      router.replace("/(auth)/biometric-login");
+    }
+  };
+
   const handleSignIn = async () => {
     try {
       await login({ email, password }); // token đã được lưu bởi hook!
-      router.replace("/(root)/(tabs)/home");
+      
+      // Kiểm tra xem đã thiết lập biometric chưa
+      const enabled = await isBiometricEnabled();
+      const biometricInfo = await checkBiometricSupport();
+      
+      if (!enabled && biometricInfo.available) {
+        // Chưa thiết lập và có hỗ trợ, chuyển đến thiết lập
+        router.replace("/(auth)/biometric-setup");
+      } else {
+        router.replace("/(root)/(tabs)/home");
+      }
     } catch (err: any) {
       authErrorHandler(err);
     }
