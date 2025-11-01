@@ -85,12 +85,12 @@ const Home = () => {
           {/* Health Service Swiper */}
           <HealthServicesSwiper />
 
-          <ChatbotSectionHeader
+          {/* <ChatbotSectionHeader
             title="Appointment Scheduled For You"
             onHelpPress={() => console.log("Help tapped")}
           />
 
-          {latestAppointment && <ChatbotCard appointment={latestAppointment} />}
+          {latestAppointment && <ChatbotCard appointment={latestAppointment} />} */}
 
           {/* Smart Health Metrics */}
           <View className="flex-row justify-between items-center mb-4">
