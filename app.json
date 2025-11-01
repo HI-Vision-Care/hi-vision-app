@@ -27,7 +27,7 @@
         "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.hivisionmobileapp",
+      "package": "com.anonymous.HI_Vision_Mobile_App",
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.CAMERA",
