@@ -21,10 +21,37 @@ const SignIn: React.FC = () => {
 
   const handleSignIn = async () => {
     try {
-      await login({ email, password }); // token đã được lưu bởi hook!
+      // Basic validation before calling API
+      if (!email || !email.trim()) {
+        authErrorHandler(new Error("Vui lòng nhập email"));
+        return;
+      }
+      if (!password || !password.trim()) {
+        authErrorHandler(new Error("Vui lòng nhập mật khẩu"));
+        return;
+      }
+
+      await login({ email: email.trim(), password }); // token đã được lưu bởi hook!
       router.replace("/(root)/(tabs)/home");
     } catch (err: any) {
-      authErrorHandler(err);
+      // Ensure error is properly handled without crashing
+      try {
+        authErrorHandler(err);
+      } catch (handlerError) {
+        // Fallback error handling if authErrorHandler fails
+        console.error("SignIn error:", err);
+        console.error("Error handler failed:", handlerError);
+        // Show simple alert as last resort
+        try {
+          const { Alert } = require("react-native");
+          Alert.alert(
+            "Lỗi đăng nhập",
+            err?.message || "Đã xảy ra lỗi. Vui lòng thử lại."
+          );
+        } catch (alertError) {
+          console.error("Failed to show error alert:", alertError);
+        }
+      }
     }
   };
 

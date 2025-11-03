@@ -24,12 +24,22 @@ export const useSignIn = () => {
   return useMutation<SignInResponse, Error, SignInParams>({
     mutationFn: signIn,
     onSuccess: async (data) => {
-      if (data?.token) {
-        await AsyncStorage.setItem("token", data.token);
+      try {
+        if (data?.token) {
+          await AsyncStorage.setItem("token", data.token);
+        }
+      } catch (storageError) {
+        console.error("Failed to save token:", storageError);
+        throw new Error("Không thể lưu thông tin đăng nhập. Vui lòng thử lại.");
       }
     },
     onError: (error) => {
+      // Log error but don't throw - let the component handle it
       console.error("SignIn failed:", error.message);
+      // Ensure error has a message
+      if (!error.message) {
+        error.message = "Đăng nhập thất bại. Vui lòng thử lại.";
+      }
     },
   });
 };

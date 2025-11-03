@@ -1,3 +1,4 @@
+import { Alert } from "react-native";
 import { getSamplingRate, shouldReportError } from "../config/error-reporting";
 import { captureError } from "./sentry-setup";
 
@@ -252,11 +253,14 @@ export function smartErrorHandler(
 
   // Luôn hiển thị alert cho user
   if (showAlert) {
-    const message = customMessage || errorInfo.userFriendlyMessage;
-    // Import Alert dynamically để tránh circular dependency
-    import("react-native").then(({ Alert }) => {
+    try {
+      const message = customMessage || errorInfo.userFriendlyMessage;
       Alert.alert(alertTitle, message);
-    });
+    } catch (alertError) {
+      // Fallback to console if Alert fails
+      console.error("Error showing alert:", alertError);
+      console.error("Original error:", errorInfo.message);
+    }
   }
 
   return {

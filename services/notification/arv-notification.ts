@@ -16,18 +16,23 @@ type MedicineDose = {
 
 // 1. Đăng ký actions khi khởi tạo app
 export async function registerArvNotificationActions() {
-  await Notifications.setNotificationCategoryAsync(ARV_CATEGORY, [
-    {
-      identifier: ARV_ACTION_CONFIRM,
-      buttonTitle: "Đã uống",
-      options: { isDestructive: false, opensAppToForeground: false },
-    },
-    {
-      identifier: ARV_ACTION_SNOOZE,
-      buttonTitle: "Báo lại 15 phút",
-      options: { isDestructive: false, opensAppToForeground: false },
-    },
-  ]);
+  try {
+    await Notifications.setNotificationCategoryAsync(ARV_CATEGORY, [
+      {
+        identifier: ARV_ACTION_CONFIRM,
+        buttonTitle: "Đã uống",
+        options: { isDestructive: false, opensAppToForeground: false },
+      },
+      {
+        identifier: ARV_ACTION_SNOOZE,
+        buttonTitle: "Báo lại 15 phút",
+        options: { isDestructive: false, opensAppToForeground: false },
+      },
+    ]);
+  } catch (error) {
+    console.error("Failed to register ARV notification actions:", error);
+    throw error;
+  }
 }
 
 /**
