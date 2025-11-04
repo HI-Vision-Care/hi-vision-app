@@ -1,5 +1,4 @@
 import { useTranslation } from "@/hooks/useTranslation";
-import { Ionicons } from "@expo/vector-icons";
 import { Text, TouchableOpacity, View } from "react-native";
 
 const MedicationSection = () => {
@@ -33,9 +32,9 @@ const MedicationSection = () => {
               {t("home.medications")}
             </Text>
           </View>
-          <TouchableOpacity className="w-12 h-12 bg-blue-600 rounded-full items-center justify-center">
+          {/* <TouchableOpacity className="w-12 h-12 bg-blue-600 rounded-full items-center justify-center">
             <Ionicons name="add" size={24} color="white" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         {/* Medication Calendar Grid */}

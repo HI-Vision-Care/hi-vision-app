@@ -2,24 +2,13 @@ import { usePatientProfile } from "@/hooks/usePatientId";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useGetAppointmentByPatientId } from "@/services/appointment/hooks";
 import {
-  ActivityList,
-  ChatbotCard,
-  ChatbotSectionHeader,
   HeaderHome,
   HealthServicesSwiper,
   MedicationSection,
-  MetricCarousel,
 } from "@components";
-import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback } from "react";
-import {
-  ScrollView,
-  StatusBar,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ScrollView, StatusBar, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Home = () => {
@@ -93,7 +82,7 @@ const Home = () => {
           {latestAppointment && <ChatbotCard appointment={latestAppointment} />} */}
 
           {/* Smart Health Metrics */}
-          <View className="flex-row justify-between items-center mb-4">
+          {/* <View className="flex-row justify-between items-center mb-4">
             <Text className="text-gray-900 text-lg font-semibold">
               {t("home.smartHealthMetrics")}
             </Text>
@@ -102,19 +91,19 @@ const Home = () => {
                 {t("home.seeAll")}
               </Text>
             </TouchableOpacity>
-          </View>
+          </View> */}
 
           {/* Metrics Cards */}
-          <MetricCarousel />
+          {/* <MetricCarousel /> */}
 
           {/* Fitness & Activity Tracker Section */}
-          <View className="flex-row justify-between items-center mb-4">
+          {/* <View className="flex-row justify-between items-center mb-4">
             <Text className="text-gray-900 text-lg font-semibold">
               {t("home.fitnessActivityTracker")}
             </Text>
             <Ionicons name="ellipsis-horizontal" size={20} color="#9CA3AF" />
           </View>
-          <ActivityList />
+          <ActivityList /> */}
 
           {/* Medication Management Section */}
           <MedicationSection />
