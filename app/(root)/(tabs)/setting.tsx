@@ -46,7 +46,7 @@ const Setting = () => {
   const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem("token");
-      router.push("/(auth)/sign-in");
+      router.replace("/(auth)/sign-in");
     } catch (e) {
       console.error("Logout failed:", e);
     }

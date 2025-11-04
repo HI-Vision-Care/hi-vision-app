@@ -76,7 +76,8 @@ export async function checkBiometricSupport(): Promise<BiometricType> {
  * Xác thực bằng sinh trắc học
  */
 export async function authenticateWithBiometric(
-  reason: string = "Xác thực danh tính của bạn"
+  reason: string = "Xác thực danh tính của bạn",
+  options?: { disableDeviceFallback?: boolean }
 ): Promise<AuthenticationResult> {
   try {
     const biometric = await checkBiometricSupport();
@@ -90,7 +91,7 @@ export async function authenticateWithBiometric(
     const result = await LocalAuthentication.authenticateAsync({
       promptMessage: reason,
       cancelLabel: "Hủy",
-      disableDeviceFallback: false, // Cho phép fallback về system PIN/password
+      disableDeviceFallback: options?.disableDeviceFallback ?? false,
       fallbackLabel: Platform.OS === "ios" ? "Nhập mã PIN" : "Sử dụng mã PIN",
     });
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Image } from "react-native";
+import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Image, BackHandler } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -12,6 +12,7 @@ import {
   BiometricType,
 } from "@/services/auth/biometric";
 import { useSignIn } from "@/services/auth/hooks";
+import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
 
@@ -25,6 +26,15 @@ export default function BiometricLogin() {
   useEffect(() => {
     initializeAuth();
   }, []);
+
+  // Disable Android hardware back on this screen (prevents going back after sign-out)
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => true;
+      const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+      return () => subscription.remove();
+    }, [])
+  );
 
   const initializeAuth = async () => {
     setLoading(true);

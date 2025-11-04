@@ -2,24 +2,18 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
-import { isBiometricEnabled, checkBiometricSupport } from "@/services/auth/biometric";
+// Biometric login screen removed from flow; keep simple token check
 
 const Home = () => {
   const [loading, setLoading] = useState(true);
   const [hasToken, setHasToken] = useState(false);
-  const [hasBiometricSetup, setHasBiometricSetup] = useState(false);
 
   useEffect(() => {
     (async () => {
       const token = await AsyncStorage.getItem("token");
       setHasToken(!!token);
       
-      if (token) {
-        // Kiểm tra xem đã thiết lập biometric chưa
-        const enabled = await isBiometricEnabled();
-        const biometricInfo = await checkBiometricSupport();
-        setHasBiometricSetup(enabled && biometricInfo.available);
-      }
+      // No biometric redirect; sign-in screen now has inline biometric option
       
       setLoading(false);
     })();
@@ -36,11 +30,6 @@ const Home = () => {
 
   if (!hasToken) {
     return <Redirect href="/(auth)/get-started" />;
-  }
-
-  // Nếu đã đăng nhập và có biometric, chuyển đến màn hình đăng nhập sinh trắc học
-  if (hasToken && hasBiometricSetup) {
-    return <Redirect href="/(auth)/biometric-login" />;
   }
 
   // Nếu đã đăng nhập nhưng chưa có biometric, vào app luôn
