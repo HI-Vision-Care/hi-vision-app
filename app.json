@@ -2,7 +2,7 @@
   "expo": {
     "name": "Hi-Vision",
     "slug": "hi-vision",
-    "version": "1.0.6",
+    "version": "1.0.8",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",
     "scheme": "hivisionmobileapp",
@@ -17,7 +17,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.HIVisionMobileApp",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Hi-Vision uses the camera to capture your profile avatar.",
+        "NSPhotoLibraryUsageDescription": "Hi-Vision needs access to your photo library to upload your profile avatar."
       }
     },
     "android": {
