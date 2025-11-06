@@ -47,7 +47,8 @@ const getSpecialtyColor = (specialty: string) => {
 };
 
 const Menu = () => {
-  const { data: services, isLoading, isError, refetch } = useMedicalServices();
+  // COMMENTED OUT FOR APPLE REVIEW - Medical Services removed
+  /* const { data: services, isLoading, isError, refetch } = useMedicalServices();
   const { t } = useTranslation();
   // State để điều khiển spinner khi refresh
   const [refreshing, setRefreshing] = useState(false);
@@ -102,13 +103,10 @@ const Menu = () => {
 
   return (
     <View className="flex-1 bg-white">
-      {/* SafeAreaView chỉ cho phần top để có cùng màu với header */}
       <SafeAreaView edges={["top"]} className="bg-white">
-        {/* Header */}
         <HeaderAllServices />
       </SafeAreaView>
 
-      {/* SafeAreaView cho phần còn lại với màu nền khác */}
       <SafeAreaView
         edges={["left", "right", "bottom"]}
         className="flex-1 bg-[#f2f5f9]"
@@ -121,8 +119,8 @@ const Menu = () => {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor="#3B82F6" // màu spinner trên iOS
-              colors={["#3B82F6"]} // màu spinner trên Android
+              tintColor="#3B82F6"
+              colors={["#3B82F6"]}
             />
           }
         >
@@ -132,7 +130,6 @@ const Menu = () => {
             getSpecialtyColor={getSpecialtyColor}
             router={router}
           />
-          {/* Empty state */}
           {services?.length === 0 && (
             <View className="flex-1 justify-center items-center py-12">
               <View className="bg-slate-100 p-6 rounded-2xl">
@@ -143,11 +140,24 @@ const Menu = () => {
             </View>
           )}
 
-          {/* Bottom spacing */}
           <View className="h-8" />
         </ScrollView>
       </SafeAreaView>
     </View>
+  ); */
+  
+  // Empty placeholder for Apple review
+  return (
+    <SafeAreaView
+      edges={["top", "left", "right", "bottom"]}
+      className="flex-1 bg-white"
+    >
+      <View className="flex-1 justify-center items-center px-6">
+        <Text className="text-gray-600 text-center text-base">
+          This feature is temporarily unavailable.
+        </Text>
+      </View>
+    </SafeAreaView>
   );
 };
 

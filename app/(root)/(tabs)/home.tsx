@@ -4,7 +4,7 @@ import { useGetAppointmentByPatientId } from "@/services/appointment/hooks";
 import {
   HeaderHome,
   HealthServicesSwiper,
-  MedicationSection,
+  // MedicationSection, // COMMENTED OUT FOR APPLE REVIEW
 } from "@components";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback } from "react";
@@ -105,8 +105,8 @@ const Home = () => {
           </View>
           <ActivityList /> */}
 
-          {/* Medication Management Section */}
-          <MedicationSection />
+          {/* Medication Management Section - COMMENTED OUT FOR APPLE REVIEW */}
+          {/* <MedicationSection /> */}
 
           {/* Extra spacing to prevent bottom nav overlap */}
           <View className="h-1" />
