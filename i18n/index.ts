@@ -13,8 +13,8 @@ const LANGUAGE_STORAGE_KEY = "app_language";
 i18n
   .use(initReactI18next)
   .init({
-    lng: "vi", // Start with Vietnamese as default
-    fallbackLng: "vi",
+    lng: "en", // Default to English on first launch
+    fallbackLng: "en",
     debug: __DEV__,
     compatibilityJSON: "v4",
     resources: {

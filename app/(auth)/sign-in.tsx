@@ -23,11 +23,11 @@ const SignIn: React.FC = () => {
     try {
       // Basic validation before calling API
       if (!email || !email.trim()) {
-        authErrorHandler(new Error("Vui lòng nhập email"));
+        authErrorHandler(new Error(t("auth.enterEmailRequired")));
         return;
       }
       if (!password || !password.trim()) {
-        authErrorHandler(new Error("Vui lòng nhập mật khẩu"));
+        authErrorHandler(new Error(t("auth.enterPasswordRequired")));
         return;
       }
 
@@ -45,8 +45,8 @@ const SignIn: React.FC = () => {
         try {
           const { Alert } = require("react-native");
           Alert.alert(
-            "Lỗi đăng nhập",
-            err?.message || "Đã xảy ra lỗi. Vui lòng thử lại."
+            t("auth.signInFailed"),
+            err?.message || t("common.error")
           );
         } catch (alertError) {
           console.error("Failed to show error alert:", alertError);

@@ -27,39 +27,30 @@ const SignUp: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [phone, setPhone] = useState<string>("");
 
-  // State để lưu lỗi (nếu có)
-  const [errorMessage, setErrorMessage] = useState<string>("");
-
   // React Query mutation
   const { mutateAsync: signUp, isLoading } = useSignUp();
 
   const handleSignUp = async () => {
     if (!isValidEmail(email)) {
-      const errorMsg = "Invalid email address.";
-      setErrorMessage(errorMsg);
+      const errorMsg = t("auth.invalidEmail");
       validationErrorHandler(errorMsg);
       return;
     }
     if (!isValidPassword(password)) {
-      const errorMsg =
-        "Password must be at least 8 characters and contain no spaces.";
-      setErrorMessage(errorMsg);
+      const errorMsg = t("auth.invalidPassword");
       validationErrorHandler(errorMsg);
       return;
     }
     if (password !== confirmPassword) {
-      const errorMsg = "Passwords do not match.";
-      setErrorMessage(errorMsg);
+      const errorMsg = t("auth.passwordsNotMatch");
       validationErrorHandler(errorMsg);
       return;
     }
     if (!isValidPhone(phone)) {
-      const errorMsg = "Invalid phone number. Only digits, 9 to 11 characters.";
-      setErrorMessage(errorMsg);
+      const errorMsg = t("auth.invalidPhone");
       validationErrorHandler(errorMsg);
       return;
     }
-    setErrorMessage("");
 
     try {
       await signUp({ email, password, phone });
@@ -107,11 +98,7 @@ const SignUp: React.FC = () => {
           value={email}
           onChangeText={(text) => {
             setEmail(text);
-            setErrorMessage("");
           }}
-          errorMessage={
-            errorMessage.includes("Email") ? errorMessage : undefined
-          }
         />
         {email.length > 0 && !isValidEmail(email) && (
           <Text className="text-red-500 text-lg mt-1">
@@ -128,7 +115,6 @@ const SignUp: React.FC = () => {
           value={password}
           onChangeText={(text) => {
             setPassword(text);
-            setErrorMessage("");
           }}
         />
         {password.length > 0 && !isValidPassword(password) && (
@@ -146,11 +132,7 @@ const SignUp: React.FC = () => {
           value={confirmPassword}
           onChangeText={(text) => {
             setConfirmPassword(text);
-            setErrorMessage("");
           }}
-          errorMessage={
-            errorMessage.includes("match") ? errorMessage : undefined
-          }
         />
         {confirmPassword.length > 0 && password !== confirmPassword && (
           <Text className="text-red-500 text-lg mt-1">
@@ -167,21 +149,12 @@ const SignUp: React.FC = () => {
           value={phone}
           onChangeText={(text) => {
             setPhone(text);
-            setErrorMessage("");
           }}
-          errorMessage={
-            errorMessage.includes("Phone") ? errorMessage : undefined
-          }
         />
         {phone.length > 0 && !isValidPhone(phone) && (
           <Text className="text-red-500 text-lg mt-1">
             {t("auth.invalidPhone")}
           </Text>
-        )}
-
-        {/* Error general */}
-        {errorMessage && !errorMessage.includes("match") && (
-          <Text className="text-red-500 mb-2">{errorMessage}</Text>
         )}
 
         {/* Sign Up Button */}

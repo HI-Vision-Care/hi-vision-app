@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTranslation as useI18nextTranslation } from "react-i18next";
 
 export function useTranslation() {
@@ -5,6 +6,10 @@ export function useTranslation() {
 
   const changeLanguage = async (language: "en" | "vi") => {
     await i18n.changeLanguage(language);
+    // Persist user preference for next launches
+    try {
+      await AsyncStorage.setItem("app_language", language);
+    } catch {}
   };
 
   return {
