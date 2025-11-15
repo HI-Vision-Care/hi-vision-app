@@ -59,6 +59,7 @@ import hivtest from "@/assets/images/hivtest.png";
 import passwordSent from "@/assets/images/imagePasswordSent.png";
 import logo from "@/assets/images/logo.png";
 import maleImage from "@/assets/images/maleImage.png";
+import notFound from "@/assets/images/notfound.png";
 import onboarding1 from "@/assets/images/onboarding1.png";
 import onboarding2 from "@/assets/images/onboarding2.png";
 import onboarding3 from "@/assets/images/onboarding3.png";
@@ -71,6 +72,7 @@ import symptoms from "@/assets/images/symptoms.png";
 import syphilis from "@/assets/images/syphilis.png";
 import transgenderImage from "@/assets/images/transgenderImage.png";
 import welcome from "@/assets/images/welcome.png";
+import { router } from "expo-router";
 
 export const images = {
   passwordSent,
@@ -94,6 +96,7 @@ export const images = {
   symptoms,
   avatarPlaceholder,
   success,
+  notFound,
 };
 
 export const icons = {
@@ -457,14 +460,14 @@ export const menuSections = [
         hasArrow: true,
         iconColor: "#6D28D9", // tím đậm
       },
-      {
-        id: "darkmode",
-        title: "Dark Mode",
-        icon: "moon-outline",
-        isToggle: true,
-        toggleValue: false,
-        iconColor: "#0F172A", // đen
-      },
+      // {
+      //   id: "darkmode",
+      //   title: "Dark Mode",
+      //   icon: "moon-outline",
+      //   isToggle: true,
+      //   toggleValue: false,
+      //   iconColor: "#0F172A", // đen
+      // },
     ],
   },
   {
@@ -666,3 +669,96 @@ export const data = {
   eatingOptions,
   menuItems,
 };
+
+export const healthServices = [
+  {
+    id: "1",
+    title: "Chat với AI",
+    icon: "chatbubble-ellipses",
+    iconColor: "#FFFFFF",
+    backgroundColor: "#3B82F6",
+    gradientColors: ["#3B82F6", "#1D4ED8"],
+    onPress: () => {
+      router.push("/(chat-bot)/chat-bot");
+    },
+  },
+  {
+    id: "2",
+    title: "Nhắc uống\nthuốc",
+    icon: "medical",
+    iconColor: "#FFFFFF",
+    backgroundColor: "#10B981",
+    gradientColors: ["#10B981", "#059669"],
+    onPress: () => {
+      router.push("/(medicine-reminder)/medicine-calendar");
+    },
+  },
+  // {
+  //   id: "3",
+  //   title: "Phòng\nkhám",
+  //   icon: "business", // có thể thay bằng "medkit", "home", "hospital" nếu muốn
+  //   iconColor: "#FFFFFF",
+  //   backgroundColor: "#0EA5E9",
+  //   gradientColors: ["#0EA5E9", "#0369A1"],
+  //   onPress: () => {
+  //     router.push("/(clinics)/clinics");
+  //   },
+  // },
+  {
+    id: "3",
+    title: "Sản Phẩm",
+    icon: "bag",
+    iconColor: "#FFFFFF",
+    backgroundColor: "#22C55E", // green-500
+    gradientColors: ["#22C55E", "#16A34A"], // → green-600
+    onPress: () => router.push("/(product)/products"),
+  },
+  // {
+  //   id: "5",
+  //   title: "Tiêm Vắc\nxin",
+  //   icon: "shield-checkmark",
+  //   iconColor: "#FFFFFF",
+  //   backgroundColor: "#8B5CF6",
+  //   gradientColors: ["#8B5CF6", "#7C3AED"],
+  //   onPress: () =>
+  //     router.push({
+  //       pathname: "/coming-soon",
+  //       params: { feature: "Tiêm Vắc\nxin", eta: "Soon" },
+  //     }),
+  // },
+  // {
+  //   id: "6",
+  //   title: "Đơn của\ntôi",
+  //   icon: "receipt",
+  //   iconColor: "#FFFFFF",
+  //   backgroundColor: "#F59E0B",
+  //   gradientColors: ["#F59E0B", "#D97706"],
+  //   onPress: () =>
+  //     router.push({
+  //       pathname: "/coming-soon",
+  //       params: { feature: "Đơn của\n tôi", eta: "Soon" },
+  //     }),
+  // },
+  // {
+  //   id: "7",
+  //   title: "Tìm bác sĩ\ntheo khoa",
+  //   icon: "people",
+  //   iconColor: "#FFFFFF",
+  //   backgroundColor: "#EF4444",
+  //   gradientColors: ["#EF4444", "#DC2626"],
+  //   onPress: () =>
+  //     router.push({
+  //       pathname: "/coming-soon",
+  //       params: { feature: "Tìm bác sĩ\n theo khoa", eta: "Soon" },
+  //     }),
+  // },
+];
+
+export const quickAmounts = [
+  { label: "50K", value: "50000" },
+  { label: "100K", value: "100000" },
+  { label: "200K", value: "200000" },
+  { label: "500K", value: "500000" },
+];
+
+export const MIN_WITHDRAW = 10000;

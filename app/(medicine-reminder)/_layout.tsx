@@ -18,25 +18,13 @@ export default function MedicineReminderLayout() {
                 }}
             />
             <Tabs.Screen
-                name="add-reminder"
+                name="medication-reminder-form"
                 options={{
                     headerShown: false,
                 }}
             />
             <Tabs.Screen
                 name="my-prescriptions"
-                options={{
-                    headerShown: false,
-                }}
-            />
-            <Tabs.Screen
-                name="arv-reminder"
-                options={{
-                    headerShown: false,
-                }}
-            />
-            <Tabs.Screen
-                name="prep-reminder"
                 options={{
                     headerShown: false,
                 }}

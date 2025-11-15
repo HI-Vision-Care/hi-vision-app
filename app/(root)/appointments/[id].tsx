@@ -1,14 +1,18 @@
 import { HeaderBack } from "@/components";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useCancelAppointment } from "@/services/appointment/hooks";
+import { usePreARVPrescription } from "@/services/prescription/hooks";
+import { createMedicationPlan } from "@/services/medication/scheduler";
+import { requestNotificationPermissions } from "@/services/notification/prep-notification";
 import { useGetLabResultsByAppointmentId } from "@/services/lab-results/hooks";
 import { useGetMedicalRecordByAppointmentId } from "@/services/medical-record/hooks";
 import capitalize from "@/utils/capitalize";
 import { formatVietnameseDate } from "@/utils/format";
 import { FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import React from "react";
 import {
   Alert,
+  Linking,
   ScrollView,
   StatusBar,
   Text,
@@ -18,6 +22,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const AppointmentDetail = () => {
+  const { t } = useTranslation();
   const { data } = useLocalSearchParams<{ id: string; data?: string }>();
   const appointment = data ? JSON.parse(data) : undefined;
 
@@ -30,6 +35,10 @@ const AppointmentDetail = () => {
   const { data: labResults, isLoading: isLabLoading } =
     useGetLabResultsByAppointmentId(appointment?.appointmentID);
 
+  const { data: preArv } = usePreARVPrescription(
+    appointment?.appointmentID as any
+  );
+
   const { mutate: cancelAppointment, isLoading: isCancelling } =
     useCancelAppointment();
 
@@ -41,13 +50,13 @@ const AppointmentDetail = () => {
       },
       {
         onSuccess: () => {
-          Alert.alert("Appointment cancelled successfully!");
+          Alert.alert(t("appointmentDetail.cancelSuccess"));
           router.back(); // hoặc refetch data, hoặc điều hướng lại
         },
-        onError: (error) => {
+        onError: (error: any) => {
           Alert.alert(
-            "Cancel Failed",
-            error?.message || "An error occurred, please try again."
+            t("appointmentDetail.cancelFailed"),
+            error?.message || t("appointmentDetail.cancelError")
           );
         },
       }
@@ -96,11 +105,61 @@ const AppointmentDetail = () => {
     }
   };
 
+  const isOnline =
+    !!appointment?.urlLink || appointment?.medicalService?.isOnline === true;
+
+  const openDirections = () => {
+    const lat = appointment?.facility?.latitude;
+    const lng = appointment?.facility?.longitude;
+    let url = "";
+    if (lat && lng) {
+      url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        `${lat},${lng}`
+      )}`;
+    } else if (appointment?.facility?.address) {
+      url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        appointment.facility.address
+      )}`;
+    }
+    if (url) {
+      Linking.openURL(url);
+    }
+  };
+  
+  const handleAddPreArvToReminders = async () => {
+    if (!preArv?.arvList || preArv.arvList.length === 0) return;
+    try {
+      const granted = await requestNotificationPermissions();
+      if (!granted) return;
+
+      const today = new Date();
+      const defaultTime = new Date();
+      defaultTime.setHours(20, 0, 0, 0);
+
+      await Promise.all(
+        preArv.arvList.map((drug) =>
+          createMedicationPlan({
+            name: `${drug.genericName} – ARV`,
+            medicineName: drug.genericName,
+            regimenType: "arv",
+            notes: "Auto-imported from appointment pre-ARV",
+            startDate: today,
+            totalDays: 30,
+            slots: [
+              { slot: "evening", time: defaultTime, note: "Uống ARV", quantity: 1 },
+            ],
+          })
+        )
+      );
+    } catch (e) {
+      console.error(e);
+    }
+  };
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
 
-      <HeaderBack title="Appointment Detail" />
+      <HeaderBack title={t("appointmentDetail.title")} />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Appointment Information */}
@@ -125,7 +184,7 @@ const AppointmentDetail = () => {
               {appointment.isAnonymous && (
                 <View className="bg-purple-100 px-2 py-1 rounded-full">
                   <Text className="text-xs font-medium text-purple-800">
-                    Anonymous
+                    {t("appointmentDetail.anonymous")}
                   </Text>
                 </View>
               )}
@@ -176,25 +235,69 @@ const AppointmentDetail = () => {
               </View>
             )}
 
+            {/* Facility */}
+            {!isOnline && appointment.facility?.name && (
+              <View className="flex-row items-center justify-between">
+                <View className="flex-1">
+                  <View className="flex-row items-center">
+                    <Ionicons
+                      name="business-outline"
+                      size={20}
+                      color="#6b7280"
+                    />
+                    <Text
+                      className="text-gray-900 ml-3 flex-1"
+                      numberOfLines={1}
+                    >
+                      {appointment.facility.name}
+                    </Text>
+                  </View>
+                  {appointment.facility.address && (
+                    <Text
+                      className="text-sm text-gray-500 ml-8 mt-1"
+                      numberOfLines={2}
+                    >
+                      {appointment.facility.address}
+                    </Text>
+                  )}
+                </View>
+                <TouchableOpacity
+                  className="ml-3 bg-blue-100 px-3 py-2 rounded-lg"
+                  onPress={openDirections}
+                  accessibilityLabel={t("appointmentDetail.getDirections")}
+                >
+                  <View className="flex-row items-center">
+                    <Ionicons name="navigate" size={16} color="#2563EB" />
+                    <Text className="text-blue-700 ml-2 font-semibold">
+                      {t("appointmentDetail.directions")}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            )}
+
             {/* Online Status */}
             <View className="flex-row items-center">
               <Ionicons
-                name={appointment.isOnline ? "videocam" : "location-outline"}
+                name={isOnline ? "videocam" : "location-outline"}
                 size={20}
                 color="#6b7280"
               />
               <Text className="text-gray-900 ml-3 flex-1">
-                {appointment.isOnline
-                  ? "Online Consultation"
-                  : "In-Person Visit"}
+                {isOnline
+                  ? t("appointmentDetail.onlineConsultation")
+                  : t("appointmentDetail.inPersonVisit")}
               </Text>
             </View>
 
             {/* URL Link (if online) */}
-            {appointment.isOnline && appointment.urlLink && (
+            {isOnline && appointment.urlLink && (
               <View className="flex-row items-center">
                 <Ionicons name="link-outline" size={20} color="#6b7280" />
-                <TouchableOpacity className="ml-3 flex-1">
+                <TouchableOpacity
+                  className="ml-3 flex-1"
+                  onPress={() => Linking.openURL(appointment.urlLink)}
+                >
                   <Text className="text-blue-600 underline" numberOfLines={1}>
                     {appointment.urlLink}
                   </Text>
@@ -213,7 +316,7 @@ const AppointmentDetail = () => {
                   />
                   <View className="ml-3 flex-1">
                     <Text className="text-sm font-medium text-gray-700 mb-1">
-                      Notes:
+                      {t("appointmentDetail.notes")}
                     </Text>
                     <Text className="text-gray-600 leading-5">
                       {appointment.notes}
@@ -225,6 +328,85 @@ const AppointmentDetail = () => {
           </View>
         </View>
 
+        {/* Service Tests Section */}
+        {appointment.medicalService.testItems &&
+          appointment.medicalService.testItems.length > 0 && (
+            <View className="bg-white mx-4 mt-4 rounded-lg shadow-sm border border-gray-200">
+              <View className="p-4 border-b border-gray-100">
+                <View className="flex-row items-center">
+                  <FontAwesome5 name="vials" size={20} color="#8b5cf6" />
+                  <Text className="text-lg font-semibold text-gray-900 ml-2">
+                    {t("appointmentDetail.includedTests")}
+                  </Text>
+                </View>
+                <Text className="text-sm text-gray-600 mt-1">
+                  {appointment.medicalService.testItems.length}{" "}
+                  {appointment.medicalService.testItems.length !== 1
+                    ? t("appointmentDetail.testsIncluded")
+                    : t("appointmentDetail.testIncluded")}
+                </Text>
+              </View>
+              <View className="p-4">
+                {appointment.medicalService.testItems.map(
+                  (test: any, index: number) => (
+                    <View
+                      key={index}
+                      className={`${
+                        index > 0 ? "mt-3 pt-3 border-t border-gray-100" : ""
+                      }`}
+                    >
+                      <View className="flex-row items-start">
+                        <View className="w-8 h-8 bg-purple-100 rounded-full items-center justify-center mr-3 mt-1">
+                          <FontAwesome5
+                            name="microscope"
+                            size={14}
+                            color="#8b5cf6"
+                          />
+                        </View>
+                        <View className="flex-1">
+                          <View className="flex-row items-center justify-between mb-1">
+                            <Text className="text-base font-semibold text-gray-900 flex-1">
+                              {test.testName}
+                            </Text>
+                          </View>
+                          <Text className="text-sm text-gray-600 leading-5 mb-2">
+                            {test.testDescription}
+                          </Text>
+                          <View className="flex-row items-center justify-between bg-gray-50 rounded-lg p-2">
+                            <View className="flex-row items-center">
+                              <FontAwesome5
+                                name="ruler"
+                                size={12}
+                                color="#6b7280"
+                              />
+                              <Text className="text-xs text-gray-600 ml-1">
+                                {t("appointmentDetail.unit")}{" "}
+                                {test.unit || "N/A"}
+                              </Text>
+                            </View>
+                            {test.referenceRange && (
+                              <View className="flex-row items-center">
+                                <FontAwesome5
+                                  name="chart-line"
+                                  size={12}
+                                  color="#6b7280"
+                                />
+                                <Text className="text-xs text-gray-600 ml-1">
+                                  {t("appointmentDetail.reference")}{" "}
+                                  {test.referenceRange}
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+                  )
+                )}
+              </View>
+            </View>
+          )}
+
         {/* Medical Record Section */}
         {!isMedicalLoading && (
           <>
@@ -233,9 +415,9 @@ const AppointmentDetail = () => {
               <View className="bg-white mx-4 mt-4 rounded-lg border border-red-200 p-4 flex-row items-center">
                 <Ionicons name="alert-circle" size={20} color="#ef4444" />
                 <Text className="ml-2 text-red-700 flex-1">
-                  {medicalError.response?.data?.message ||
-                    medicalError.message ||
-                    "Đã xảy ra lỗi khi lấy hồ sơ khám bệnh."}
+                  {(medicalError as any)?.response?.data?.message ||
+                    medicalError?.message ||
+                    t("appointmentDetail.medicalRecordError")}
                 </Text>
               </View>
             )}
@@ -245,7 +427,7 @@ const AppointmentDetail = () => {
               <View className="bg-white mx-4 mt-4 rounded-lg border border-yellow-200 p-4 flex-row items-center">
                 <Ionicons name="information-circle" size={20} color="#f59e42" />
                 <Text className="ml-2 text-yellow-700 flex-1">
-                  Không có hồ sơ khám bệnh cho lịch hẹn này.
+                  {t("appointmentDetail.noMedicalRecord")}
                 </Text>
               </View>
             )}
@@ -261,7 +443,7 @@ const AppointmentDetail = () => {
                       color="#ef4444"
                     />
                     <Text className="text-lg font-semibold text-gray-900 ml-2">
-                      Medical Record
+                      {t("appointmentDetail.medicalRecord")}
                     </Text>
                   </View>
                 </View>
@@ -269,7 +451,7 @@ const AppointmentDetail = () => {
                   {/* Diagnosis */}
                   <View>
                     <Text className="text-sm font-medium text-gray-700 mb-1">
-                      Diagnosis:
+                      {t("appointmentDetail.diagnosis")}
                     </Text>
                     <Text className="text-gray-900">
                       {medicalRecord.diagnosis}
@@ -279,7 +461,7 @@ const AppointmentDetail = () => {
                   {/* Creation Date */}
                   <View>
                     <Text className="text-sm font-medium text-gray-700 mb-1">
-                      Record Created:
+                      {t("appointmentDetail.recordCreated")}
                     </Text>
                     <Text className="text-gray-600">
                       {formatDateUTC(medicalRecord.createDate || "")}
@@ -289,7 +471,7 @@ const AppointmentDetail = () => {
                   {/* Medical Notes */}
                   <View>
                     <Text className="text-sm font-medium text-gray-700 mb-1">
-                      Medical Notes:
+                      {t("appointmentDetail.medicalNotes")}
                     </Text>
                     <Text className="text-gray-600 leading-5">
                       {medicalRecord.note}
@@ -308,7 +490,7 @@ const AppointmentDetail = () => {
               <View className="flex-row items-center">
                 <FontAwesome5 name="flask" size={20} color="#8b5cf6" />
                 <Text className="text-lg font-semibold text-gray-900 ml-2">
-                  Lab Results
+                  {t("appointmentDetail.labResults")}
                 </Text>
               </View>
             </View>
@@ -350,7 +532,7 @@ const AppointmentDetail = () => {
                   <View className="space-y-1">
                     <View className="flex-row justify-between">
                       <Text className="text-sm text-gray-600">
-                        Result Value:
+                        {t("appointmentDetail.resultValue")}
                       </Text>
                       <Text className="text-sm font-medium text-gray-900">
                         {result.resultValue} {result.unit}
@@ -358,20 +540,24 @@ const AppointmentDetail = () => {
                     </View>
                     <View className="flex-row justify-between">
                       <Text className="text-sm text-gray-600">
-                        Reference Range:
+                        {t("appointmentDetail.referenceRange")}
                       </Text>
                       <Text className="text-sm text-gray-700">
                         {result.referenceRange}
                       </Text>
                     </View>
                     <View className="flex-row justify-between">
-                      <Text className="text-sm text-gray-600">Test Date:</Text>
+                      <Text className="text-sm text-gray-600">
+                        {t("appointmentDetail.testDate")}
+                      </Text>
                       <Text className="text-sm text-gray-700">
                         {formatDateUTC(result.testDate)}
                       </Text>
                     </View>
                     <View className="flex-row justify-between">
-                      <Text className="text-sm text-gray-600">Lab:</Text>
+                      <Text className="text-sm text-gray-600">
+                        {t("appointmentDetail.lab")}
+                      </Text>
                       <Text className="text-sm text-gray-700">
                         {result.performedBy}
                       </Text>
@@ -379,6 +565,46 @@ const AppointmentDetail = () => {
                   </View>
                 </View>
               ))}
+            </View>
+          </View>
+        )}
+
+        {/* Pre-ARV Prescription Section */}
+        {preArv?.prescription && (
+          <View className="bg-white mx-4 mt-4 rounded-lg shadow-sm border border-gray-200">
+            <View className="p-4 border-b border-gray-100">
+              <View className="flex-row items-center">
+                <Ionicons name="medkit-outline" size={20} color="#2563EB" />
+                <Text className="text-lg font-semibold text-gray-900 ml-2">
+                  {t("appointmentDetail.preArvPrescription")}
+                </Text>
+              </View>
+            </View>
+            <View className="p-4">
+              {preArv.arvList && preArv.arvList.length > 0 ? (
+                preArv.arvList.map((drug, idx) => (
+                  <View key={drug.arvId} className={`${idx>0?"mt-3 pt-3 border-t border-gray-100":""}`}>
+                    <Text className="text-base font-semibold text-gray-900">
+                      {drug.genericName}
+                    </Text>
+                    <Text className="text-sm text-gray-600">{drug.drugClass}</Text>
+                    <Text className="text-sm text-gray-600">{drug.rcmDosage}</Text>
+                  </View>
+                ))
+              ) : (
+                <Text className="text-sm text-gray-600">{t("appointmentDetail.noArvInPrescription")}</Text>
+              )}
+
+              {preArv.arvList && preArv.arvList.length > 0 && (
+                <TouchableOpacity
+                  className="bg-blue-600 py-3 rounded-lg mt-4"
+                  onPress={handleAddPreArvToReminders}
+                >
+                  <Text className="text-white text-center font-semibold">
+                    {t("appointmentDetail.addPreArvToReminders")}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         )}
@@ -392,6 +618,7 @@ const AppointmentDetail = () => {
         <View className="flex-row space-x-3">
           {/* Cancel Appointment: chỉ cho phép nếu chưa cancelled */}
           {appointment.status?.toLowerCase?.() !== "cancelled" &&
+            appointment.status?.toLowerCase?.() !== "ongoing" &&
             appointment.status?.toLowerCase?.() !== "completed" && (
               <TouchableOpacity
                 className="flex-1 bg-red-600 py-3 rounded-lg ml-3"
@@ -401,7 +628,9 @@ const AppointmentDetail = () => {
                 <View className="flex-row items-center justify-center">
                   <MaterialIcons name="cancel" size={20} color="white" />
                   <Text className="text-white font-semibold ml-2">
-                    {isCancelling ? "Cancelling..." : "Cancel Appointment"}
+                    {isCancelling
+                      ? t("appointmentDetail.cancelling")
+                      : t("appointmentDetail.cancelAppointment")}
                   </Text>
                 </View>
               </TouchableOpacity>

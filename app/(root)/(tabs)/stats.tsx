@@ -1,39 +1,81 @@
-import React, { useState, useCallback } from 'react';
+import { usePatientProfile } from "@/hooks/usePatientId";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useGetBlogPosts } from "@/services/blog/hooks";
+import { BlogPost } from "@/services/blog/types";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
-  Image,
-  TouchableOpacity,
-  StyleSheet,
   ActivityIndicator,
+  Image,
   RefreshControl,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useGetBlogPosts } from '@/services/blog/hooks';
-import { BlogPost } from '@/services/blog/types';
-import { usePatientProfile } from '@/hooks/usePatientId';
-
-
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const Stats = () => {
+  const { t, isReady, language } = useTranslation();
   const { data: profile } = usePatientProfile();
   const patientAccountId = profile?.account.id;
-  const { data: posts, isLoading, isError, error, refetch } = useGetBlogPosts(patientAccountId);        
+  const {
+    data: posts,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useGetBlogPosts(patientAccountId);
   const [refreshing, setRefreshing] = useState(false);
+  const ALL_TOPIC = t("stats.allTopics");
+  const [selectedTopic, setSelectedTopic] = useState<string>(ALL_TOPIC);
 
   // Đảm bảo newest blog lên đầu (nếu backend không sort sẵn)
-  const orderedPosts = posts?.slice().sort(
-    (a, b) => new Date(b.createAt).getTime() - new Date(a.createAt).getTime()
-  ) || [];
+  const orderedPosts =
+    posts
+      ?.slice()
+      .sort(
+        (a, b) =>
+          new Date(b.createAt).getTime() - new Date(a.createAt).getTime()
+      ) || [];
+
+  // Build dynamic category list (topics) from backend data, prepend "Tất cả"
+  const topics = useMemo(() => {
+    const set = new Set<string>();
+    for (const p of orderedPosts) {
+      if (p.topic) set.add(p.topic);
+    }
+    return [ALL_TOPIC, ...Array.from(set)];
+  }, [orderedPosts]);
+
+  // Ensure selected topic is valid; default to "Tất cả"
+  useEffect(() => {
+    if (!topics.includes(selectedTopic)) {
+      setSelectedTopic(ALL_TOPIC);
+    }
+  }, [topics]);
+
+  // Filter posts by selected topic (if any)
+  const filteredPosts = useMemo(() => {
+    if (selectedTopic === ALL_TOPIC) return orderedPosts;
+    return orderedPosts.filter((p) => p.topic === selectedTopic);
+  }, [orderedPosts, selectedTopic]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await refetch?.(); // nếu hook trả về refetch
     setRefreshing(false);
   }, [refetch]);
+
+  if (!isReady) {
+    return (
+      <SafeAreaView style={[styles.container, styles.center]}>
+        <Text style={styles.errorText}>{t("common.loading")}</Text>
+      </SafeAreaView>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -46,22 +88,27 @@ const Stats = () => {
   if (isError) {
     return (
       <SafeAreaView style={[styles.container, styles.center]}>
-        <Text style={styles.errorText}>{error?.message || 'Lỗi tải bài viết'}</Text>
+        <Text style={styles.errorText}>
+          {error?.message || t("stats.loadError")}
+        </Text>
       </SafeAreaView>
     );
   }
 
-  const featured = orderedPosts.length > 0 ? orderedPosts[0] : null;
-  const list = orderedPosts.length > 1 ? orderedPosts.slice(1) : [];
+  const featured = filteredPosts.length > 0 ? filteredPosts[0] : null;
+  const list = filteredPosts.length > 1 ? filteredPosts.slice(1) : [];
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={() => router.back()}
+        >
           <Ionicons name="chevron-back" size={24} color="white" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Trang tin tức</Text>
+        <Text style={styles.headerTitle}>{t("stats.title")}</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.headerButton}>
             <Ionicons name="share-outline" size={24} color="white" />
@@ -83,16 +130,62 @@ const Stats = () => {
             />
           }
         >
-          {/* Category Tabs */}
-          <View style={styles.tabContainer}>
+          {/* Category Tabs (horizontal) */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.tabContainer}
+          >
+            {topics.map((topic) => {
+              const active = topic === selectedTopic;
+              return (
+                <TouchableOpacity
+                  key={topic}
+                  style={[styles.tab, active && styles.activeTab]}
+                  onPress={() => setSelectedTopic(topic)}
+                >
+                  <Text
+                    style={[styles.tabText, active && styles.activeTabText]}
+                  >
+                    {topic}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+          <View style={[styles.tabContainer, { display: "none" }]}>
+            {topics.map((topic) => {
+              const active = topic === selectedTopic;
+              return (
+                <TouchableOpacity
+                  key={topic}
+                  style={[styles.tab, active && styles.activeTab]}
+                  onPress={() => setSelectedTopic(topic)}
+                >
+                  <Text
+                    style={[styles.tabText, active && styles.activeTabText]}
+                  >
+                    {topic}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          <View style={[styles.tabContainer, { display: "none" }]}>
             <TouchableOpacity style={[styles.tab, styles.activeTab]}>
-              <Text style={[styles.tabText, styles.activeTabText]}>Bừng Sáng</Text>
+              <Text style={[styles.tabText, styles.activeTabText]}>
+                {t("stats.categories.bright")}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.tab}>
-              <Text style={styles.tabText}>Sống khoẻ</Text>
+              <Text style={styles.tabText}>
+                {t("stats.categories.healthy")}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.tab}>
-              <Text style={styles.tabText}>Dinh dưỡng</Text>
+              <Text style={styles.tabText}>
+                {t("stats.categories.nutrition")}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -102,12 +195,15 @@ const Stats = () => {
               style={styles.featuredArticle}
               onPress={() =>
                 router.push({
-                  pathname: '/forums/[id]',
+                  pathname: "/forums/[id]",
                   params: { id: featured.id.toString() },
                 })
               }
             >
-              <Image source={{ uri: featured.banner }} style={styles.featuredImage} />
+              <Image
+                source={{ uri: featured.banner }}
+                style={styles.featuredImage}
+              />
               <View style={styles.featuredContent}>
                 <Text style={styles.featuredCategory}>{featured.topic}</Text>
                 <Text style={styles.featuredTitle} numberOfLines={2}>
@@ -125,24 +221,30 @@ const Stats = () => {
                 style={styles.articleItem}
                 onPress={() =>
                   router.push({
-                    pathname: '/forums/[id]',
+                    pathname: "/forums/[id]",
                     params: { id: post.id.toString() },
                   })
                 }
               >
-                <Image source={{ uri: post.banner }} style={styles.articleImage} />
+                <Image
+                  source={{ uri: post.banner }}
+                  style={styles.articleImage}
+                />
                 <View style={styles.articleContent}>
                   <Text style={styles.articleCategory}>{post.topic}</Text>
                   <Text style={styles.articleTitle} numberOfLines={2}>
                     {post.title}
                   </Text>
                   <Text style={styles.articleMeta}>
-                    {new Date(post.createAt).toLocaleDateString()}
+                    {new Date(post.createAt).toLocaleDateString(
+                      language === "vi" ? "vi-VN" : "en-US"
+                    )}
                   </Text>
                 </View>
               </TouchableOpacity>
             ))}
           </View>
+          <View className="h-20" />
         </ScrollView>
       </View>
     </SafeAreaView>
@@ -152,21 +254,21 @@ const Stats = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#4285f4',
+    backgroundColor: "#4285f4",
   },
   center: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   errorText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
   },
   header: {
-    backgroundColor: '#4285f4',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    backgroundColor: "#4285f4",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
@@ -174,26 +276,26 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   headerTitle: {
-    color: 'white',
+    color: "white",
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     flex: 1,
-    textAlign: 'center',
+    textAlign: "center",
     paddingLeft: 30,
   },
   headerActions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
   },
   contentWrapper: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   content: {
     flex: 1,
   },
   tabContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingHorizontal: 16,
     paddingVertical: 16,
     gap: 12,
@@ -203,35 +305,35 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 25,
     borderWidth: 1,
-    borderColor: '#ddd',
-    backgroundColor: 'white',
+    borderColor: "#ddd",
+    backgroundColor: "white",
   },
   activeTab: {
-    backgroundColor: '#f0f0f0',
-    borderColor: '#ccc',
+    backgroundColor: "#f0f0f0",
+    borderColor: "#ccc",
   },
   tabText: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   activeTabText: {
-    color: '#333',
-    fontWeight: '500',
+    color: "#333",
+    fontWeight: "500",
   },
   featuredArticle: {
     marginHorizontal: 16,
     marginBottom: 10,
     borderRadius: 12,
-    backgroundColor: 'white',
-    overflow: 'hidden',
-    shadowColor: '#000',
+    backgroundColor: "white",
+    overflow: "hidden",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
   featuredImage: {
-    width: '100%',
+    width: "100%",
     height: 220,
   },
   featuredContent: {
@@ -239,25 +341,25 @@ const styles = StyleSheet.create({
   },
   featuredCategory: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
     marginBottom: 8,
   },
   featuredTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     lineHeight: 24,
   },
   articlesList: {
     paddingHorizontal: 16,
   },
   articleItem: {
-    flexDirection: 'row',
-    backgroundColor: 'white',
+    flexDirection: "row",
+    backgroundColor: "white",
     marginBottom: 10,
     borderRadius: 8,
     padding: 5,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -271,24 +373,24 @@ const styles = StyleSheet.create({
   },
   articleContent: {
     flex: 1,
-    justifyContent: 'flex-start',
+    justifyContent: "flex-start",
     marginTop: 10,
   },
   articleCategory: {
     fontSize: 12,
-    color: '#4285f4',
+    color: "#4285f4",
     marginBottom: 5,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   articleTitle: {
     fontSize: 14,
-    color: '#333',
+    color: "#333",
     lineHeight: 18,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   articleMeta: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
     marginTop: 4,
   },
 });

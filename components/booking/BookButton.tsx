@@ -1,3 +1,4 @@
+import { useTranslation } from "@/hooks/useTranslation";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
@@ -7,6 +8,7 @@ interface BookButtonProps {
 }
 
 const BookButton: React.FC<BookButtonProps> = ({ onBook, disabled }) => {
+  const { t } = useTranslation();
   return (
     <View className="mx-4 mt-6 mb-8">
       <TouchableOpacity
@@ -21,7 +23,7 @@ const BookButton: React.FC<BookButtonProps> = ({ onBook, disabled }) => {
             disabled ? "text-gray-500" : "text-white"
           }`}
         >
-          Book Appointment
+          {t("booking.bookAppointment")}
         </Text>
       </TouchableOpacity>
     </View>

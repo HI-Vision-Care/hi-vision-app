@@ -1,8 +1,15 @@
 import { icons } from "@/constants";
-import { PasswordSentModal, ResetOptionCard } from "@components";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useForgotPassword } from "@/services/auth/hooks";
+import {
+  EmailInputModal,
+  PasswordSentModal,
+  ResetOptionCard,
+} from "@components";
 import { router, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
+  Alert,
   Image,
   ScrollView,
   StatusBar,
@@ -16,26 +23,75 @@ import {
 } from "react-native-safe-area-context";
 
 const ForgotPassword: React.FC = () => {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const nav = useRouter();
 
   const [selectedOption, setSelectedOption] = useState<string>("");
-  const [showEmailModal, setShowEmailModal] = useState<boolean>(false);
-  const [emailToSend, setEmailToSend] = useState<string>("elem221b@gmail.com");
+  const [showEmailInputModal, setShowEmailInputModal] =
+    useState<boolean>(false);
+  const [showPasswordSentModal, setShowPasswordSentModal] =
+    useState<boolean>(false);
+  const [emailToSend, setEmailToSend] = useState<string>("");
+
+  // Hook để gọi API forgot password
+  const forgotPasswordMutation = useForgotPassword();
 
   const handleResetPress = () => {
     if (selectedOption === "email") {
-      setShowEmailModal(true);
-      // TODO: Gọi API gửi mail lần đầu
+      // Hiển thị modal để nhập email
+      setShowEmailInputModal(true);
+    } else if (selectedOption === "2fa") {
+      Alert.alert("Coming Soon", "2FA feature is not available yet");
+    } else if (selectedOption === "google") {
+      Alert.alert("Coming Soon", "Google Auth feature is not available yet");
+    } else if (selectedOption === "sms") {
+      router.push("/(account-setup)/otp-setup");
     } else {
-      // TODO: Xử lý 2FA / Google / SMS
-      console.log("Reset bằng:", selectedOption);
+      Alert.alert("Info", "Please select a reset method first");
     }
   };
 
+  const handleEmailSubmit = (email: string) => {
+    setEmailToSend(email);
+
+    // Gọi API gửi OTP về email
+    forgotPasswordMutation.mutate(
+      { email },
+      {
+        onSuccess: (data) => {
+          setShowEmailInputModal(false);
+          setShowPasswordSentModal(true);
+        },
+        onError: (error) => {
+          Alert.alert("Error", error.message || "Failed to send OTP");
+        },
+      }
+    );
+  };
+
   const handleResendCode = () => {
-    // TODO: Gọi API resend code
-    console.log("Re-send code đến:", emailToSend);
+    // Gọi lại API gửi OTP
+    forgotPasswordMutation.mutate(
+      { email: emailToSend },
+      {
+        onSuccess: (data) => {
+          Alert.alert("Success", "OTP has been resent to your email");
+        },
+        onError: (error) => {
+          Alert.alert("Error", error.message || "Failed to resend OTP");
+        },
+      }
+    );
+  };
+
+  const handlePasswordSentModalClose = () => {
+    setShowPasswordSentModal(false);
+    // Navigate đến màn hình nhập OTP, truyền email qua params
+    router.push({
+      pathname: "/(account-setup)/otp-security",
+      params: { email: emailToSend },
+    });
   };
 
   return (
@@ -75,10 +131,10 @@ const ForgotPassword: React.FC = () => {
         {/* Title & Subtitle căn giữa */}
         <View className="flex-1 justify-center px-6">
           <Text className="text-white text-3xl font-bold">
-            Forgot Password?
+            {t("auth.forgotPassword")}
           </Text>
           <Text className="text-gray-300 text-base mt-1">
-            Then let&apos;s submit password reset.
+            {t("auth.forgotPasswordSubtitle")}
           </Text>
         </View>
       </View>
@@ -92,32 +148,32 @@ const ForgotPassword: React.FC = () => {
       >
         <ResetOptionCard
           icon={icons.email}
-          title="Send via Email"
-          subtitle="Reset password via email."
+          title={t("auth.sendViaEmail")}
+          subtitle={t("auth.resetViaEmail")}
           selected={selectedOption === "email"}
           onPress={() => setSelectedOption("email")}
         />
 
         <ResetOptionCard
           icon={icons.password}
-          title="Send via 2FA"
-          subtitle="Reset password via 2FA."
+          title={t("auth.sendVia2FA")}
+          subtitle={t("auth.resetVia2FA")}
           selected={selectedOption === "2fa"}
           onPress={() => setSelectedOption("2fa")}
         />
 
         <ResetOptionCard
           icon={icons.key}
-          title="Send via Google Auth"
-          subtitle="Reset password via G–Auth."
+          title={t("auth.sendViaGoogle")}
+          subtitle={t("auth.resetViaGoogle")}
           selected={selectedOption === "google"}
           onPress={() => setSelectedOption("google")}
         />
 
         <ResetOptionCard
           icon={icons.phone}
-          title="Send via SMS"
-          subtitle="Reset password via SMS."
+          title={t("auth.sendViaSMS")}
+          subtitle={t("auth.resetViaSMS")}
           selected={selectedOption === "sms"}
           onPress={() => router.push("/(account-setup)/otp-setup")}
         />
@@ -136,7 +192,7 @@ const ForgotPassword: React.FC = () => {
           onPress={handleResetPress}
         >
           <Text className="text-white text-lg font-semibold mr-2">
-            Reset Password
+            {t("auth.resetPassword")}
           </Text>
           <Image
             source={icons.password}
@@ -147,12 +203,20 @@ const ForgotPassword: React.FC = () => {
         </TouchableOpacity>
       </View>
 
+      {/* MODAL Email Input */}
+      <EmailInputModal
+        visible={showEmailInputModal}
+        onClose={() => setShowEmailInputModal(false)}
+        onSubmit={handleEmailSubmit}
+        isLoading={forgotPasswordMutation.isPending}
+      />
+
       {/* MODAL Password Sent (sử dụng NativeWind) */}
       <PasswordSentModal
-        visible={showEmailModal}
+        visible={showPasswordSentModal}
         email={emailToSend}
         onResend={handleResendCode}
-        onClose={() => setShowEmailModal(false)}
+        onClose={handlePasswordSentModalClose}
       />
     </SafeAreaView>
   );

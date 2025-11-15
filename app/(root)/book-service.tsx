@@ -12,18 +12,21 @@ import {
 import TimeSlots from "@/components/booking/TimeSlot";
 import { weekDays } from "@/constants";
 import { usePatientProfile } from "@/hooks/usePatientId";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   useBookAppointment,
   useGetWorkShiftsWeek,
 } from "@/services/booking-services/hooks";
+import { useFacility as useFacilityDetail } from "@/services/clinics/hooks";
 import { Doctor } from "@/services/doctor/types";
-import { useDoctorsBySpecialty } from "@/services/medical-services/hooks";
 import { useTransferToAppointment } from "@/services/transaction/hooks";
 import { useWalletByAccountId } from "@/services/wallet/hooks";
 import { Service } from "@/types/type";
 import { toLocalISODate, toLocalISODatee } from "@/utils/format";
+import { useFocusEffect } from "@react-navigation/native";
+import { useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -39,6 +42,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export type AvailabilityMap = Record<string, Record<string, string>>;
 
 export default function BookingScreen() {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const { data: profile } = usePatientProfile();
   const patientId = profile?.patientID;
   const accountId = profile?.account?.id;
@@ -53,7 +58,25 @@ export default function BookingScreen() {
     "PAY_LATER"
   );
 
-  const { data } = useLocalSearchParams<{ data: string }>();
+  const {
+    data,
+    doctorId,
+    facilityId: facilityIdParam,
+  } = useLocalSearchParams<{
+    data?: string;
+    doctorId?: string;
+    specialty?: string;
+    facilityId?: string;
+  }>();
+
+  const facilityId = facilityIdParam ? String(facilityIdParam) : undefined;
+
+  const {
+    data: facilityDetail,
+    isLoading: facilityLoading,
+    error: facilityError,
+  } = useFacilityDetail(facilityId);
+
   const [isAnonymous, setIsAnonymous] = useState(false);
   const initialService: Service | null = data
     ? JSON.parse(decodeURIComponent(data))
@@ -62,23 +85,52 @@ export default function BookingScreen() {
   const [selectedService, setSelectedService] = useState<Service | null>(
     initialService
   );
+
+  // Lấy list từ facility, có thể lọc theo specialty nếu được truyền
+  const servicesFromFacility: Service[] = useMemo(() => {
+    const raw = facilityDetail?.medicalServices ?? [];
+    const list = Array.isArray(raw) ? raw : [];
+
+    const mapped = list.map((s) => ({
+      serviceID: s.serviceID,
+      name: s.name,
+      price: s.price,
+      description: s.description,
+      specialty: s.specialty,
+      type: s.type,
+      isActive: s.isActive,
+      isRequireDoctor: s.isRequireDoctor,
+      isOnline: s.isOnline,
+      img: s.img, // Thêm field img để hiển thị ảnh
+      // ...bổ sung field nào bạn dùng trong ServiceSelection
+    })) as unknown as Service[];
+
+    return mapped;
+  }, [facilityDetail]);
   const [selectedDay, setSelectedDay] = useState<string>(() => {
     const today = new Date();
     const todayName = weekDays[today.getDay()];
     return todayName;
   });
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
-
   const [note, setNote] = useState("");
 
-  // Bác sĩ
-  const {
-    data: doctors,
-    isLoading: doctorsLoading,
-    error: doctorsError,
-  } = useDoctorsBySpecialty(selectedService?.specialty || "");
+  // Doctors from facility (ensure correct facility-scoped list)
+  const doctors: Doctor[] | undefined = useMemo(() => {
+    const raw = (facilityDetail as any)?.doctors ?? [];
+    return Array.isArray(raw) ? (raw as Doctor[]) : [];
+  }, [facilityDetail]);
 
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
+
+  useEffect(() => {
+    if (!selectedDoctor && doctorId && Array.isArray(doctors)) {
+      const found = doctors.find(
+        (d) => String(d.doctorID) === String(doctorId)
+      );
+      if (found) setSelectedDoctor(found);
+    }
+  }, [doctorId, doctors, selectedDoctor]);
 
   const bookAppointmentMutation = useBookAppointment(patientId ?? ""); // fallback to empty string if undefined
   const transferToAppointmentMutation = useTransferToAppointment(); // Initialize the new mutation hook
@@ -132,20 +184,20 @@ export default function BookingScreen() {
   // Các slot cho ngày đang chọn
   const selectedISO = toLocalISODatee(selectedDate);
 
-  const timeSlotsList = useMemo(
-    () =>
-      shifts
-        .filter((s) => {
-          const dateStr = s.date
-            ? s.date
-            : s.startTime
-            ? s.startTime.slice(0, 10)
-            : null;
-          return dateStr === selectedISO;
-        })
-        .map((s) => s.slot),
-    [shifts, selectedISO]
-  );
+  const timeSlotsList = useMemo(() => {
+    const filtered = shifts
+      .filter((s) => {
+        const dateStr = s.date
+          ? s.date
+          : s.startTime
+          ? s.startTime.slice(0, 10)
+          : null;
+        return dateStr === selectedISO;
+      })
+      .map((s) => s.slot);
+
+    return filtered;
+  }, [shifts, selectedISO]);
 
   // Bản đồ availability status
   const availability = useMemo(() => {
@@ -191,28 +243,52 @@ export default function BookingScreen() {
     }
   }, [selectedTime, timeSlotsList]);
 
+  // Refresh data when page comes into focus to ensure fresh data
+  useFocusEffect(
+    useCallback(() => {
+      // Invalidate and refetch facility data
+      if (facilityId) {
+        queryClient.invalidateQueries({
+          queryKey: ["facility", facilityId],
+        });
+      }
+
+      // Invalidate and refetch work shifts data
+      if (selectedDoctor?.doctorID) {
+        queryClient.invalidateQueries({
+          queryKey: ["workShiftsWeek"],
+        });
+      }
+
+      // Invalidate and refetch wallet data
+      if (accountId) {
+        queryClient.invalidateQueries({
+          queryKey: ["wallet", accountId],
+        });
+      }
+    }, [facilityId, selectedDoctor?.doctorID, accountId, queryClient])
+  );
+
   // Đặt lịch
   const handleBooking = () => {
     // Check patientId
     if (!patientId) {
-      Alert.alert("You must be logged in to book an appointment.");
+      Alert.alert(t("booking.youMustBeLoggedIn"));
       return;
     }
     // Check Service
     if (!selectedService || !selectedService.isActive) {
-      Alert.alert(
-        "Selected service is no longer available. Please choose another service."
-      );
+      Alert.alert(t("booking.serviceNoLongerAvailable"));
       return;
     }
     // Check Doctor
     if (!selectedDoctor) {
-      Alert.alert("Please select a doctor.");
+      Alert.alert(t("booking.pleaseSelectDoctor"));
       return;
     }
     // Check Date & Time
     if (!selectedDay || !selectedTime) {
-      Alert.alert("Please select a date and time slot.");
+      Alert.alert(t("booking.pleaseSelectDateAndTime"));
       return;
     }
     // Validate appointment time not in the past
@@ -221,26 +297,27 @@ export default function BookingScreen() {
     const localDate = new Date(selectedDate);
     localDate.setHours(Number(hours), Number(minutes), 0, 0);
     if (localDate < new Date()) {
-      Alert.alert("You cannot book an appointment in the past.");
+      Alert.alert(t("booking.cannotBookInPast"));
       return;
     }
     // Note length validation
     if (note.length > 255) {
-      Alert.alert("Note is too long (max 255 characters).");
+      Alert.alert(t("booking.noteTooLong"));
       return;
     }
     // ---- CHECK SỐ DƯ TRƯỚC ----
     if (paymentOption === "PAY_NOW") {
       if ((selectedService?.price ?? 0) > balance) {
         Alert.alert(
-          "Số dư không đủ",
-          "Vui lòng nạp thêm tiền để thanh toán dịch vụ này!"
+          t("booking.insufficientBalance"),
+          t("booking.insufficientBalanceMessage")
         );
         return;
       }
     }
     // ---- CHỈ KHI ĐỦ TIỀN MỚI TẠO BOOKING ----
     const payload = {
+      facilityID: String(facilityId || ""),
       serviceID: selectedService.serviceID,
       doctorID: selectedDoctor.doctorID,
       appointmentDate: toLocalISODate(selectedDate),
@@ -248,7 +325,6 @@ export default function BookingScreen() {
       note: note,
       slot: selectedTime,
     };
-    console.log("PayLoad:", payload);
 
     // Everything valid, proceed with booking
     bookAppointmentMutation.mutate(payload, {
@@ -269,8 +345,8 @@ export default function BookingScreen() {
           if ((selectedService?.price ?? 0) > balance) {
             // Báo lỗi số dư không đủ
             Alert.alert(
-              "Số dư không đủ",
-              "Vui lòng nạp thêm tiền để thanh toán dịch vụ này!"
+              t("booking.insufficientBalance"),
+              t("booking.insufficientBalanceMessage")
             );
             return;
           }
@@ -299,9 +375,9 @@ export default function BookingScreen() {
           error?.response?.data?.message ||
           error?.response?.data?.error ||
           error?.message ||
-          "An error occurred while scheduling.";
+          t("booking.scheduleError");
 
-        Alert.alert("Schedule failed", backendMessage);
+        Alert.alert(t("booking.scheduleFailed"), backendMessage);
       },
     });
   };
@@ -309,24 +385,26 @@ export default function BookingScreen() {
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
-      <HeaderBack title="Book Appointment" />
+      <HeaderBack title={t("booking.title")} />
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <ChooseDoctor
           doctors={doctors}
-          isLoading={doctorsLoading}
-          error={doctorsError as Error | null}
+          isLoading={facilityLoading}
+          error={facilityError || null}
           selectedDoctor={selectedDoctor}
           onSelectDoctor={setSelectedDoctor}
         />
 
         <ServiceSelection
-          services={selectedService ? [selectedService] : []}
+          services={servicesFromFacility}
           selectedServiceId={selectedService?.serviceID ?? null}
           onSelect={setSelectedService}
         />
 
         <View className="flex-row items-center mt-4 mb-2 ml-4">
-          <Text className="text-base mr-2">Schedule anonymously</Text>
+          <Text className="text-base mr-2">
+            {t("booking.scheduleAnonymously")}
+          </Text>
           <Switch value={isAnonymous} onValueChange={setIsAnonymous} />
         </View>
 
@@ -341,17 +419,17 @@ export default function BookingScreen() {
         {!selectedDoctor ? (
           <View className="items-center py-4">
             <Text className="text-gray-500 text-center">
-              Please select a doctor to view available time slots.
+              {t("booking.pleaseSelectDoctor")}
             </Text>
           </View>
         ) : shiftsLoading ? (
           <View className="items-center py-4">
             <ActivityIndicator />
-            <Text>Loading availability...</Text>
+            <Text>{t("booking.loadingAvailability")}</Text>
           </View>
         ) : shiftsError ? (
           <Text className="text-red-500 text-center py-4">
-            Error loading schedule: {shiftsError.message}
+            {t("booking.errorLoadingSchedule")} {shiftsError.message}
           </Text>
         ) : null}
 
@@ -364,11 +442,11 @@ export default function BookingScreen() {
         />
 
         <View className="mx-4 mt-4 mb-2">
-          <Text className="text-base mb-2">Notes (optional):</Text>
+          <Text className="text-base mb-2">{t("booking.notesOptional")}</Text>
           <TextInput
             value={note}
             onChangeText={setNote}
-            placeholder="Enter notes for the appointment (if any)"
+            placeholder={t("booking.notesPlaceholder")}
             multiline
             numberOfLines={3}
             className="p-3 border rounded-xl bg-white text-base"
@@ -421,13 +499,13 @@ export default function BookingScreen() {
         }}
         title={
           successType === "payment"
-            ? "Thanh toán thành công!"
-            : "Đặt lịch thành công!"
+            ? t("booking.paymentSuccess")
+            : t("booking.bookingSuccess")
         }
         subtitle={
           successType === "payment"
-            ? "Bạn đã đặt lịch và thanh toán thành công."
-            : "Lịch hẹn của bạn đã được ghi nhận. Vui lòng thanh toán trước khi đến khám."
+            ? t("booking.paymentSuccessMessage")
+            : t("booking.bookingSuccessMessage")
         }
       />
     </SafeAreaView>

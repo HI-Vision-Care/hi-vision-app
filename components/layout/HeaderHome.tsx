@@ -1,4 +1,5 @@
 import { icons, images } from "@/constants";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useGetPatientProfile } from "@/services/patient/hooks";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -7,13 +8,17 @@ import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  DeviceEventEmitter,
   Image,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  getNotifications,
+  NOTIFICATIONS_UPDATED_EVENT,
+} from "@/utils/notificationStore";
 
 interface JWTPayload {
   sub: string; // sub là accountId
@@ -22,7 +27,9 @@ interface JWTPayload {
 }
 
 const HeaderHome = () => {
+  const { t, language, isReady } = useTranslation();
   const [accountId, setAccountId] = useState<string>();
+  const [unreadCount, setUnreadCount] = useState<number>(0);
 
   useEffect(() => {
     AsyncStorage.getItem("token").then((token) => {
@@ -38,6 +45,19 @@ const HeaderHome = () => {
     });
   }, []);
 
+  useEffect(() => {
+    const load = async () => {
+      const list = await getNotifications();
+      setUnreadCount(list.filter((n) => !n.isRead).length);
+    };
+    load();
+    const sub = DeviceEventEmitter.addListener(
+      NOTIFICATIONS_UPDATED_EVENT,
+      load
+    );
+    return () => sub.remove();
+  }, []);
+
   const {
     data: profile,
     isLoading: profileLoading,
@@ -48,13 +68,22 @@ const HeaderHome = () => {
   const avatarUri = profile?.account?.avatar
     ? profile.account.avatar
     : images.avatarPlaceholder;
-  const name = profile?.name ?? "Guest";
+  const name = profile?.name ?? t("common.guest");
+
+  if (!isReady) {
+    return (
+      <View className="px-4 pb-6 rounded-3xl">
+        <View className="flex-row justify-between items-center mb-4 mt-4">
+          <View className="flex-row items-center">
+            <Text className="text-gray-400 text-sm">{t("common.loading")}</Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   return (
-    <SafeAreaView
-      edges={["top"]}
-      className="bg-[#242e49] px-4 pb-6 rounded-3xl"
-    >
+    <View className="px-4 pb-6 rounded-3xl">
       {/* Date + notification + logout */}
       <View className="flex-row justify-between items-center mb-4 mt-4">
         {/* Date */}
@@ -66,23 +95,34 @@ const HeaderHome = () => {
             style={{ tintColor: "white" }}
           />
           <Text className="text-gray-400 text-sm ml-2">
-            {new Date().toLocaleDateString("en-US", {
-              weekday: "short", // Tue
-              day: "2-digit", // 25
-              month: "short", // Jan
-              year: "numeric", // 2025
-            })}
+            {new Date().toLocaleDateString(
+              language === "vi" ? "vi-VN" : "en-US",
+              {
+                weekday: "short", // Tue / T2
+                day: "2-digit", // 25
+                month: "short", // Jan / Th1
+                year: "numeric", // 2025
+              }
+            )}
           </Text>
         </View>
 
         {/* Notification and Logout icons */}
         <View className="flex-row items-center">
-          <View className="relative mr-4">
+          <TouchableOpacity
+            className="relative mr-4"
+            onPress={() => {
+              router.push("/(root)/notifications");
+            }}
+            activeOpacity={0.7}
+          >
             <Ionicons name="notifications-outline" size={24} color="white" />
-            <View className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full items-center justify-center">
-              <Text className="text-white text-xs font-bold">1</Text>
-            </View>
-          </View>
+            {unreadCount > 0 && (
+              <View className="absolute -top-1 -right-1 min-w-4 h-4 px-1 bg-red-500 rounded-full items-center justify-center">
+                <Text className="text-white text-xs font-bold">{unreadCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -113,10 +153,10 @@ const HeaderHome = () => {
           <View className="ml-3 flex-1">
             <Text className="text-white text-lg font-bold">
               {profileLoading
-                ? "Loading..."
+                ? t("common.loading")
                 : profileError
-                  ? "Error"
-                  : `Hi, ${name}! 👋`}
+                ? t("common.error")
+                : `${t("common.greeting")}, ${name}! 👋`}
             </Text>
             <View className="flex-row items-center mt-1">
               <View className="flex-row items-center">
@@ -129,10 +169,6 @@ const HeaderHome = () => {
                 <Text className="text-blue-400 text-sm font-semibold ml-1">
                   88%
                 </Text>
-              </View>
-              <View className="flex-row items-center ml-4">
-                <Ionicons name="star" size={16} color="#FCD34D" />
-                <Text className="text-gray-300 text-sm ml-1">Pro Member</Text>
               </View>
             </View>
           </View>
@@ -149,12 +185,12 @@ const HeaderHome = () => {
           style={{ tintColor: "gray" }}
         />
         <TextInput
-          placeholder="Search asklepios..."
+          placeholder={t("common.searchPlaceholder")}
           placeholderTextColor="#9CA3AF"
           className="flex-1 ml-3 text-white"
         />
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

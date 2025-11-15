@@ -1,4 +1,5 @@
 import { weekDays } from "@/constants";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -18,11 +19,12 @@ const WeekNavigation: React.FC<WeekNavigationProps> = ({
   onPrevWeek,
   onNextWeek,
 }) => {
+  const { t } = useTranslation();
   return (
     <View className="mx-4 mt-6">
       <View className="flex-row items-center justify-between mb-4">
         <Text className="text-lg font-bold text-gray-900">
-          Select Date & Time
+          {t("booking.selectDateAndTime")}
         </Text>
         <View className="flex-row items-center space-x-4">
           <TouchableOpacity

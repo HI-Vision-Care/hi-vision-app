@@ -55,20 +55,29 @@ const PasswordSentModal: React.FC<PasswordSentModalProps> = ({
               </Text>
             </View>
 
-            {/* Nút “Re-Sent Code” */}
-            <CustomButton
-              title="Re-Sent Code"
-              onPress={onResend}
-              variant="primary"
-              className="w-full mb-0"
-              rightIcon={
-                <Image
-                  source={icons.arrow}
-                  className="w-5 h-5 tint-white"
-                  resizeMode="contain"
-                />
-              }
-            />
+            {/* Action Buttons */}
+            <View className="w-full gap-3">
+              <CustomButton
+                title="Nhập mã OTP"
+                onPress={onClose}
+                variant="primary"
+                className="w-full"
+                rightIcon={
+                  <Image
+                    source={icons.arrow}
+                    className="w-5 h-5 tint-white"
+                    resizeMode="contain"
+                  />
+                }
+              />
+
+              <CustomButton
+                title="Gửi lại mã"
+                onPress={onResend}
+                variant="outline"
+                className="w-full"
+              />
+            </View>
           </View>
         </View>
       </TouchableWithoutFeedback>

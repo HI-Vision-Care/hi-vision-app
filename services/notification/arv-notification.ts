@@ -1,6 +1,6 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { Alert, Platform } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ARV notification identifiers
 export const ARV_CATEGORY = "ARV_REMINDER_CATEGORY";
@@ -16,18 +16,23 @@ type MedicineDose = {
 
 // 1. Đăng ký actions khi khởi tạo app
 export async function registerArvNotificationActions() {
-  await Notifications.setNotificationCategoryAsync(ARV_CATEGORY, [
-    {
-      identifier: ARV_ACTION_CONFIRM,
-      buttonTitle: "Đã uống",
-      options: { isDestructive: false, opensAppToForeground: false },
-    },
-    {
-      identifier: ARV_ACTION_SNOOZE,
-      buttonTitle: "Báo lại 15 phút",
-      options: { isDestructive: false, opensAppToForeground: false },
-    },
-  ]);
+  try {
+    await Notifications.setNotificationCategoryAsync(ARV_CATEGORY, [
+      {
+        identifier: ARV_ACTION_CONFIRM,
+        buttonTitle: "Đã uống",
+        options: { isDestructive: false, opensAppToForeground: false },
+      },
+      {
+        identifier: ARV_ACTION_SNOOZE,
+        buttonTitle: "Báo lại 15 phút",
+        options: { isDestructive: false, opensAppToForeground: false },
+      },
+    ]);
+  } catch (error) {
+    console.error("Failed to register ARV notification actions:", error);
+    throw error;
+  }
 }
 
 /**
@@ -142,7 +147,6 @@ export function listenArvConfirm(onConfirm: (doseTime: string) => void): {
           if (!arr.includes(doseTime)) {
             arr.push(doseTime);
             await AsyncStorage.setItem("confirmedDoses", JSON.stringify(arr));
-            console.log("Confirmed doses saved:", arr);
           }
         } catch (e) {
           console.error("Error saving confirm:", e);
@@ -196,8 +200,6 @@ export async function cancelAllArvNotifications(): Promise<void> {
         notification.identifier
       );
     }
-
-    console.log(`Canceled ${arvNotifications.length} ARV notifications`);
   } catch (error) {
     console.error("Error canceling ARV notifications:", error);
   }

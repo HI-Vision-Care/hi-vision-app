@@ -1,4 +1,5 @@
 import { HeaderAllServices, ServiceCard } from "@/components";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useMedicalServices } from "@/services/medical-services/hooks";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
@@ -47,6 +48,7 @@ const getSpecialtyColor = (specialty: string) => {
 
 const Menu = () => {
   const { data: services, isLoading, isError, refetch } = useMedicalServices();
+  const { t } = useTranslation();
   // State để điều khiển spinner khi refresh
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
@@ -71,7 +73,7 @@ const Menu = () => {
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#3B82F6" />
           <Text className="text-slate-600 mt-4 text-base font-medium">
-            Loading services...
+            {t("menu.loadingServices")}
           </Text>
         </View>
       </SafeAreaView>
@@ -87,10 +89,10 @@ const Menu = () => {
         <View className="flex-1 justify-center items-center px-6">
           <View className="bg-red-50 p-6 rounded-2xl border border-red-100">
             <Text className="text-red-800 text-center text-base font-semibold mb-2">
-              Unable to Load Services
+              {t("menu.unableToLoadServices")}
             </Text>
             <Text className="text-red-600 text-center text-sm">
-              Please check your connection and try again.
+              {t("menu.checkConnectionMessage")}
             </Text>
           </View>
         </View>
@@ -135,7 +137,7 @@ const Menu = () => {
             <View className="flex-1 justify-center items-center py-12">
               <View className="bg-slate-100 p-6 rounded-2xl">
                 <Text className="text-slate-600 text-center text-base font-medium">
-                  No services available at the moment
+                  {t("menu.noServicesAvailable")}
                 </Text>
               </View>
             </View>

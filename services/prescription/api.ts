@@ -8,8 +8,19 @@ export const getArvPrescription = async (
     const res = await axios.get(`/prescription/arv/${patientId}`);
     return res.data;
   } catch (e) {
-    // Nếu BE trả về 404 hoặc arvList rỗng
-    return null;
+    // Nếu BE trả về 404: không có đơn ARV
+    const status = (e as any)?.response?.status;
+    if (status === 404) {
+      return null;
+    }
+    // Log chi tiết để debug thay vì nuốt lỗi
+    console.error("getArvPrescription error", {
+      patientId,
+      status,
+      message: (e as any)?.message,
+      data: (e as any)?.response?.data,
+    });
+    throw e;
   }
 };
 

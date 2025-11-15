@@ -1,14 +1,16 @@
-import { DepositButton } from "@/components";
 import { featureCards, images, menuSections } from "@/constants";
 import { usePatientProfile } from "@/hooks/usePatientId";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useDeleteAccount } from "@/services/patient/hooks";
 import { useCreateWallet, useWalletByAccountId } from "@/services/wallet/hooks";
 import { Account, FeatureCard, MenuItem, MenuSection } from "@/types/type";
+import { authErrorHandler } from "@/utils/error-handler";
 import { formatVND } from "@/utils/format";
+import { DeleteAccountModal, DepositButton, WithDrawButton } from "@components";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import {
   Image,
   ScrollView,
@@ -21,7 +23,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Setting = () => {
+  const { t } = useTranslation();
   const { data: profile } = usePatientProfile();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const account = profile?.account as Account | undefined;
   const accountId = profile?.account?.id;
@@ -48,11 +52,37 @@ const Setting = () => {
     }
   };
 
-  const { mutate: deleteAccount } = useDeleteAccount();
+  const { mutate: deleteAccount, isLoading: isDeletingAccount } =
+    useDeleteAccount();
+
+  const handleDeleteAccount = () => {
+    if (accountId) {
+      deleteAccount(accountId, {
+        onSuccess: async () => {
+          await AsyncStorage.removeItem("token");
+          router.replace("/(auth)/sign-in");
+        },
+        onError: (error) => {
+          authErrorHandler(error);
+        },
+      });
+    } else {
+      console.error("No accountId found for deleteAccount");
+    }
+  };
+
+  const openComingSoon = (feature: string, eta = "Soon") =>
+    router.push({ pathname: "/coming-soon", params: { feature, eta } });
 
   const handleMenuPress = (itemId: string) => {
-    console.log("Menu pressed:", itemId);
     if (itemId === "personal") router.push("/personalinfo");
+
+    if (itemId === "notification") return openComingSoon("Notification");
+    if (itemId === "language") return router.push("/language"); // Chuyển đến màn hình language chuyên dụng
+    if (itemId === "preferences") return router.push("/preferences");
+    if (itemId === "about") return router.push("/about");
+    if (itemId === "help") return router.push("/help");
+    if (itemId === "contact") return router.push("/contact");
     // Add other navigation cases here
   };
 
@@ -139,7 +169,11 @@ const Setting = () => {
                 : "#374151",
           }}
         >
-          {card.title}
+          {card.id === "gold"
+            ? t("settings.gold")
+            : card.id === "activity-history"
+            ? t("settings.activityHistory")
+            : card.title}
         </Text>
       </TouchableOpacity>
     );
@@ -152,16 +186,7 @@ const Setting = () => {
         if (item.id === "signout") {
           handleLogout();
         } else if (item.id === "delete") {
-          if (accountId) {
-            deleteAccount(accountId, {
-              onSuccess: async () => {
-                await AsyncStorage.removeItem("token");
-                router.replace("/(auth)/sign-in");
-              },
-            });
-          } else {
-            console.error("No accountId found for deleteAccount");
-          }
+          setShowDeleteModal(true);
         } else {
           handleMenuPress(item.id);
         }
@@ -190,7 +215,27 @@ const Setting = () => {
               item.isDanger ? "text-red-600" : "text-gray-800"
             }`}
           >
-            {item.title}
+            {item.id === "personal"
+              ? t("settings.personalInfo")
+              : item.id === "notification"
+              ? t("settings.notification")
+              : item.id === "preferences"
+              ? t("settings.preferences")
+              : item.id === "security"
+              ? t("settings.security")
+              : item.id === "language"
+              ? t("settings.language")
+              : item.id === "about"
+              ? t("settings.about")
+              : item.id === "help"
+              ? t("settings.helpCenter")
+              : item.id === "contact"
+              ? t("settings.contactUs")
+              : item.id === "signout"
+              ? t("settings.signOut")
+              : item.id === "delete"
+              ? t("settings.deleteAccount")
+              : item.title}
           </Text>
         </View>
       </View>
@@ -217,10 +262,19 @@ const Setting = () => {
     <View key={index} className="mb-6">
       {/* Section Header */}
       <View className="flex-row justify-between items-center px-6 mb-3">
-        <Text className="text-lg font-bold text-gray-800">{section.title}</Text>
-        <TouchableOpacity className="bg-gray-100 rounded-full p-2">
-          <Ionicons name="ellipsis-horizontal" size={20} color="#64748B" />
-        </TouchableOpacity>
+        <Text className="text-lg font-bold text-gray-800">
+          {section.title === "General Settings"
+            ? t("settings.generalSettings")
+            : section.title === "Accessibility"
+            ? t("settings.accessibility")
+            : section.title === "Help & Support"
+            ? t("settings.helpSupport")
+            : section.title === "Sign Out"
+            ? t("settings.signOut")
+            : section.title === "Danger Zone"
+            ? t("settings.dangerZone")
+            : section.title}
+        </Text>
       </View>
 
       {/* Section Items */}
@@ -263,7 +317,9 @@ const Setting = () => {
         <Ionicons name="chevron-back" size={20} color="#374151" />
       </TouchableOpacity>
 
-      <Text className="text-xl font-bold text-gray-900">Settings</Text>
+      <Text className="text-xl font-bold text-gray-900">
+        {t("settings.title")}
+      </Text>
 
       <TouchableOpacity
         className="w-10 h-10 rounded-full bg-white justify-center items-center"
@@ -334,23 +390,17 @@ const Setting = () => {
                         className="text-xs"
                         style={{ color: "rgba(255, 255, 255, 0.7)" }}
                       >
-                        Active now
+                        {t("settings.activeNow")}
                       </Text>
                     </View>
                   </View>
                 </View>
-                <TouchableOpacity
-                  className="w-12 h-12 rounded-xl justify-center items-center"
-                  style={{ backgroundColor: "rgba(255, 255, 255, 0.2)" }}
-                >
-                  <Ionicons name="pencil-outline" size={22} color="#fff" />
-                </TouchableOpacity>
               </View>
             </View>
           </View>
 
           {/* Wallet Card */}
-          <View className="px-4 mb-6">
+          {/* <View className="px-4 mb-6">
             <View
               className="rounded-3xl p-6 flex-row items-center justify-between"
               style={{
@@ -364,17 +414,18 @@ const Setting = () => {
             >
               <View className="flex-1">
                 <Text className="text-lg font-bold text-gray-900 mb-2">
-                  Wallet balance
+                  {t("settings.walletBalance")}
                 </Text>
                 <Text className="text-2xl font-extrabold text-green-600">
                   {isWalletLoading
-                    ? "Loading..."
+                    ? t("common.loading")
                     : wallet
                     ? `${formatVND(wallet.balance)} `
-                    : "No Wallet"}
+                    : t("settings.noWallet")}
                 </Text>
               </View>
               {!wallet && !isWalletLoading ? (
+                // Nếu chưa có ví thì hiện nút Tạo ví
                 <TouchableOpacity
                   onPress={() => {
                     if (!accountId) return;
@@ -393,28 +444,38 @@ const Setting = () => {
                   <View className="flex-row items-center">
                     <Ionicons name="wallet" size={22} color="#fff" />
                     <Text className="text-white font-bold ml-2">
-                      {isCreating ? "Đang tạo ví..." : "Tạo ví"}
+                      {isCreating
+                        ? t("settings.creatingWallet")
+                        : t("settings.createWallet")}
                     </Text>
                   </View>
                 </TouchableOpacity>
               ) : (
-                <DepositButton
-                  accountId={accountId}
-                  refetchWallet={refetchWallet}
-                />
+                // Nếu đã có ví thì hiện cả 2 nút
+                <View className="flex-col items-end">
+                  <DepositButton
+                    accountId={accountId}
+                    refetchWallet={refetchWallet}
+                  />
+                  <View className="h-3" />
+                  <WithDrawButton
+                    accountId={accountId}
+                    refetchWallet={refetchWallet}
+                  />
+                </View>
               )}
             </View>
-          </View>
+          </View> */}
 
           {/* Feature Cards Section */}
-          <View className="px-4 mb-8">
+          {/* <View className="px-4 mb-8">
             <Text className="text-lg font-bold text-gray-800 mb-4 px-2">
-              Quick Actions
+              {t("settings.quickActions")}
             </Text>
             <View className="flex-row justify-between">
               {featureCards.map((card) => renderFeatureCard(card))}
             </View>
-          </View>
+          </View> */}
 
           {/* Menu Sections */}
           {menuSections.map((section, index) => renderSection(section, index))}
@@ -422,6 +483,15 @@ const Setting = () => {
           {/* Bottom Spacing */}
           <View className="h-[120px]" />
         </ScrollView>
+
+        {/* Delete Account Modal */}
+        <DeleteAccountModal
+          visible={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleDeleteAccount}
+          userName={name}
+          isLoading={isDeletingAccount}
+        />
       </SafeAreaView>
     </>
   );

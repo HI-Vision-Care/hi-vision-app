@@ -3,21 +3,61 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL,
-  headers: { "Content-Type": "application/json" },
-  timeout: 10000,
+  baseURL: process.env.EXPO_PUBLIC_API_URL || "https://hivision.io.vn/HiVision",
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
+  timeout: 30000, // Tăng timeout lên 30 giây
+  // Thêm các options để xử lý network issues
+  validateStatus: function (status) {
+    return status >= 200 && status < 300; // default
+  },
 });
 
 // Trước mỗi request, đọc token và gắn vào header
 api.interceptors.request.use(
-  async (config) => {
-    const token = await AsyncStorage.getItem("token");
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+  async (config: any) => {
+    // Skip authentication nếu có flag skipAuth
+    if (!config.skipAuth) {
+      const token = await AsyncStorage.getItem("token");
+      if (token && config.headers) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
   (error) => Promise.reject(error)
+);
+
+// Response interceptor để xử lý lỗi tốt hơn
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Nếu là lỗi network (không có response)
+    if (!error.response) {
+      // Tạo error message chi tiết hơn
+      let errorMessage = "Network Error";
+
+      if (error.code === "ECONNREFUSED") {
+        errorMessage = "Connection refused - Server may be down";
+      } else if (error.code === "ENOTFOUND") {
+        errorMessage = "DNS lookup failed - Check your internet connection";
+      } else if (error.code === "ECONNABORTED") {
+        errorMessage = "Request timeout - Server took too long to respond";
+      } else if (error.message.includes("Network Error")) {
+        errorMessage =
+          "Network request failed - Check your internet connection";
+      }
+
+      const networkError = new Error(errorMessage);
+      networkError.name = "NetworkError";
+      (networkError as any).code = error.code;
+      return Promise.reject(networkError);
+    }
+
+    return Promise.reject(error);
+  }
 );
 
 export default api;

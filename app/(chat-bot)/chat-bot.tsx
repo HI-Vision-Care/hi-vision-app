@@ -1,4 +1,5 @@
 import { usePatientProfile } from "@/hooks/usePatientId";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
@@ -23,18 +24,25 @@ export type Message = {
   text: string;
 };
 
-export const HEALTH_KEYWORDS = ["tư vấn", "sức khỏe", "triệu chứng", "bệnh"];
+const getHealthKeywords = (t: any): string[] => {
+  const value = t("chatbot.healthKeywords", { returnObjects: true } as any);
+  return Array.isArray(value) ? (value as string[]) : [];
+};
 
-export function needsMedicalAdvice(text: string) {
+export function needsMedicalAdvice(text: string, t: any) {
   const lower = text.toLowerCase();
-  return HEALTH_KEYWORDS.some((kw) => lower.includes(kw));
+  const keywords = getHealthKeywords(t);
+  if (!Array.isArray(keywords) || keywords.length === 0) return false;
+  return keywords.some((kw: string) =>
+    lower.includes(String(kw).toLowerCase())
+  );
 }
 
-const SUGGESTIONS = [
-  "Tôi cần tư vấn",
-  "Truy vấn sức khỏe",
-  "Hướng dẫn đặt lịch",
-  "Hãy kể chuyện cười",
+const getSuggestions = (t: any) => [
+  t("chatbot.needConsultation"),
+  t("chatbot.healthQuery"),
+  t("chatbot.bookingGuide"),
+  t("chatbot.tellJoke"),
 ];
 
 interface FullScreenChatBotProps {
@@ -44,6 +52,7 @@ interface FullScreenChatBotProps {
 const { width, height } = Dimensions.get("window");
 
 export default function FullScreenChatBot({ onBack }: FullScreenChatBotProps) {
+  const { t } = useTranslation();
   const [prompt, setPrompt] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -69,8 +78,8 @@ export default function FullScreenChatBot({ onBack }: FullScreenChatBotProps) {
 
       // Add medical context if needed
       let contextualPrompt = textToSend;
-      if (needsMedicalAdvice(textToSend)) {
-        contextualPrompt = `Lưu ý: Đây là câu hỏi về sức khỏe. Hãy đưa ra lời khuyên chung và khuyến nghị người dùng tham khảo ý kiến bác sĩ chuyên khoa. Câu hỏi: ${textToSend}`;
+      if (needsMedicalAdvice(textToSend, t)) {
+        contextualPrompt = `${t("chatbot.medicalAdviceNote")} ${textToSend}`;
       }
 
       // Call Gemini service directly
@@ -85,7 +94,7 @@ export default function FullScreenChatBot({ onBack }: FullScreenChatBotProps) {
       console.error("Error calling Gemini API:", error);
       const errorMessage: Message = {
         sender: "bot",
-        text: "Xin lỗi, có lỗi xảy ra khi xử lý yêu cầu của bạn. Vui lòng thử lại sau.",
+        text: t("chatbot.sorryError"),
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
@@ -140,7 +149,7 @@ export default function FullScreenChatBot({ onBack }: FullScreenChatBotProps) {
     <View style={styles.loadingContainer}>
       <View style={styles.loadingMessage}>
         <ActivityIndicator size="small" color="#6B7280" />
-        <Text style={styles.loadingText}>Đang trả lời...</Text>
+        <Text style={styles.loadingText}>{t("chatbot.responding")}</Text>
       </View>
     </View>
   );
@@ -172,7 +181,7 @@ export default function FullScreenChatBot({ onBack }: FullScreenChatBotProps) {
               >
                 <Ionicons name="sparkles" size={16} color="white" />
               </LinearGradient>
-              <Text style={styles.headerTitle}>AI Assistant</Text>
+              <Text style={styles.headerTitle}>{t("chatbot.aiAssistant")}</Text>
             </View>
             <TouchableOpacity style={styles.menuButton} activeOpacity={0.7}>
               <Ionicons name="ellipsis-vertical" size={20} color="#374151" />
@@ -197,16 +206,16 @@ export default function FullScreenChatBot({ onBack }: FullScreenChatBotProps) {
                     <Ionicons name="sparkles" size={32} color="white" />
                   </LinearGradient>
                   <Text style={styles.welcomeTitle}>
-                    {`Xin chào, ${name}! 👋`}
+                    {`${t("chatbot.hello")}, ${name}! 👋`}
                   </Text>
                   <Text style={styles.welcomeSubtitle}>
-                    Tôi có thể giúp gì cho bạn hôm nay?
+                    {t("chatbot.whatCanIHelp")}
                   </Text>
                 </View>
 
                 {/* Suggestion Buttons */}
                 <View style={styles.suggestionsContainer}>
-                  {SUGGESTIONS.map((suggestion, index) => (
+                  {getSuggestions(t).map((suggestion, index) => (
                     <TouchableOpacity
                       key={index}
                       style={styles.suggestionButton}
@@ -240,7 +249,7 @@ export default function FullScreenChatBot({ onBack }: FullScreenChatBotProps) {
               style={styles.textInput}
               value={prompt}
               onChangeText={setPrompt}
-              placeholder="Hỏi Gemini"
+              placeholder={t("chatbot.askGemini")}
               placeholderTextColor="#9CA3AF"
               multiline
               maxLength={500}
@@ -265,7 +274,7 @@ export default function FullScreenChatBot({ onBack }: FullScreenChatBotProps) {
                 style={styles.sendButtonGradient}
               >
                 <Text style={styles.sendButtonText}>
-                  {loading ? "Đang gửi..." : "Gửi"}
+                  {loading ? t("chatbot.sending") : t("chatbot.send")}
                 </Text>
               </LinearGradient>
             </TouchableOpacity>

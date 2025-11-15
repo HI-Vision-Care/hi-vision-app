@@ -3,10 +3,16 @@ import {
   createWallet,
   depositToWallet,
   getWalletByAccountId,
+  requestWithdraw,
+  topupByPayOS,
   vnpayCallback,
 } from "./api";
 import {
   DepositPayload,
+  PayOSTopupPayload,
+  PayOSTopupResponse,
+  RequestWithdrawPayload,
+  RequestWithdrawResponse,
   VNPayCallbackParams,
   VNPayCallbackResponse,
   Wallet,
@@ -46,3 +52,23 @@ export const useWalletByAccountId = (accountId: string, enabled = true) =>
     () => getWalletByAccountId(accountId),
     { enabled: !!accountId && enabled }
   );
+
+export function useRequestWithdraw() {
+  return useMutation<
+    RequestWithdrawResponse,
+    Error,
+    { accountId: string; payload: RequestWithdrawPayload }
+  >({
+    mutationFn: ({ accountId, payload }) => requestWithdraw(accountId, payload),
+  });
+}
+
+export function useTopupByPayOS() {
+  return useMutation<
+    PayOSTopupResponse,
+    Error,
+    { accountId: string; payload: PayOSTopupPayload }
+  >({
+    mutationFn: ({ accountId, payload }) => topupByPayOS(accountId, payload),
+  });
+}

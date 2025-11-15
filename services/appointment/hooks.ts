@@ -11,7 +11,7 @@ export const useGetAppointmentByPatientId = (
     ["appointments", patientId], // query key
     async () => {
       const result = await getAppointmentByPatientId(patientId);
-      return Array.isArray(result) ? result : [result];
+      return result;
     }, // fetcher
     {
       enabled: !!patientId && enabled,

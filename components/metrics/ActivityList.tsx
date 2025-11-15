@@ -1,5 +1,6 @@
 // components/ActivityList.tsx
-import { fitnessTracker } from "@/constants";
+import { getFitnessTracker } from "@/constants/fitnessTracker";
+import { useTranslation } from "@/hooks/useTranslation";
 import { ActivityItemProps, ActivityType } from "@/types/type";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
@@ -95,15 +96,25 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ item }) => {
   );
 };
 
-const ActivityList: React.FC = () => (
-  <View className="bg-gray-50 rounded-2xl p-4 mb-6">
-    {fitnessTracker.map((item) => (
-      <ActivityItem
-        key={item.id}
-        item={{ ...item, type: item.type as ActivityType }}
-      />
-    ))}
-  </View>
-);
+const ActivityList: React.FC = () => {
+  const { t, isReady } = useTranslation();
+
+  if (!isReady) {
+    return null;
+  }
+
+  const fitnessTracker = getFitnessTracker(t);
+
+  return (
+    <View className="bg-gray-50 rounded-2xl p-4 mb-6">
+      {fitnessTracker.map((item) => (
+        <ActivityItem
+          key={item.id}
+          item={{ ...item, type: item.type as ActivityType }}
+        />
+      ))}
+    </View>
+  );
+};
 
 export default ActivityList;

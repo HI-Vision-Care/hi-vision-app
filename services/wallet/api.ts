@@ -1,6 +1,10 @@
 import axios from "@/config/axios";
 import {
   DepositPayload,
+  PayOSTopupPayload,
+  PayOSTopupResponse,
+  RequestWithdrawPayload,
+  RequestWithdrawResponse,
   VNPayCallbackParams,
   VNPayCallbackResponse,
   Wallet,
@@ -33,5 +37,26 @@ export const getWalletByAccountId = async (
   accountId: string
 ): Promise<Wallet> => {
   const res = await axios.get(`/wallet/view/${accountId}`);
+  return res.data;
+};
+
+// Yêu cầu rút tiền
+export const requestWithdraw = async (
+  accountId: string,
+  payload: RequestWithdrawPayload
+): Promise<RequestWithdrawResponse> => {
+  const res = await axios.post(
+    `/wallet/request-withdraw/${accountId}`,
+    payload
+  );
+  return res.data;
+};
+
+// Nạp tiền qua PayOS
+export const topupByPayOS = async (
+  accountId: string,
+  payload: PayOSTopupPayload
+): Promise<PayOSTopupResponse> => {
+  const res = await axios.post(`/wallet/${accountId}/topup-by-payos`, payload);
   return res.data;
 };

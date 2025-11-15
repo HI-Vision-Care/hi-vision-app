@@ -8,7 +8,9 @@
       "@components": ["components"],
       "@components/*": ["components/*"],
       "tailwind.config": ["./tailwind.config.js"]
-    }
+    },
+    "jsx": "react-jsx",
+    "jsxImportSource": "react"
   },
   "include": [
     "**/*.ts",

@@ -5,14 +5,16 @@ import { useState } from "react";
 import {
   Image,
   Keyboard,
-  SafeAreaView,
   StatusBar,
   Text,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 const OtpSetup: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState("");

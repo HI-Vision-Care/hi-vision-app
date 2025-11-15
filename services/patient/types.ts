@@ -1,5 +1,3 @@
-// services/patient/types.ts
-
 /** Thông tin account trong profile */
 export interface Account {
   id: string;
@@ -11,6 +9,19 @@ export interface Account {
   isDeleted: boolean;
 }
 
+/** Thông tin bệnh */
+export interface Disease {
+  diseaseID: number;
+  name: string;
+}
+
+/** Quan hệ bệnh nhân - bệnh */
+export interface PatientDisease {
+  patientDiseaseID: number;
+  patient: string;
+  disease: Disease;
+}
+
 /** Kết quả trả về của GET /patient/profile/{accountId} */
 export interface PatientProfile {
   patientID: string;
@@ -18,10 +29,10 @@ export interface PatientProfile {
   name: string;
   dob: string; // ISO date string
   gender: string;
-  medID: string;
+  medNo: string;
   medDate: string; // ISO date string
   medFac: string;
-  // nếu còn field khác, bạn mở rộng thêm ở đây
+  patientDiseases: PatientDisease[];
 }
 
 export interface DeleteAccountResponse {
@@ -44,5 +55,5 @@ export interface UpdatePatientProfilePayload {
   medNo: string;
   medDate: string; // ISO string
   medFac: string;
-  underlyingDiseases: string;
+  avatar?: string; // Optional avatar URL
 }

@@ -1,23 +1,44 @@
 {
   "expo": {
-    "name": "HI_Vision_Mobile_App",
-    "slug": "HI_Vision_Mobile_App",
-    "version": "1.0.0",
+    "name": "Hi-Vision",
+    "slug": "hi-vision",
+    "version": "1.0.6",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",
     "scheme": "hivisionmobileapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.HIVisionMobileApp",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryUsageDescription": "Hi-Vision needs access to your photo library so you can upload your profile picture.",
+        "NSCameraUsageDescription": "Hi-Vision needs access to your camera so you can take a profile picture.",
+        "NSPhotoLibraryAddUsageDescription": "Hi-Vision needs access to your photo library to save your profile picture."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "package": "com.anonymous.HI_Vision_Mobile_App",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.VIBRATE",
+        "android.permission.INTERNET"
+      ]
     },
+    "newArchEnabled": true,
     "web": {
       "bundler": "metro",
       "output": "static",
@@ -26,19 +47,35 @@
     "plugins": [
       "expo-router",
       [
-        "expo-splash-screen",
+        "expo-image-picker",
         {
-          "image": "./assets/images/logo.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "photosPermission": "Hi-Vision cần quyền truy cập thư viện ảnh để bạn có thể tải ảnh đại diện lên.",
+          "cameraPermission": "Hi-Vision cần quyền truy cập camera để bạn có thể chụp ảnh đại diện.",
+          "saveToPhotosAlbum": true
         }
       ],
-      "expo-font",
-      "expo-web-browser"
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "buildToolsVersion": "35.0.0"
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "6a9a627d-4091-4595-9dc7-c2a18fcad50b"
+      }
+    },
+    "owner": "kimcu142"
   }
 }

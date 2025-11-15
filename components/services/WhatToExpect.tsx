@@ -1,12 +1,14 @@
+import { useTranslation } from "@/hooks/useTranslation";
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
 import { Text, View } from "react-native";
 
 const WhatToExpect = () => {
+  const { t } = useTranslation();
+
   return (
     <View className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
       <Text className="text-gray-800 text-lg font-bold mb-4">
-        What to Expect
+        {t("services.whatToExpect")}
       </Text>
       <View className="space-y-3">
         <View className="flex-row items-start">
@@ -14,7 +16,7 @@ const WhatToExpect = () => {
             <Ionicons name="checkmark" size={12} color="#0f67fe" />
           </View>
           <Text className="text-gray-600 flex-1">
-            Comprehensive consultation with experienced healthcare professionals
+            {t("services.comprehensiveConsultation")}
           </Text>
         </View>
         <View className="flex-row items-start">
@@ -22,7 +24,7 @@ const WhatToExpect = () => {
             <Ionicons name="checkmark" size={12} color="#0f67fe" />
           </View>
           <Text className="text-gray-600 flex-1">
-            Detailed examination and assessment of your health condition
+            {t("services.detailedExamination")}
           </Text>
         </View>
         <View className="flex-row items-start">
@@ -30,7 +32,7 @@ const WhatToExpect = () => {
             <Ionicons name="checkmark" size={12} color="#0f67fe" />
           </View>
           <Text className="text-gray-600 flex-1">
-            Personalized treatment recommendations and follow-up care
+            {t("services.personalizedTreatment")}
           </Text>
         </View>
       </View>

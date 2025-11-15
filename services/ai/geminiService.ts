@@ -1,4 +1,6 @@
-const API_KEY = process.env.EXPO_PUBLIC_GEMINI_KEY;
+const API_KEY =
+  process.env.EXPO_PUBLIC_GEMINI_KEY ||
+  "AIzaSyBy8mNCXUxg5cv3HR9OAeVPMXxDtxJid94";
 
 export async function generateContent(prompt: string) {
   const body = {
@@ -38,7 +40,7 @@ export async function generateContent(prompt: string) {
 }
 
 export async function generateContentWithHistory(
-  messages: Array<{ sender: string; text: string }>,
+  messages: { sender: string; text: string }[],
   currentPrompt: string
 ) {
   // Build conversation history for Gemini

@@ -1,8 +1,9 @@
-import { useCreateWallet, useVNPayCallback } from "@/services/wallet/hooks";
-import { VNPayCallbackParams } from "@/services/wallet/types";
+import { useCancelTransaction } from "@/services/transaction/hooks";
+import { useTopupByPayOS } from "@/services/wallet/hooks";
 import { NavState } from "@/types/type";
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   ActivityIndicator,
   Alert,
@@ -15,8 +16,7 @@ import {
 } from "react-native";
 import { WebView } from "react-native-webview";
 import { TopUpSuccessModal } from "../modals";
-
-const VNPAY_CALLBACK_URL = "http://192.168.100.21:8081/success";
+import PaymentFailureModal from "../modals/PaymentFailureModal";
 
 const DepositButton = ({
   accountId,
@@ -25,73 +25,44 @@ const DepositButton = ({
   accountId?: string;
   refetchWallet?: any;
 }) => {
+  const { t } = useTranslation();
   const [showInput, setShowInput] = useState(false);
   const [amount, setAmount] = useState("");
   const [webviewUrl, setWebviewUrl] = useState<string | null>(null);
-  const { mutate: createWallet, isLoading } = useCreateWallet();
-
+  const { mutate: topupByPayOS, isLoading } = useTopupByPayOS();
+  const { mutate: cancelTransaction } = useCancelTransaction();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-
-  const [callbackParams, setCallbackParams] =
-    useState<VNPayCallbackParams | null>(null);
-  const {
-    data: callbackData,
-    isSuccess: isCallbackSuccess,
-    isError: isCallbackError,
-    error: callbackError,
-  } = useVNPayCallback(
-    callbackParams || { vnp_TxnRef: "", vnp_ResponseCode: "", vnp_Amount: "" },
-    !!callbackParams
-  );
-
-  useEffect(() => {
-    if (isCallbackSuccess && callbackData) {
-      setShowSuccessModal(true); // show modal thành công
-      refetchWallet?.();
-      setCallbackParams(null);
-    }
-    if (isCallbackError) {
-      Alert.alert(
-        "Giao dịch lỗi",
-        callbackError?.message || "Vui lòng thử lại",
-        [{ text: "Đóng", style: "default" }]
-      );
-      setCallbackParams(null);
-    }
-  }, [
-    isCallbackSuccess,
-    isCallbackError,
-    callbackData,
-    callbackError,
-    refetchWallet,
-  ]);
+  const [showFailureModal, setShowFailureModal] = useState(false);
 
   const handleDeposit = () => {
     if (!amount || !accountId) return;
 
     const numAmount = Number(amount);
     if (numAmount < 10000) {
-      Alert.alert("Số tiền không hợp lệ", "Nạp tối thiểu 10,000 VNĐ");
+      Alert.alert(t("wallet.invalidAmount"), t("wallet.minTopup", { amount: 10000 }));
       return;
     }
 
-    createWallet(
+    topupByPayOS(
       {
         accountId,
-        payload: { balance: numAmount },
+        payload: { amount: numAmount },
       },
       {
-        onSuccess: (data) => {
+        onSuccess: (url) => {
           setShowInput(false);
           setAmount("");
-          if (data) {
-            setWebviewUrl(data);
+          if (url) {
+            setWebviewUrl(url);
           } else {
-            Alert.alert("Lỗi", "Không thể kết nối VNPay!");
+            Alert.alert(t("common.error"), t("wallet.cannotConnectPayOS"));
           }
         },
-        onError: () => {
-          Alert.alert("Lỗi", "Không thể thực hiện giao dịch!");
+        onError: (error) => {
+          Alert.alert(t("common.error"), t("wallet.cannotProceedTransaction"), [
+            { text: t("common.cancel") },
+          ]);
+          console.error("Topup error:", error);
         },
       }
     );
@@ -107,7 +78,7 @@ const DepositButton = ({
     setAmount(numericValue);
   };
 
-  const getQueryParams = (url: string): Record<string, string> => {
+  const parseQueryParams = (url: string): Record<string, string> => {
     const params: Record<string, string> = {};
     const queryString = url.split("?")[1];
     if (!queryString) return params;
@@ -120,19 +91,35 @@ const DepositButton = ({
   };
 
   const handleWebViewNavigationStateChange = (navState: NavState) => {
-    if (navState.url.startsWith(VNPAY_CALLBACK_URL)) {
-      setWebviewUrl(null);
+    const url = navState.url;
 
-      const params = getQueryParams(navState.url);
-      const { vnp_TxnRef, vnp_ResponseCode, vnp_Amount } = params;
+    // Check if this is a cancel URL
+    if (url.includes("/payment/cancel")) {
+      const params = parseQueryParams(url);
+      const orderCode = params.orderCode;
 
-      if (vnp_TxnRef && vnp_ResponseCode && vnp_Amount) {
-        setCallbackParams({
-          vnp_TxnRef: String(vnp_TxnRef),
-          vnp_ResponseCode: String(vnp_ResponseCode),
-          vnp_Amount: String(vnp_Amount),
+      if (orderCode) {
+        setWebviewUrl(null);
+
+        // Call cancel transaction API
+        cancelTransaction(Number(orderCode), {
+          onSuccess: () => {
+            refetchWallet?.();
+            setShowFailureModal(true);
+          },
+          onError: (error) => {
+            console.error("Cancel transaction error:", error);
+            Alert.alert("Lỗi", "Không thể hủy giao dịch. Vui lòng thử lại.");
+          },
         });
       }
+    }
+
+    // Check if this is a success URL
+    if (url.includes("/payment/success")) {
+      setWebviewUrl(null);
+      setShowSuccessModal(true);
+      refetchWallet?.();
     }
   };
 
@@ -161,7 +148,7 @@ const DepositButton = ({
         <View className="bg-white/20 rounded-full p-1 mr-2">
           <Ionicons name="add" size={20} color="#fff" />
         </View>
-        <Text className="text-white font-bold text-base">Nạp tiền</Text>
+        <Text className="text-white font-bold text-base">{t("wallet.topUp")}</Text>
       </TouchableOpacity>
 
       {/* Modal nhập số tiền */}
@@ -174,9 +161,7 @@ const DepositButton = ({
                 <View className="bg-blue-100 rounded-full p-2 mr-2">
                   <Ionicons name="wallet-outline" size={20} color="#3B82F6" />
                 </View>
-                <Text className="text-xl font-bold text-gray-900">
-                  Nạp tiền
-                </Text>
+                <Text className="text-xl font-bold text-gray-900">{t("wallet.topUp")}</Text>
               </View>
               <TouchableOpacity
                 onPress={() => setShowInput(false)}
@@ -188,9 +173,7 @@ const DepositButton = ({
             </View>
 
             {/* Input tiền */}
-            <Text className="text-sm font-medium text-gray-700 mb-2">
-              Nhập số tiền muốn nạp
-            </Text>
+            <Text className="text-sm font-medium text-gray-700 mb-2">{t("wallet.enterTopUpAmount")}</Text>
             <View className="bg-gray-50 rounded-2xl flex-row items-center border border-gray-200 px-4 py-3 mb-1">
               <Text className="text-2xl font-bold text-blue-600 mr-1">₫</Text>
               <TextInput
@@ -251,16 +234,12 @@ const DepositButton = ({
                 {isLoading ? (
                   <>
                     <ActivityIndicator size="small" color="#fff" />
-                    <Text className="text-white font-bold ml-2 text-base">
-                      Đang xử lý...
-                    </Text>
+                    <Text className="text-white font-bold ml-2 text-base">{t("wallet.processing")}</Text>
                   </>
                 ) : (
                   <>
                     <Ionicons name="card-outline" size={22} color="#fff" />
-                    <Text className="text-white font-bold ml-2 text-base">
-                      Thanh toán VNPay
-                    </Text>
+                    <Text className="text-white font-bold ml-2 text-base">{t("wallet.payWithPayOS")}</Text>
                   </>
                 )}
               </View>
@@ -271,9 +250,7 @@ const DepositButton = ({
               <View className="bg-red-50 rounded-xl p-3 mt-4 border border-red-200">
                 <View className="flex-row items-center">
                   <Ionicons name="warning-outline" size={16} color="#DC2626" />
-                  <Text className="text-red-600 text-xs font-medium ml-2">
-                    Số tiền tối thiểu là 10,000 VNĐ
-                  </Text>
+                  <Text className="text-red-600 text-xs font-medium ml-2">{t("wallet.minTopup", { amount: 10000 })}</Text>
                 </View>
               </View>
             )}
@@ -281,7 +258,7 @@ const DepositButton = ({
         </View>
       </Modal>
 
-      {/* VNPay Payment Modal giữ nguyên */}
+      {/* PayOS Payment Modal */}
       <Modal visible={!!webviewUrl} animationType="slide">
         <View className="flex-1 bg-white">
           {/* Modal Header */}
@@ -289,27 +266,24 @@ const DepositButton = ({
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center">
                 <TouchableOpacity
-                  onPress={() => setWebviewUrl(null)}
+                  onPress={() => {
+                    setWebviewUrl(null);
+                    refetchWallet?.();
+                  }}
                   className="bg-gray-100 rounded-full p-2 mr-3"
                   activeOpacity={0.7}
                 >
                   <Ionicons name="arrow-back" size={20} color="#374151" />
                 </TouchableOpacity>
                 <View>
-                  <Text className="font-bold text-lg text-gray-900">
-                    Thanh toán VNPay
-                  </Text>
-                  <Text className="text-sm text-gray-500">
-                    Giao dịch được bảo mật
-                  </Text>
+                <Text className="font-bold text-lg text-gray-900">{t("wallet.payWithPayOS")}</Text>
+                <Text className="text-sm text-gray-500">{t("wallet.secureTransaction")}</Text>
                 </View>
               </View>
               <View className="bg-green-100 rounded-full px-3 py-1">
                 <View className="flex-row items-center">
                   <Ionicons name="shield-checkmark" size={12} color="#059669" />
-                  <Text className="text-green-700 font-medium text-xs ml-1">
-                    Bảo mật
-                  </Text>
+                <Text className="text-green-700 font-medium text-xs ml-1">{t("wallet.secure")}</Text>
                 </View>
               </View>
             </View>
@@ -324,12 +298,8 @@ const DepositButton = ({
               <View className="flex-1 justify-center items-center bg-gray-50">
                 <View className="bg-white rounded-2xl p-8 mx-8 items-center shadow-lg">
                   <ActivityIndicator size="large" color="#3B82F6" />
-                  <Text className="text-gray-800 font-semibold mt-4 text-center">
-                    Đang tải trang thanh toán
-                  </Text>
-                  <Text className="text-gray-500 text-sm mt-2 text-center">
-                    Vui lòng chờ trong giây lát...
-                  </Text>
+                  <Text className="text-gray-800 font-semibold mt-4 text-center">{t("wallet.paymentPageLoading")}</Text>
+                  <Text className="text-gray-500 text-sm mt-2 text-center">{t("wallet.pleaseWait")}</Text>
                 </View>
               </View>
             )}
@@ -340,6 +310,15 @@ const DepositButton = ({
       <TopUpSuccessModal
         visible={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
+      />
+
+      <PaymentFailureModal
+        visible={showFailureModal}
+        onClose={() => setShowFailureModal(false)}
+        onTopUp={() => {
+          setShowFailureModal(false);
+          setShowInput(true);
+        }}
       />
     </View>
   );

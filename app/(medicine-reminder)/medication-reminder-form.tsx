@@ -1,623 +1,697 @@
+"use client";
 
-import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker"
-import { Picker } from "@react-native-picker/picker"
-import * as Notifications from "expo-notifications"
-import { useEffect, useState } from "react"
-import { ActivityIndicator, Alert, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native"
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
-
+import DateTimePicker, {
+  type DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
+import { Picker } from "@react-native-picker/picker";
+import { useCallback, useMemo, useState } from "react";
 import {
-  requestNotificationPermissions,
-  scheduleNotifications as scheduleNotif,
-  testNotification,
-  type NotificationSchedule
-} from "../../services/notification/prep-notification"
+  ActivityIndicator,
+  Alert,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
-// Configure notification behavior when app is foreground
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-})
+import { useTranslation } from "@/hooks/useTranslation";
+import { createMedicationPlan } from "@/services/medication/scheduler";
+import type { MedicationSlot } from "@/services/medication/types";
+import { requestNotificationPermissions } from "@/services/notification/prep-notification";
 
-type RegimenType = "Daily PrEP" | "On-demand (2-1-1)"
+const getSlotMetadata = (
+  t: any
+): Record<
+  MedicationSlot,
+  { label: string; emoji: string; defaultHour: number; defaultMinute: number }
+> => ({
+  morning: {
+    label: t("medicine.medicationReminderForm.morning"),
+    emoji: "🌅",
+    defaultHour: 7,
+    defaultMinute: 0,
+  },
+  noon: {
+    label: t("medicine.medicationReminderForm.noon"),
+    emoji: "☀️",
+    defaultHour: 12,
+    defaultMinute: 0,
+  },
+  afternoon: {
+    label: t("medicine.medicationReminderForm.afternoon"),
+    emoji: "🌇",
+    defaultHour: 16,
+    defaultMinute: 0,
+  },
+  evening: {
+    label: t("medicine.medicationReminderForm.evening"),
+    emoji: "🌙",
+    defaultHour: 21,
+    defaultMinute: 0,
+  },
+  custom: {
+    label: t("medicine.medicationReminderForm.custom"),
+    emoji: "🕑",
+    defaultHour: 10,
+    defaultMinute: 0,
+  },
+});
+
+type SlotState = {
+  id: string;
+  slot: MedicationSlot;
+  time: Date;
+  quantity: string;
+  note: string;
+  labelOverride: string;
+};
+
+const createId = () =>
+  `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+
+const createSlotState = (
+  slot: MedicationSlot,
+  dateRef: Date,
+  t: any
+): SlotState => {
+  const meta = getSlotMetadata(t)[slot];
+  const time = new Date(dateRef);
+  time.setHours(meta.defaultHour, meta.defaultMinute, 0, 0);
+  return {
+    id: createId(),
+    slot,
+    time,
+    quantity: "1",
+    note: "",
+    labelOverride: "",
+  };
+};
+
+const getPresetConfigs = (t: any) => ({
+  prep: {
+    planName: t("medicine.medicationReminderForm.prepDailyReminder"),
+    medicineName: t("medicine.medicationReminderForm.prep"),
+    notes: t("medicine.medicationReminderForm.takeDailySameTime"),
+    slots: [
+      {
+        slot: "evening" as MedicationSlot,
+        hour: 20,
+        minute: 0,
+        note: t("medicine.medicationReminderForm.prepSlot"),
+        quantity: "1",
+      },
+    ],
+  },
+  arv: {
+    planName: t("medicine.medicationReminderForm.arvReminder"),
+    medicineName: t("medicine.medicationReminderForm.arv"),
+    notes: t("medicine.medicationReminderForm.reminderWithWarning"),
+    slots: [
+      {
+        slot: "evening" as MedicationSlot,
+        hour: 19,
+        minute: 30,
+        note: t("medicine.medicationReminderForm.afterDinner"),
+        quantity: "1",
+      },
+    ],
+  },
+});
+
+function applySlotPreset(baseDate: Date, preset: any[], t: any) {
+  return preset.map((config) => {
+    const slotDate = new Date(baseDate);
+    slotDate.setHours(config.hour, config.minute, 0, 0);
+    return {
+      id: createId(),
+      slot: config.slot,
+      time: slotDate,
+      quantity: config.quantity ?? "1",
+      note: config.note ?? "",
+      labelOverride: "",
+    } as SlotState;
+  });
+}
 
 export default function MedicationReminderForm() {
-  const insets = useSafeAreaInsets()
-  const [regimen, setRegimen] = useState<RegimenType>("Daily PrEP")
-  const [isLoading, setIsLoading] = useState(false)
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const today = useMemo(() => new Date(), []);
 
-  // Daily PrEP state
-  const [startDate, setStartDate] = useState<Date>(new Date())
-  const [showStartPicker, setShowStartPicker] = useState(false)
-  const [dailyTime, setDailyTime] = useState<Date>(new Date())
-  const [showDailyTimePicker, setShowDailyTimePicker] = useState(false)
-  const [days, setDays] = useState<string>("30")
+  const [planName, setPlanName] = useState(
+    t("medicine.medicationReminderForm.planName")
+  );
+  const [medicineName, setMedicineName] = useState(
+    t("medicine.medicationReminderForm.medicineName")
+  );
+  const [planNotes, setPlanNotes] = useState("");
+  const [totalDays, setTotalDays] = useState("7");
+  const [regimenType, setRegimenType] = useState<"custom" | "prep" | "arv">(
+    "custom"
+  );
 
-  // On-demand state - Split into separate date and time
-  const [eventDate, setEventDate] = useState<Date>(new Date())
-  const [showEventDatePicker, setShowEventDatePicker] = useState(false)
-  const [eventTime, setEventTime] = useState<Date>(new Date())
-  const [showEventTimePicker, setShowEventTimePicker] = useState(false)
-  const [preHours, setPreHours] = useState<string>("2")
+  const [startDate, setStartDate] = useState(() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    return date;
+  });
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Common notes
-  const [notes, setNotes] = useState<string>("")
+  const [slots, setSlots] = useState<SlotState[]>(() => [
+    createSlotState("morning", today, t),
+  ]);
 
-  // Request notification permission on mount
-  useEffect(() => {
-    requestNotificationPermissions()
-  }, [])
+  const formatDate = (date: Date) => date.toLocaleDateString("vi-VN");
+  const formatTime = (date: Date) =>
+    date.toLocaleTimeString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
 
-  // Date pickers handlers
+  const updateSlot = useCallback((id: string, partial: Partial<SlotState>) => {
+    setSlots((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, ...partial } : item))
+    );
+  }, []);
+
+  const removeSlot = useCallback((id: string) => {
+    setSlots((prev) => prev.filter((item) => item.id !== id));
+  }, []);
+
+  const addSlot = useCallback(
+    (slot: MedicationSlot) => {
+      setSlots((prev) => [...prev, createSlotState(slot, startDate, t)]);
+    },
+    [startDate, t]
+  );
+
   const onChangeStartDate = (event: DateTimePickerEvent, selected?: Date) => {
-    if (Platform.OS === "android") setShowStartPicker(false)
-    if (selected) setStartDate(selected)
-  }
-
-  const onChangeDailyTime = (event: DateTimePickerEvent, selected?: Date) => {
-    if (Platform.OS === "android") setShowDailyTimePicker(false)
-    if (selected) setDailyTime(selected)
-  }
-
-  const onChangeEventDate = (event: DateTimePickerEvent, selected?: Date) => {
-    if (Platform.OS === "android") setShowEventDatePicker(false)
-    if (selected) setEventDate(selected)
-  }
-
-  const onChangeEventTime = (event: DateTimePickerEvent, selected?: Date) => {
-    if (Platform.OS === "android") setShowEventTimePicker(false)
-    if (selected) setEventTime(selected)
-  }
-
-  // Formatters
-  const formatDate = (d: Date): string => d.toLocaleDateString("vi-VN")
-  const formatTime = (d: Date): string =>
-    d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", hour12: false })
-  const formatDateTime = (d: Date): string => d.toLocaleString("vi-VN")
-
-  // Get combined event datetime for On-demand
-  const getEventDateTime = (): Date => {
-    const combined = new Date(eventDate)
-    combined.setHours(eventTime.getHours(), eventTime.getMinutes(), 0, 0)
-    return combined
-  }
-
-  // Input validation
-  const validateInputs = (): string | null => {
-    if (regimen === "Daily PrEP") {
-      const totalDays = Number.parseInt(days, 10)
-      if (isNaN(totalDays) || totalDays < 1 || totalDays > 365) {
-        return "Số ngày phải từ 1 đến 365"
-      }
-      if (startDate < new Date(Date.now() - 24 * 60 * 60 * 1000)) {
-        return "Ngày bắt đầu không thể là quá khứ"
-      }
-    } else {
-      const h = Number.parseInt(preHours, 10)
-      if (isNaN(h) || h < 1 || h > 72) {
-        return "Số giờ nhắc trước phải từ 1 đến 72"
-      }
-      const eventDateTime = getEventDateTime()
-      if (eventDateTime <= new Date()) {
-        return "Thời gian sự kiện phải trong tương lai"
-      }
-      const minNotificationTime = new Date(eventDateTime.getTime() - h * 60 * 60 * 1000)
-      if (minNotificationTime <= new Date()) {
-        return "Thời gian nhắc nhở đầu tiên phải trong tương lai"
-      }
-    }
-    return null
-  }
-
-  // Generate notification schedules
-  const generateDailySchedule = (): NotificationSchedule[] => {
-    const count = Number.parseInt(days, 10) || 0
-    const schedules: NotificationSchedule[] = []
-
-    for (let i = 0; i < count; i++) {
-      const scheduleDate = new Date(startDate)
-      scheduleDate.setDate(scheduleDate.getDate() + i)
-      scheduleDate.setHours(dailyTime.getHours(), dailyTime.getMinutes(), 0, 0)
-
-      // Skip past dates
-      if (scheduleDate > new Date()) {
-        schedules.push({
-          time: scheduleDate,
-          pills: 1,
-          note: `Daily PrEP - Ngày ${i + 1}/${count}`,
-        })
-      }
-    }
-    return schedules
-  }
-
-  const generateOnDemandSchedule = (): NotificationSchedule[] => {
-    const h = Number.parseInt(preHours, 10) || 0
-    const eventDateTime = getEventDateTime()
-
-    const dose1Time = new Date(eventDateTime)
-    dose1Time.setHours(dose1Time.getHours() - h)
-
-    const dose2Time = new Date(eventDateTime)
-    dose2Time.setHours(dose2Time.getHours() + 24)
-
-    const dose3Time = new Date(eventDateTime)
-    dose3Time.setHours(dose3Time.getHours() + 48)
-
-    const schedules: NotificationSchedule[] = []
-
-    // Only add notifications that are in the future
-    if (dose1Time > new Date()) {
-      schedules.push({
-        time: dose1Time,
-        pills: 2,
-        note: `On-demand PrEP - Liều trước sự kiện (${h}h trước)`,
+    if (Platform.OS === "android") setShowDatePicker(false);
+    if (!selected) return;
+    selected.setHours(0, 0, 0, 0);
+    setStartDate(selected);
+    setSlots((prev) =>
+      prev.map((item) => {
+        const nextTime = new Date(selected);
+        nextTime.setHours(item.time.getHours(), item.time.getMinutes(), 0, 0);
+        return { ...item, time: nextTime };
       })
+    );
+  };
+
+  const handlePreset = (type: "prep" | "arv") => {
+    const presetConfigs = getPresetConfigs(t);
+    const preset = presetConfigs[type];
+    const baseDate = new Date(startDate);
+    setPlanName(preset.planName);
+    setMedicineName(preset.medicineName);
+    setPlanNotes(preset.notes);
+    setRegimenType(type);
+    setSlots(applySlotPreset(baseDate, preset.slots, t));
+  };
+
+  const validateInputs = () => {
+    if (!medicineName.trim()) {
+      return t("medicine.medicationReminderForm.enterMedicineName");
+    }
+    const days = Number.parseInt(totalDays, 10);
+    if (Number.isNaN(days) || days < 1 || days > 365) {
+      return t("medicine.medicationReminderForm.validDays");
+    }
+    if (!slots.length) {
+      return t("medicine.medicationReminderForm.addAtLeastOne");
+    }
+    return null;
+  };
+
+  const handleSave = async () => {
+    const error = validateInputs();
+    if (error) {
+      Alert.alert(t("medicine.medicationReminderForm.missingInfo"), error);
+      return;
     }
 
-    schedules.push(
-      {
-        time: dose2Time,
-        pills: 1,
-        note: "On-demand PrEP - Liều sau 24h",
-      },
-      {
-        time: dose3Time,
-        pills: 1,
-        note: "On-demand PrEP - Liều sau 48h",
-      },
-    )
+    if (!(await requestNotificationPermissions())) return;
 
-    return schedules
-  }
-
-  // Main function to schedule notifications using service
-  const onSave = async (): Promise<void> => {
+    setIsSaving(true);
     try {
-      // 1. Validate inputs
-      const validationError = validateInputs()
-      if (validationError) {
-        Alert.alert("Lỗi nhập liệu", validationError)
-        return
-      }
+      const days = Number.parseInt(totalDays, 10);
+      await createMedicationPlan({
+        name: planName.trim() || medicineName.trim(),
+        medicineName: medicineName.trim(),
+        regimenType,
+        notes: planNotes.trim() ? planNotes : undefined,
+        startDate,
+        totalDays: days,
+        slots: slots.map((slot) => ({
+          slot: slot.slot,
+          time: slot.time,
+          note: slot.note?.trim() || undefined,
+          quantity: Number.parseInt(slot.quantity, 10) || 1,
+          label: slot.labelOverride.trim() || undefined,
+        })),
+      });
 
-      // 2. Request permissions
-      if (!(await requestNotificationPermissions())) return
-
-      // 3. Cancel existing notifications
-      // await cancelAll()
-
-      // 4. Build schedules
-      const schedules: NotificationSchedule[] =
-        regimen === "Daily PrEP" ? generateDailySchedule() : generateOnDemandSchedule()
-
-      if (schedules.length === 0) {
-        Alert.alert("Thông báo", "Không có lịch nhắc nào được tạo (có thể do thời gian đã qua)")
-        return
-      }
-
-      // 5. Schedule notifications using service
-      setIsLoading(true)
-      const { success, totalPills } = await scheduleNotif(schedules, regimen, notes)
-      setIsLoading(false)
-
-      // 6. Show success message
       Alert.alert(
-        "✅ Thành công!",
-        `Đã lên lịch ${success}/${schedules.length} thông báo\n` +
-        `Tổng cộng: ${totalPills} viên\n` +
-        `Chế độ: ${regimen}` +
-        (notes ? `\nGhi chú: ${notes}` : ""),
-        [
-          {
-            text: "Xem chi tiết",
-            onPress: () => showScheduleDetails(schedules),
-          },
-          { text: "OK" },
-        ],
-      )
-    } catch (error) {
-      console.error("Error scheduling notifications:", error)
-      Alert.alert("Lỗi", "Không thể lên lịch thông báo. Vui lòng thử lại.")
-      setIsLoading(false)
+        t("medicine.medicationReminderForm.planCreated"),
+        t("medicine.medicationReminderForm.scheduleSaved", {
+          medicineName,
+          startDate: formatDate(startDate),
+          days,
+        })
+      );
+    } catch (err) {
+      console.error("createMedicationPlan failed", err);
+      Alert.alert(
+        t("medicine.medicationReminderForm.error"),
+        t("medicine.medicationReminderForm.cannotSavePlan")
+      );
+    } finally {
+      setIsSaving(false);
     }
-  }
-
-  const showScheduleDetails = (schedules: NotificationSchedule[]): void => {
-    const details = schedules
-      .slice(0, 5) // Show first 5 schedules
-      .map((s, i) => `${i + 1}. ${formatDateTime(s.time)} - ${s.pills} viên`)
-      .join("\n")
-
-    const moreText = schedules.length > 5 ? `\n... và ${schedules.length - 5} lịch khác` : ""
-
-    Alert.alert("Chi tiết lịch nhắc", details + moreText)
-  }
-
-  // Test notification function using service
-  const handleTestNotification = async (): Promise<void> => {
-    try {
-      await testNotification()
-      Alert.alert("Test", "Thông báo test sẽ hiển thị sau 3 giây")
-    } catch (error) {
-      Alert.alert("Lỗi", "Không thể gửi thông báo test")
-    }
-  }
-
-  // Show pickers
-  const showStart = () => setShowStartPicker(true)
-  const showTime = () => setShowDailyTimePicker(true)
-  const showEventTimePickerHandler = () => setShowEventTimePicker(true)
+  };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#f5f5f5", paddingTop: insets.top }}>
-      {/* Header */}
-      <View
-        style={{
-          backgroundColor: "#4285F4",
-          flexDirection: "row",
-          alignItems: "center",
-          paddingVertical: 15,
-          paddingHorizontal: 15,
-        }}
-      >
-        <TouchableOpacity style={{ marginRight: 15 }}>
-          <Text style={{ color: "white", fontSize: 24, fontWeight: "bold" }}>←</Text>
-        </TouchableOpacity>
-        <Text
-          style={{
-            color: "white",
-            fontSize: 20,
-            fontWeight: "bold",
-            flex: 1,
-            textAlign: "center",
-          }}
-        >
-          Tạo lịch nhắc PrEP
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: "#F8FAFC", paddingTop: insets.top }}
+    >
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 48 }}>
+        <Text style={{ fontSize: 24, fontWeight: "700", marginBottom: 12 }}>
+          {t("medicine.medicationReminderForm.title")}
         </Text>
-        <TouchableOpacity
-          style={{
-            padding: 8,
-            borderRadius: 20,
-            backgroundColor: "rgba(255,255,255,0.2)",
-          }}
-          onPress={handleTestNotification}
-        >
-          <Text style={{ fontSize: 16 }}>🧪</Text>
-        </TouchableOpacity>
-      </View>
 
-      <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 20, paddingBottom: insets.bottom + 20 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Regimen Picker */}
-        <View style={{ marginBottom: 20 }}>
-          <Text style={{ marginBottom: 8, fontSize: 16, fontWeight: "600", color: "#333" }}>Chế độ PrEP:</Text>
-          <View
+        <View
+          style={{
+            backgroundColor: "white",
+            borderRadius: 12,
+            padding: 16,
+            marginBottom: 16,
+          }}
+        >
+          <Text style={{ fontWeight: "600", fontSize: 16, marginBottom: 4 }}>
+            {t("medicine.medicationReminderForm.planName")}
+          </Text>
+          <TextInput
+            value={planName}
+            onChangeText={setPlanName}
+            placeholder={t(
+              "medicine.medicationReminderForm.planNamePlaceholder"
+            )}
             style={{
-              backgroundColor: "#fff",
-              borderWidth: 1,
-              borderColor: "#ddd",
+              backgroundColor: "#EFF6FF",
               borderRadius: 8,
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+              fontSize: 16,
+            }}
+          />
+
+          <Text
+            style={{
+              fontWeight: "600",
+              fontSize: 16,
+              marginTop: 12,
+              marginBottom: 4,
             }}
           >
-            <Picker selectedValue={regimen} onValueChange={(v) => setRegimen(v as RegimenType)} style={{ height: 50 }}>
-              <Picker.Item label="Daily PrEP (Hàng ngày)" value="Daily PrEP" />
-              <Picker.Item label="On-demand (2-1-1)" value="On-demand (2-1-1)" />
-            </Picker>
-          </View>
-        </View>
-
-        {regimen === "Daily PrEP" ? (
-          <>
-            {/* Start Date */}
-            <View style={{ marginBottom: 20 }}>
-              <Text style={{ marginBottom: 8, fontSize: 16, fontWeight: "600", color: "#333" }}>Ngày bắt đầu:</Text>
-              <TouchableOpacity
-                style={{
-                  backgroundColor: "#fff",
-                  borderWidth: 1,
-                  borderColor: "#ddd",
-                  borderRadius: 8,
-                  padding: 15,
-                }}
-                onPress={showStart}
-              >
-                <Text style={{ fontSize: 16, color: "#333" }}>📅 {formatDate(startDate)}</Text>
-              </TouchableOpacity>
-              {showStartPicker && (
-                <DateTimePicker
-                  value={startDate}
-                  mode="date"
-                  display="default"
-                  onChange={onChangeStartDate}
-                  minimumDate={new Date()}
-                />
-              )}
-            </View>
-
-            {/* Daily Time */}
-            <View style={{ marginBottom: 20 }}>
-              <Text style={{ marginBottom: 8, fontSize: 16, fontWeight: "600", color: "#333" }}>
-                Giờ uống hàng ngày:
-              </Text>
-              <TouchableOpacity
-                style={{
-                  backgroundColor: "#fff",
-                  borderWidth: 1,
-                  borderColor: "#ddd",
-                  borderRadius: 8,
-                  padding: 15,
-                }}
-                onPress={showTime}
-              >
-                <Text style={{ fontSize: 16, color: "#333" }}>⏰ {formatTime(dailyTime)}</Text>
-              </TouchableOpacity>
-              {showDailyTimePicker && (
-                <DateTimePicker value={dailyTime} mode="time" display="default" onChange={onChangeDailyTime} />
-              )}
-            </View>
-
-            {/* Days */}
-            <View style={{ marginBottom: 20 }}>
-              <Text style={{ marginBottom: 8, fontSize: 16, fontWeight: "600", color: "#333" }}>Số ngày uống:</Text>
-              <TextInput
-                style={{
-                  backgroundColor: "#fff",
-                  borderWidth: 1,
-                  borderColor: "#ddd",
-                  borderRadius: 8,
-                  padding: 12,
-                  fontSize: 16,
-                }}
-                keyboardType="numeric"
-                value={days}
-                onChangeText={setDays}
-                placeholder="30"
-                maxLength={3}
-              />
-              <Text
-                style={{
-                  marginTop: 4,
-                  fontSize: 12,
-                  color: "#666",
-                  fontStyle: "italic",
-                }}
-              >
-                Tối đa 365 ngày
-              </Text>
-            </View>
-
-            {/* Daily Preview */}
-            <View
-              style={{
-                backgroundColor: "#fff",
-                borderRadius: 8,
-                padding: 15,
-                borderWidth: 1,
-                borderColor: "#ddd",
-                marginBottom: 10,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "600",
-                  color: "#333",
-                  marginBottom: 10,
-                }}
-              >
-                Xem trước lịch uống:
-              </Text>
-              <Text
-                style={{
-                  fontSize: 14,
-                  color: "#333",
-                  marginBottom: 4,
-                }}
-              >
-                📅 Bắt đầu: {formatDate(startDate)} lúc {formatTime(dailyTime)}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 14,
-                  color: "#333",
-                  marginBottom: 4,
-                }}
-              >
-                📊 Tổng cộng: {days} ngày × 1 viên = {days} viên
-              </Text>
-            </View>
-          </>
-        ) : (
-          <>
-            {/* Event Date */}
-            <View style={{ marginBottom: 20 }}>
-              <Text style={{ marginBottom: 8, fontSize: 16, fontWeight: "600", color: "#333" }}>Ngày sự kiện:</Text>
-              <TouchableOpacity
-                style={{
-                  backgroundColor: "#fff",
-                  borderWidth: 1,
-                  borderColor: "#ddd",
-                  borderRadius: 8,
-                  padding: 15,
-                }}
-                onPress={() => setShowEventDatePicker(true)}
-              >
-                <Text style={{ fontSize: 16, color: "#333" }}>📅 {formatDate(eventDate)}</Text>
-              </TouchableOpacity>
-              {showEventDatePicker && (
-                <DateTimePicker
-                  value={eventDate}
-                  mode="date"
-                  display="default"
-                  onChange={onChangeEventDate}
-                  minimumDate={new Date()}
-                />
-              )}
-            </View>
-
-            {/* Event Time */}
-            <View style={{ marginBottom: 20 }}>
-              <Text style={{ marginBottom: 8, fontSize: 16, fontWeight: "600", color: "#333" }}>Giờ sự kiện:</Text>
-              <TouchableOpacity
-                style={{
-                  backgroundColor: "#fff",
-                  borderWidth: 1,
-                  borderColor: "#ddd",
-                  borderRadius: 8,
-                  padding: 15,
-                }}
-                onPress={showEventTimePickerHandler}
-              >
-                <Text style={{ fontSize: 16, color: "#333" }}>⏰ {formatTime(eventTime)}</Text>
-              </TouchableOpacity>
-              {showEventTimePicker && (
-                <DateTimePicker value={eventTime} mode="time" display="default" onChange={onChangeEventTime} />
-              )}
-            </View>
-
-            {/* Pre-hours */}
-            <View style={{ marginBottom: 20 }}>
-              <Text style={{ marginBottom: 8, fontSize: 16, fontWeight: "600", color: "#333" }}>
-                Nhắc trước sự kiện (giờ):
-              </Text>
-              <TextInput
-                style={{
-                  backgroundColor: "#fff",
-                  borderWidth: 1,
-                  borderColor: "#ddd",
-                  borderRadius: 8,
-                  padding: 12,
-                  fontSize: 16,
-                }}
-                keyboardType="numeric"
-                value={preHours}
-                onChangeText={setPreHours}
-                placeholder="2"
-                maxLength={2}
-              />
-              <Text
-                style={{
-                  marginTop: 4,
-                  fontSize: 12,
-                  color: "#666",
-                  fontStyle: "italic",
-                }}
-              >
-                Từ 1 đến 72 giờ
-              </Text>
-            </View>
-
-            {/* On-demand Preview */}
-            <View
-              style={{
-                backgroundColor: "#fff",
-                borderRadius: 8,
-                padding: 15,
-                borderWidth: 1,
-                borderColor: "#ddd",
-                marginBottom: 10,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "600",
-                  color: "#333",
-                  marginBottom: 10,
-                }}
-              >
-                Lịch uống tự động (2-1-1):
-              </Text>
-              {generateOnDemandSchedule().map((item, idx) => (
-                <View key={idx} style={{ marginBottom: 8 }}>
-                  <Text style={{ fontSize: 14, fontWeight: "500", color: "#333" }}>
-                    {idx === 0 ? "🔴" : idx === 1 ? "🟡" : "🟢"} {item.pills} viên - {formatDateTime(item.time)}
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      color: "#666",
-                      marginLeft: 16,
-                      marginTop: 2,
-                    }}
-                  >
-                    {item.note}
-                  </Text>
-                </View>
-              ))}
-              <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: "bold",
-                  color: "#4285F4",
-                  marginTop: 8,
-                  textAlign: "center",
-                }}
-              >
-                Tổng cộng: 4 viên
-              </Text>
-            </View>
-          </>
-        )}
-
-        {/* Notes */}
-        <View style={{ marginBottom: 20 }}>
-          <Text style={{ marginBottom: 8, fontSize: 16, fontWeight: "600", color: "#333" }}>Ghi chú:</Text>
+            {t("medicine.medicationReminderForm.medicineName")}
+          </Text>
           <TextInput
+            value={medicineName}
+            onChangeText={setMedicineName}
+            placeholder={t(
+              "medicine.medicationReminderForm.medicineNamePlaceholder"
+            )}
             style={{
-              backgroundColor: "#fff",
-              borderWidth: 1,
-              borderColor: "#ddd",
+              backgroundColor: "#EFF6FF",
               borderRadius: 8,
-              padding: 12,
+              paddingHorizontal: 12,
+              paddingVertical: 10,
               fontSize: 16,
-              height: 80,
+            }}
+          />
+
+          <Text
+            style={{
+              fontWeight: "600",
+              fontSize: 16,
+              marginTop: 12,
+              marginBottom: 4,
+            }}
+          >
+            {t("medicine.medicationReminderForm.generalNotes")}
+          </Text>
+          <TextInput
+            value={planNotes}
+            onChangeText={setPlanNotes}
+            placeholder={t(
+              "medicine.medicationReminderForm.generalNotesPlaceholder"
+            )}
+            multiline
+            style={{
+              backgroundColor: "#F1F5F9",
+              borderRadius: 8,
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+              fontSize: 15,
+              minHeight: 64,
               textAlignVertical: "top",
             }}
-            multiline
-            value={notes}
-            onChangeText={setNotes}
-            placeholder="Nhập ghi chú (tuỳ chọn)"
-            textAlignVertical="top"
           />
         </View>
 
-        {/* Save Button */}
-        <TouchableOpacity
+        <View
           style={{
-            backgroundColor: isLoading ? "#ccc" : "#4285F4",
-            paddingVertical: 15,
-            borderRadius: 8,
-            alignItems: "center",
-            marginTop: 24,
-            marginBottom: 40,
+            backgroundColor: "white",
+            borderRadius: 12,
+            padding: 16,
+            marginBottom: 16,
           }}
-          onPress={onSave}
-          disabled={isLoading}
         >
-          {isLoading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text
+          <Text style={{ fontWeight: "600", fontSize: 16 }}>
+            {t("medicine.medicationReminderForm.startDate")}
+          </Text>
+          <TouchableOpacity
+            style={{
+              marginTop: 8,
+              backgroundColor: "#E0F2FE",
+              borderRadius: 8,
+              paddingVertical: 12,
+              paddingHorizontal: 12,
+            }}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Text style={{ fontSize: 16 }}>📅 {formatDate(startDate)}</Text>
+          </TouchableOpacity>
+          {showDatePicker && (
+            <DateTimePicker
+              value={startDate}
+              mode="date"
+              display="default"
+              onChange={onChangeStartDate}
+              minimumDate={new Date()}
+            />
+          )}
+
+          <Text style={{ fontWeight: "600", fontSize: 16, marginTop: 16 }}>
+            {t("medicine.medicationReminderForm.numberOfDays")}
+          </Text>
+          <TextInput
+            value={totalDays}
+            onChangeText={setTotalDays}
+            keyboardType="numeric"
+            placeholder={t("medicine.medicationReminderForm.daysPlaceholder")}
+            style={{
+              backgroundColor: "#EFF6FF",
+              borderRadius: 8,
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+              fontSize: 16,
+              marginTop: 8,
+            }}
+          />
+
+          <Text style={{ fontWeight: "600", fontSize: 16, marginTop: 16 }}>
+            {t("medicine.medicationReminderForm.planType")}
+          </Text>
+          <View
+            style={{
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: "#E2E8F0",
+              marginTop: 8,
+              overflow: "hidden",
+            }}
+          >
+            <Picker
+              selectedValue={regimenType}
+              onValueChange={(value) => setRegimenType(value)}
+            >
+              <Picker.Item
+                label={t("medicine.medicationReminderForm.custom")}
+                value="custom"
+              />
+              <Picker.Item
+                label={t("medicine.medicationReminderForm.quickPrep")}
+                value="prep"
+              />
+              <Picker.Item
+                label={t("medicine.medicationReminderForm.quickArv")}
+                value="arv"
+              />
+            </Picker>
+          </View>
+
+          <View style={{ flexDirection: "row", marginTop: 12, columnGap: 12 }}>
+            <TouchableOpacity
+              onPress={() => handlePreset("prep")}
               style={{
-                color: "#fff",
-                fontSize: 16,
-                fontWeight: "600",
+                flex: 1,
+                backgroundColor: "#3B82F6",
+                paddingVertical: 12,
+                borderRadius: 8,
+                alignItems: "center",
               }}
             >
-              💾 Lưu & Kích hoạt nhắc nhở
+              <Text style={{ color: "white", fontWeight: "600" }}>
+                {t("medicine.medicationReminderForm.applyPrepPreset")}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => handlePreset("arv")}
+              style={{
+                flex: 1,
+                backgroundColor: "#0EA5E9",
+                paddingVertical: 12,
+                borderRadius: 8,
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: "white", fontWeight: "600" }}>
+                {t("medicine.medicationReminderForm.applyArvPreset")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View
+          style={{
+            backgroundColor: "white",
+            borderRadius: 12,
+            padding: 16,
+            marginBottom: 16,
+          }}
+        >
+          <Text style={{ fontSize: 18, fontWeight: "700", marginBottom: 12 }}>
+            {t("medicine.medicationReminderForm.timeSlots")}
+          </Text>
+
+          {slots.map((slot) => {
+            const meta = getSlotMetadata(t)[slot.slot];
+            return (
+              <View
+                key={slot.id}
+                style={{
+                  borderWidth: 1,
+                  borderColor: "#E2E8F0",
+                  borderRadius: 10,
+                  padding: 12,
+                  marginBottom: 12,
+                  backgroundColor: "#F8FAFC",
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <Text style={{ fontWeight: "600", fontSize: 16 }}>
+                    {meta.emoji} {meta.label}
+                  </Text>
+                  <TouchableOpacity onPress={() => removeSlot(slot.id)}>
+                    <Text style={{ color: "#DC2626", fontWeight: "600" }}>
+                      {t("medicine.medicationReminderForm.delete")}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <InlineTimePicker
+                  value={slot.time}
+                  onChange={(date) => updateSlot(slot.id, { time: date })}
+                  formatTime={formatTime}
+                />
+
+                <Text style={{ marginTop: 12, fontWeight: "500" }}>
+                  {t("medicine.medicationReminderForm.numberOfPills")}
+                </Text>
+                <TextInput
+                  value={slot.quantity}
+                  onChangeText={(value) =>
+                    updateSlot(slot.id, { quantity: value })
+                  }
+                  keyboardType="numeric"
+                  style={{
+                    backgroundColor: "#FFF",
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: "#E2E8F0",
+                    paddingVertical: 8,
+                    paddingHorizontal: 12,
+                    marginTop: 6,
+                  }}
+                />
+
+                <Text style={{ marginTop: 12, fontWeight: "500" }}>
+                  {t("medicine.medicationReminderForm.notes")}
+                </Text>
+                <TextInput
+                  value={slot.note}
+                  onChangeText={(value) => updateSlot(slot.id, { note: value })}
+                  placeholder={t(
+                    "medicine.medicationReminderForm.notesPlaceholder"
+                  )}
+                  style={{
+                    backgroundColor: "#FFF",
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: "#E2E8F0",
+                    paddingVertical: 8,
+                    paddingHorizontal: 12,
+                    marginTop: 6,
+                  }}
+                />
+
+                {slot.slot === "custom" && (
+                  <>
+                    <Text style={{ marginTop: 12, fontWeight: "500" }}>
+                      {t("medicine.medicationReminderForm.displayName")}
+                    </Text>
+                    <TextInput
+                      value={slot.labelOverride}
+                      onChangeText={(value) =>
+                        updateSlot(slot.id, { labelOverride: value })
+                      }
+                      placeholder={t(
+                        "medicine.medicationReminderForm.displayNamePlaceholder"
+                      )}
+                      style={{
+                        backgroundColor: "#FFF",
+                        borderRadius: 8,
+                        borderWidth: 1,
+                        borderColor: "#E2E8F0",
+                        paddingVertical: 8,
+                        paddingHorizontal: 12,
+                        marginTop: 6,
+                      }}
+                    />
+                  </>
+                )}
+              </View>
+            );
+          })}
+
+          <Text style={{ fontWeight: "600", fontSize: 16, marginBottom: 8 }}>
+            {t("medicine.medicationReminderForm.addTimeSlot")}
+          </Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            {(Object.keys(getSlotMetadata(t)) as MedicationSlot[]).map(
+              (slotKey) => (
+                <TouchableOpacity
+                  key={slotKey}
+                  style={{
+                    backgroundColor: "#E0E7FF",
+                    borderRadius: 24,
+                    paddingVertical: 8,
+                    paddingHorizontal: 12,
+                  }}
+                  onPress={() => addSlot(slotKey)}
+                >
+                  <Text style={{ fontWeight: "600", color: "#312E81" }}>
+                    {getSlotMetadata(t)[slotKey].emoji}{" "}
+                    {getSlotMetadata(t)[slotKey].label}
+                  </Text>
+                </TouchableOpacity>
+              )
+            )}
+          </View>
+        </View>
+
+        <TouchableOpacity
+          onPress={handleSave}
+          disabled={isSaving}
+          style={{
+            backgroundColor: isSaving ? "#CBD5F5" : "#2563EB",
+            borderRadius: 12,
+            paddingVertical: 16,
+            alignItems: "center",
+            marginBottom: 32,
+          }}
+        >
+          {isSaving ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text style={{ color: "white", fontWeight: "700", fontSize: 16 }}>
+              {t("medicine.medicationReminderForm.savePlan")}
             </Text>
           )}
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
-  )
+  );
+}
+
+type InlineTimePickerProps = {
+  value: Date;
+  onChange: (value: Date) => void;
+  formatTime: (date: Date) => string;
+};
+
+function InlineTimePicker({
+  value,
+  onChange,
+  formatTime,
+}: InlineTimePickerProps) {
+  const [open, setOpen] = useState(false);
+
+  const handleChange = (event: DateTimePickerEvent, selected?: Date) => {
+    if (Platform.OS === "android") setOpen(false);
+    if (selected) {
+      onChange(selected);
+    }
+  };
+
+  return (
+    <>
+      <TouchableOpacity
+        onPress={() => setOpen(true)}
+        style={{
+          marginTop: 12,
+          backgroundColor: "#DBEAFE",
+          borderRadius: 8,
+          paddingVertical: 10,
+          paddingHorizontal: 12,
+        }}
+      >
+        <Text style={{ fontSize: 16 }}>🕒 {formatTime(value)}</Text>
+      </TouchableOpacity>
+      {open && (
+        <DateTimePicker
+          value={value}
+          mode="time"
+          display="default"
+          onChange={handleChange}
+        />
+      )}
+    </>
+  );
 }

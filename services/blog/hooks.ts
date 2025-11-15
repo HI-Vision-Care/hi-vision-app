@@ -1,6 +1,6 @@
 // services/blog/hooks.ts
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { getBlogPosts, getBlogPostDetail } from "./api";
+import { useQuery } from "@tanstack/react-query";
+import { getBlogPostDetail, getBlogPosts } from "./api";
 import { BlogPost, BlogPostDetail } from "./types";
 
 // services/blog/hooks.ts

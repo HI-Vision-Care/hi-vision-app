@@ -5,7 +5,7 @@ import { useOnboardingNavigation } from "@/hooks/useOnboardingNavigation";
 import { usePatientProfile } from "@/hooks/usePatientId";
 import { useUpdatePatientProfile } from "@/services/patient/hooks";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Alert,
   Image,
@@ -57,6 +57,7 @@ const PatientSymptoms: React.FC = () => {
       medNo: data.medNo ?? "",
       medDate: data.medDate ?? "",
       medFac: data.medFac ?? "",
+      avatar: data.avatar ?? "", // Gửi avatar từ context
       underlyingDiseases: tags,
     };
 

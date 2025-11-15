@@ -1,3 +1,4 @@
+import { useTranslation } from "@/hooks/useTranslation";
 import type { Doctor } from "@/services/doctor/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
@@ -30,6 +31,7 @@ export default function ChooseDoctor({
   selectedDoctor,
   onSelectDoctor,
 }: Props) {
+  const { t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleSelectDoctor = (doctor: Doctor) => {
@@ -46,7 +48,7 @@ export default function ChooseDoctor({
       <View className="flex-row items-center justify-between">
         <View className="flex-1">
           <Text className="text-lg font-bold text-gray-900 mb-1">
-            Choose Doctor
+            {t("booking.chooseDoctor")}
           </Text>
           {selectedDoctor ? (
             <View className="flex-row items-center mt-2">
@@ -70,7 +72,9 @@ export default function ChooseDoctor({
               </View>
             </View>
           ) : (
-            <Text className="text-gray-500 mt-1">Tap to select a doctor</Text>
+            <Text className="text-gray-500 mt-1">
+              {t("booking.tapToSelectDoctor")}
+            </Text>
           )}
         </View>
         <View className="ml-4">
@@ -140,7 +144,7 @@ export default function ChooseDoctor({
             {/* Modal Header */}
             <View className="flex-row items-center justify-between p-6 border-b border-gray-200">
               <Text className="text-xl font-bold text-gray-900">
-                Select Doctor
+                {t("booking.selectDoctor")}
               </Text>
               <TouchableOpacity
                 onPress={() => setModalVisible(false)}
@@ -161,7 +165,7 @@ export default function ChooseDoctor({
                     <Ionicons name="medical" size={24} color="#3b82f6" />
                   </View>
                   <Text className="text-gray-600 text-lg">
-                    Loading doctors...
+                    {t("booking.loadingDoctors")}
                   </Text>
                 </View>
               ) : error ? (
@@ -170,7 +174,7 @@ export default function ChooseDoctor({
                     <Ionicons name="alert-circle" size={24} color="#ef4444" />
                   </View>
                   <Text className="text-red-600 text-lg font-semibold mb-2">
-                    Error Loading Doctors
+                    {t("booking.errorLoadingDoctors")}
                   </Text>
                   <Text className="text-gray-600 text-center">
                     {error.message}
@@ -184,7 +188,7 @@ export default function ChooseDoctor({
                     <Ionicons name="person-outline" size={24} color="#6b7280" />
                   </View>
                   <Text className="text-gray-600 text-lg">
-                    No doctors available
+                    {t("booking.noDoctorsAvailable")}
                   </Text>
                 </View>
               )}

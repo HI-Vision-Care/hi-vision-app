@@ -1,3 +1,4 @@
+import { useTranslation } from "@/hooks/useTranslation";
 import { useDoctorsBySpecialty } from "@/services/medical-services/hooks";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
@@ -6,6 +7,7 @@ import { ActivityIndicator, Image, Text, View } from "react-native";
 type Props = { specialty: string; onDoctorsLoaded?: (empty: boolean) => void };
 
 const AvailableDoctors = ({ specialty, onDoctorsLoaded }: Props) => {
+  const { t } = useTranslation();
   const {
     data: doctors,
     isLoading,
@@ -29,7 +31,9 @@ const AvailableDoctors = ({ specialty, onDoctorsLoaded }: Props) => {
   if (isError) {
     return (
       <View className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6 items-center">
-        <Text className="text-red-600">Unable to load doctor list</Text>
+        <Text className="text-red-600">
+          {t("services.unableToLoadDoctors")}
+        </Text>
       </View>
     );
   }
@@ -39,7 +43,7 @@ const AvailableDoctors = ({ specialty, onDoctorsLoaded }: Props) => {
       <View className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6 items-center">
         <Ionicons name="alert-circle" size={32} color="#ef4444" />
         <Text className="text-gray-800 mt-2 text-center">
-          There are no doctors suitable for this specialty.
+          {t("services.noDoctorsSuitable")}
         </Text>
       </View>
     );
@@ -48,7 +52,7 @@ const AvailableDoctors = ({ specialty, onDoctorsLoaded }: Props) => {
   return (
     <View className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
       <Text className="text-gray-800 text-lg font-bold mb-4">
-        Available Doctors
+        {t("services.availableDoctors")}
       </Text>
       <View className="space-y-4">
         {doctors.map((doctor) => (

@@ -1,10 +1,11 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  cancelTransaction,
   getTransactions,
   getTransactionsByAccountId,
   transferToAppointment,
 } from "./api";
-import { Transaction } from "./types";
+import { CancelTransactionResponse, Transaction } from "./types";
 
 // Có thể nhận thêm options nếu muốn truyền callback
 export const useTransferToAppointment = () =>
@@ -24,3 +25,14 @@ export const useTransactionsByAccountId = (accountId: string, enabled = true) =>
     () => getTransactionsByAccountId(accountId),
     { enabled: !!accountId && enabled }
   );
+
+export const useCancelTransaction = () => {
+  const queryClient = useQueryClient();
+  return useMutation<CancelTransactionResponse, Error, number>({
+    mutationFn: (orderCode) => cancelTransaction(orderCode),
+    onSuccess: () => {
+      // Invalidate transactions query để refetch lại danh sách
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    },
+  });
+};
