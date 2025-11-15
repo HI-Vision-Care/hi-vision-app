@@ -1,5 +1,4 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Localization from "expo-localization";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
@@ -13,8 +12,8 @@ const LANGUAGE_STORAGE_KEY = "app_language";
 i18n
   .use(initReactI18next)
   .init({
-    lng: "vi", // Start with Vietnamese as default
-    fallbackLng: "vi",
+    lng: "en", // Start with English as default
+    fallbackLng: "en",
     debug: __DEV__,
     compatibilityJSON: "v4",
     resources: {
@@ -39,8 +38,8 @@ i18n
     console.log("Available languages:", i18n.languages);
     console.log("Current language:", i18n.language);
     console.log(
-      "Has vi resources:",
-      i18n.hasResourceBundle("vi", "translation")
+      "Has en resources:",
+      i18n.hasResourceBundle("en", "translation")
     );
 
     // Load saved language after initialization
@@ -51,20 +50,14 @@ i18n
       console.log("Loading saved language:", savedLanguage);
       return i18n.changeLanguage(savedLanguage);
     } else {
-      // Try to detect device language
-      const deviceLocale = Localization.getLocales()[0]?.languageCode || "vi";
-      const languageCode = deviceLocale.split("-")[0];
-
-      if (languageCode === "vi") {
-        return i18n.changeLanguage("vi");
-      } else {
-        return i18n.changeLanguage("en");
-      }
+      // Default to English for new users (no saved preference)
+      console.log("No saved language preference, defaulting to English");
+      return i18n.changeLanguage("en");
     }
   })
   .catch((error) => {
     console.error("Error initializing i18n:", error);
-    i18n.changeLanguage("vi"); // Default fallback
+    i18n.changeLanguage("en"); // Default fallback to English
   });
 
 export default i18n;

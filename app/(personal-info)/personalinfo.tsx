@@ -4,12 +4,14 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useUpdatePatientProfile } from "@/services/patient/hooks";
 import { useUploadImage } from "@/services/storage/hooks";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   Image,
   Modal,
+  Platform,
   ScrollView,
   StatusBar,
   Text,
@@ -34,7 +36,6 @@ export default function PersonalInfo() {
   const { t } = useTranslation();
   const { data: profile, isLoading } = usePatientProfile();
   const patientId = profile?.patientID;
-  const accountId = profile?.account?.id;
 
   const [data, setData] = useState<MedicalData>({
     fullName: "",
@@ -84,17 +85,55 @@ export default function PersonalInfo() {
 
   const pickFromLibrary = async () => {
     setShowAvatarModal(false);
+
+    // Small delay to prevent UI blocking on iOS
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     try {
-      const ImagePicker = require("expo-image-picker");
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+      // Check permission first
+      const permissionResult =
+        await ImagePicker.getMediaLibraryPermissionsAsync();
+
+      if (
+        permissionResult.status !== "granted" &&
+        !permissionResult.canAskAgain &&
+        Platform.OS === "ios"
+      ) {
+        Alert.alert(
+          t("personalInfo.imagePicker"),
+          "Vui lòng bật quyền truy cập thư viện ảnh trong Cài đặt > Hi-Vision > Ảnh",
+          [{ text: "OK" }]
+        );
+        return;
+      }
+
+      // Request permission if not granted
+      if (permissionResult.status !== "granted") {
+        const { status } =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (status !== "granted") {
+          Alert.alert(
+            t("personalInfo.imagePicker"),
+            t("personalInfo.unableToOpenLibrary")
+          );
+          return;
+        }
+      }
+
       const res = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
       });
-      if (!res.canceled) setAvatarUri(res.assets?.[0]?.uri);
+
+      if (!res.canceled && res.assets && res.assets.length > 0) {
+        const asset = res.assets[0];
+        setAvatarUri(asset.uri);
+      }
     } catch (e: any) {
+      console.error("Error picking from library:", e);
       Alert.alert(
         t("personalInfo.imagePicker"),
         e?.message || t("personalInfo.unableToOpenLibrary")
@@ -104,16 +143,53 @@ export default function PersonalInfo() {
 
   const takePhoto = async () => {
     setShowAvatarModal(false);
+
+    // Small delay to prevent UI blocking on iOS
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     try {
-      const ImagePicker = require("expo-image-picker");
-      await ImagePicker.requestCameraPermissionsAsync();
+      // Check permission first
+      const permissionResult = await ImagePicker.getCameraPermissionsAsync();
+
+      if (
+        permissionResult.status !== "granted" &&
+        !permissionResult.canAskAgain &&
+        Platform.OS === "ios"
+      ) {
+        Alert.alert(
+          t("personalInfo.camera"),
+          "Vui lòng bật quyền truy cập camera trong Cài đặt > Hi-Vision > Camera",
+          [{ text: "OK" }]
+        );
+        return;
+      }
+
+      // Request permission if not granted
+      if (permissionResult.status !== "granted") {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+
+        if (status !== "granted") {
+          Alert.alert(
+            t("personalInfo.camera"),
+            t("personalInfo.unableToOpenCamera")
+          );
+          return;
+        }
+      }
+
       const res = await ImagePicker.launchCameraAsync({
+        mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
       });
-      if (!res.canceled) setAvatarUri(res.assets?.[0]?.uri);
+
+      if (!res.canceled && res.assets && res.assets.length > 0) {
+        const asset = res.assets[0];
+        setAvatarUri(asset.uri);
+      }
     } catch (e: any) {
+      console.error("Error taking photo:", e);
       Alert.alert(
         t("personalInfo.camera"),
         e?.message || t("personalInfo.unableToOpenCamera")

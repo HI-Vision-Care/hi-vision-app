@@ -1,6 +1,6 @@
 const API_KEY =
   process.env.EXPO_PUBLIC_GEMINI_KEY ||
-  "AIzaSyCKlweT5JnG331LOc9mbysHShdUSzNVSVk";
+  "AIzaSyBy8mNCXUxg5cv3HR9OAeVPMXxDtxJid94";
 
 export async function generateContent(prompt: string) {
   const body = {

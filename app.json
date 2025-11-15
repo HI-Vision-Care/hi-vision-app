@@ -17,7 +17,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.HIVisionMobileApp",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryUsageDescription": "Hi-Vision needs access to your photo library so you can upload your profile picture.",
+        "NSCameraUsageDescription": "Hi-Vision needs access to your camera so you can take a profile picture.",
+        "NSPhotoLibraryAddUsageDescription": "Hi-Vision needs access to your photo library to save your profile picture."
       }
     },
     "android": {
@@ -43,6 +46,14 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Hi-Vision cần quyền truy cập thư viện ảnh để bạn có thể tải ảnh đại diện lên.",
+          "cameraPermission": "Hi-Vision cần quyền truy cập camera để bạn có thể chụp ảnh đại diện.",
+          "saveToPhotosAlbum": true
+        }
+      ],
       [
         "expo-build-properties",
         {
