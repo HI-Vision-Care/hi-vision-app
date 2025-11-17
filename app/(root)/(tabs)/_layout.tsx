@@ -12,8 +12,43 @@ const { width } = Dimensions.get("window");
 const TAB_HEIGHT = 30;
 const NOTCH_WIDTH = 60;
 const NOTCH_DEPTH = 20; // deep hơn để nút Add chìm sâu
-const startX = (width - NOTCH_WIDTH) / 2;
-const endX = startX + NOTCH_WIDTH;
+const SHOW_CENTER_ACTION = false;
+
+const getTabBarBackgroundProps = (
+  bottomInset: number
+): { path: string; height: number } => {
+  const height = TAB_HEIGHT + NOTCH_DEPTH + bottomInset;
+
+  if (!SHOW_CENTER_ACTION) {
+    return {
+      height,
+      path: `
+        M0,0
+        L${width},0
+        L${width},${height}
+        L0,${height}Z
+      `,
+    };
+  }
+
+  const notchStartX = (width - NOTCH_WIDTH) / 2;
+  const notchEndX = notchStartX + NOTCH_WIDTH;
+
+  return {
+    height,
+    path: `
+      M0,0
+      L${notchStartX - 10},0
+      C${notchStartX + 5},0 ${notchStartX + 10},${NOTCH_DEPTH} ${
+        notchStartX + NOTCH_WIDTH / 2
+      },${NOTCH_DEPTH}
+      C${notchEndX - 10},${NOTCH_DEPTH} ${notchEndX - 5},0 ${notchEndX + 10},0
+      L${width},0
+      L${width},${height}
+      L0,${height}Z
+    `,
+  };
+};
 
 const TabIcon = ({
   source,
@@ -81,8 +116,9 @@ const TabIcon = ({
 
 function LayoutInner() {
   const insets = useSafeAreaInsets(); // đọc safe-area inset
-  const startX = (width - NOTCH_WIDTH) / 2;
-  const endX = startX + NOTCH_WIDTH;
+  const { height: tabBarHeight, path: tabBarPath } = getTabBarBackgroundProps(
+    insets.bottom
+  );
 
   return (
     <Tabs
@@ -94,7 +130,7 @@ function LayoutInner() {
           bottom: 0,
           left: 0,
           right: 0,
-          height: TAB_HEIGHT + NOTCH_DEPTH + insets.bottom,
+          height: tabBarHeight,
           paddingBottom: insets.bottom,
           backgroundColor: "transparent",
           borderTopWidth: 0,
@@ -103,23 +139,10 @@ function LayoutInner() {
         tabBarBackground: () => (
           <Svg
             width={width}
-            height={TAB_HEIGHT + NOTCH_DEPTH + insets.bottom}
+            height={tabBarHeight}
             style={{ position: "absolute", bottom: 0 }}
           >
-            <Path
-              d={`
-                M0,0
-                L${startX - 10},0
-                C${startX + 5},0 ${startX + 10},${NOTCH_DEPTH} ${
-                startX + NOTCH_WIDTH / 2
-              },${NOTCH_DEPTH}
-                C${endX - 10},${NOTCH_DEPTH} ${endX - 5},0 ${endX + 10},0
-                L${width},0
-                L${width},${TAB_HEIGHT + NOTCH_DEPTH + insets.bottom}
-                L0,${TAB_HEIGHT + NOTCH_DEPTH + insets.bottom}Z
-              `}
-              fill="#FFFFFF"
-            />
+            <Path d={tabBarPath} fill="#FFFFFF" />
           </Svg>
         ),
       }}
@@ -142,25 +165,6 @@ function LayoutInner() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="add"
-        options={{
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon source={icons.add} focused={focused} isCenter />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="menu"
-        options={{
-          headerShown: false,
-          tabBarIcon: ({ focused, color, size }) => (
-            <TabIcon source={icons.browerService} focused={focused} />
-          ),
-        }}
-      />
-
       <Tabs.Screen
         name="setting"
         options={{

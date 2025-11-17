@@ -1,7 +1,7 @@
 import { HeaderAllServices, ServiceCard } from "@/components";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useMedicalServices } from "@/services/medical-services/hooks";
-import { useRouter } from "expo-router";
+import { Redirect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
@@ -146,19 +146,8 @@ const Menu = () => {
     </View>
   ); */
   
-  // Empty placeholder for Apple review
-  return (
-    <SafeAreaView
-      edges={["top", "left", "right", "bottom"]}
-      className="flex-1 bg-white"
-    >
-      <View className="flex-1 justify-center items-center px-6">
-        <Text className="text-gray-600 text-center text-base">
-          This feature is temporarily unavailable.
-        </Text>
-      </View>
-    </SafeAreaView>
-  );
+  // Redirect away while the services experience is disabled
+  return <Redirect href="/(root)/(tabs)/home" />;
 };
 
 export default Menu;
